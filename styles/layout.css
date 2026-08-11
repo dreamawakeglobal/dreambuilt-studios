@@ -60,14 +60,14 @@
 
 @keyframes navBtnPulseGlow {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2), 0 0 16px rgba(0, 240, 255, 0.12);
-    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 102, 255, 0.25), 0 0 16px rgba(0, 102, 255, 0.15);
+    border-color: rgba(0, 102, 255, 0.4);
     color: #ffffff;
   }
   50% {
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 0 35px rgba(0, 240, 255, 0.3);
-    border-color: #00f0ff;
-    color: #00f0ff;
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.7), 0 0 35px rgba(0, 102, 255, 0.45);
+    border-color: #0066ff;
+    color: #0066ff;
   }
 }
 
@@ -89,10 +89,10 @@
 }
 
 .nav-circle-btn:hover, .nav-circle-btn.active {
-  background: rgba(0, 240, 255, 0.18);
-  border-color: var(--accent-electric);
-  color: var(--accent-electric);
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.85);
+  background: rgba(0, 102, 255, 0.2);
+  border-color: #0066ff;
+  color: #0066ff;
+  box-shadow: 0 0 35px rgba(0, 102, 255, 0.85);
   transform: scale(1.08);
 }
 
