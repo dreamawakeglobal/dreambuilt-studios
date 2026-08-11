@@ -347,6 +347,12 @@
     padding: 0 1rem;
   }
 
+  .header-actions .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
   .nav-dropdown-menu {
     max-width: calc(100vw - 1.5rem);
     padding: 0.5rem;
