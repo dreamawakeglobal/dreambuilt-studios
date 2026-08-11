@@ -353,6 +353,11 @@
     font-weight: 700;
   }
 
+  .dropdown-links li a {
+    padding: 0.58rem 1.15rem;
+    font-size: 0.8rem;
+  }
+
   .nav-dropdown-menu {
     max-width: calc(100vw - 1.5rem);
     padding: 0.5rem;
