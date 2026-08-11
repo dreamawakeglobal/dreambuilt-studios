@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dream Built Studios | Website Design & Development</title>
+    <meta name="description" content="Dream Built Studios is a premium website design and development studio. You Dream It. We Build It." />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <app-header></app-header>
+    
+    <main>
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="container hero-container" style="position: relative; z-index: 2;">
+          <div class="hero-content animate-on-scroll">
+            <h1 class="hero-title">YOUR VISION.<br/><span class="text-gradient">BUILT FOR THE WEB.</span></h1>
+            <p class="hero-subtitle mt-4 mb-4">
+              <span class="hero-lead-text">YOUR BUSINESS DESERVES MORE THAN A WEBSITE.</span>
+              We create powerful digital experiences that elevate your brand, capture attention, and turn your online presence into a tool for real business growth.
+            </p>
+            
+            <div class="hero-actions">
+              <a href="/project.html" class="btn btn-primary">START YOUR PROJECT</a>
+            </div>
+            
+            <div class="brand-statement mt-4">
+              <img src="/images/you-dream-it-we-build-it.png" alt="YOU DREAM IT. WE BUILD IT." class="brand-statement-img" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trust Strip -->
+      <section class="trust-strip">
+        <div class="container">
+          <p class="trust-title text-center mb-3 text-sm">BUILT FOR BUSINESSES READY TO STAND OUT.</p>
+          <div class="trust-scroller">
+            <div class="trust-items">
+              <span>STARTUPS</span>
+              <span>SMALL BUSINESSES</span>
+              <span>PERSONAL BRANDS</span>
+              <span>E-COMMERCE</span>
+              <span>CORPORATE</span>
+              <span>ENTREPRENEURS</span>
+              <!-- Duplicate for infinite scroll effect -->
+              <span>STARTUPS</span>
+              <span>SMALL BUSINESSES</span>
+              <span>PERSONAL BRANDS</span>
+              <span>E-COMMERCE</span>
+              <span>CORPORATE</span>
+              <span>ENTREPRENEURS</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Services Section -->
+      <section id="services" class="section services-section-wrapper" style="position: relative; overflow: hidden;">
+        <canvas id="neural-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;"></canvas>
+        <div class="container" style="position: relative; z-index: 2;">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h2 class="text-gradient">OUR FOUNDATION SERVICES</h2>
+            <p style="max-width: 700px; margin: 0 auto; font-size: 1.15rem;">Custom website design, full-stack development, modern redesigns, and ongoing website management — engineered for business growth.</p>
+          </div>
+          
+          <div class="services-pillars-grid">
+            <!-- 01 CUSTOM WEBSITE DESIGN -->
+            <div class="full-photo-card animate-on-scroll">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-01-custom-design.jpg" alt="01 Custom Website Design - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Start Custom Design</a>
+              </div>
+            </div>
+
+            <!-- 02 WEBSITE DEVELOPMENT -->
+            <div class="full-photo-card animate-on-scroll" style="transition-delay: 0.1s;">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-02-website-development.jpg" alt="02 Website Development - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Build Your Website</a>
+              </div>
+            </div>
+
+            <!-- 03 E-COMMERCE -->
+            <div class="full-photo-card animate-on-scroll" style="transition-delay: 0.15s;">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-03-ecommerce.jpg" alt="03 E-Commerce - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Build Online Store</a>
+              </div>
+            </div>
+
+            <!-- 04 WEBSITE REDESIGN -->
+            <div class="full-photo-card animate-on-scroll" style="transition-delay: 0.1s;">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-04-website-redesign.jpg" alt="04 Website Redesign - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Request Website Audit</a>
+              </div>
+            </div>
+
+            <!-- 05 LANDING PAGES -->
+            <div class="full-photo-card animate-on-scroll" style="transition-delay: 0.15s;">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-05-landing-pages.jpg" alt="05 Landing Pages - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Build Landing Page</a>
+              </div>
+            </div>
+
+            <!-- 06 WEBSITE CARE -->
+            <div class="full-photo-card animate-on-scroll" style="transition-delay: 0.2s;">
+              <div class="card-img-wrapper pillar-visual" title="Click to view full resolution card">
+                <img src="/images/card-06-website-care.jpg" alt="06 Website Care Dashboard - Dream Built Studios" />
+                <div class="click-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Expand Card
+                </div>
+              </div>
+              <div class="card-action-bar">
+                <a href="/project.html" class="btn btn-primary">Get Website Care</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Process Section -->
+      <section id="process" class="section" style="background: #020813;">
+        <div class="container">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h2 class="text-gradient">FROM DREAM TO LAUNCH.</h2>
+          </div>
+          
+          <div class="process-steps">
+            <div class="process-line"></div>
+            
+            <div class="process-step animate-on-scroll">
+              <div class="step-number text-gradient">01</div>
+              <h3 class="mb-2">DREAM</h3>
+              <p class="text-sm">Tell us about your business, your vision, your customers, and what you want your website to accomplish.</p>
+            </div>
+            
+            <div class="process-step animate-on-scroll" style="transition-delay: 0.1s;">
+              <div class="step-number text-gradient">02</div>
+              <h3 class="mb-2">DESIGN</h3>
+              <p class="text-sm">We transform your ideas into a modern digital experience built around your brand.</p>
+            </div>
+            
+            <div class="process-step animate-on-scroll" style="transition-delay: 0.2s;">
+              <div class="step-number text-gradient">03</div>
+              <h3 class="mb-2">BUILD</h3>
+              <p class="text-sm">We bring the design to life and make sure everything works beautifully across desktop, tablet, and mobile.</p>
+            </div>
+            
+            <div class="process-step animate-on-scroll" style="transition-delay: 0.3s;">
+              <div class="step-number text-gradient">04</div>
+              <h3 class="mb-2">LAUNCH</h3>
+              <p class="text-sm">Your new digital presence goes live.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Portfolio Section -->
+      <section id="portfolio" class="section cosmic-portfolio-wrapper" style="position: relative; overflow: hidden; background: #000000;">
+        <canvas id="starlight-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;"></canvas>
+        <div class="container" style="position: relative; z-index: 3;">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h2 class="text-gradient">DREAMS WE’VE BUILT.</h2>
+            <p style="max-width: 600px; margin: 0 auto; color: #e2e8f0; font-size: 1.15rem;">Every business has a vision. Here is a real digital platform engineered and brought to life.</p>
+          </div>
+          
+          <div style="max-width: 720px; margin: 0 auto;">
+            <!-- Portfolio Item 1: Dream Wealthy -->
+            <div class="glass-card animate-on-scroll p-0 overflow-hidden cosmic-glass-card" style="padding: 0; display: flex; flex-direction: column; border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.25), 0 0 70px rgba(180, 0, 255, 0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(2, 8, 19, 0.85);">
+              <div style="aspect-ratio: 16 / 9; width: 100%; position: relative; overflow: hidden; background: #020813; border-bottom: 1px solid rgba(0, 240, 255, 0.25);">
+                <video autoplay loop muted playsinline poster="/images/dream-wealthy.jpg" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                  <source src="/videos/dream-wealthy.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              <div style="padding: 2.25rem; display: flex; flex-direction: column; text-align: center; align-items: center;">
+                <p class="highlight text-sm mb-1" style="font-weight: 700; letter-spacing: 1.5px;">FINANCIAL BUDGETING PLATFORM</p>
+                <h3 class="mb-2" style="font-size: 1.85rem; font-weight: 800;">Dream Wealthy</h3>
+                <p class="text-sm mb-4" style="color: #cbd5e1; line-height: 1.6; font-size: 1.05rem; max-width: 600px;">Full-stack financial budgeting &amp; wealth tracking application engineered with interactive budgeting dashboards, financial analytics, and custom user management.</p>
+                <div style="margin-top: 0.5rem; display: flex; gap: 0.75rem; align-items: center; justify-content: center;">
+                  <a href="https://dreamwealthyco.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 0.8rem 1.75rem; font-size: 1rem; box-shadow: 0 4px 25px rgba(0, 240, 255, 0.5);">VISIT DREAMWEALTHYCO.COM &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- Why Dream Built -->
+      <section class="section" style="position: relative; overflow: hidden;">
+        <canvas class="neural-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;"></canvas>
+        <div class="container" style="position: relative; z-index: 2;">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h2>BUILDING A GREAT WEBSITE<br/>SHOULDN’T BE COMPLICATED.</h2>
+            <p style="max-width: 800px; margin: 1rem auto;">Dream Built Studios combines modern design, technology, and a streamlined development process to turn your vision into a website you're proud to put your name on.</p>
+          </div>
+          
+          <div class="grid grid-cols-3 text-center">
+            <div class="animate-on-scroll">
+              <div class="icon-placeholder mb-4" style="font-size: 2rem; color: var(--accent-electric);">✨</div>
+              <h3 class="mb-2">BEAUTIFUL BY DESIGN</h3>
+              <p class="text-sm">Your website should immediately make your business feel legitimate.</p>
+            </div>
+            
+            <div class="animate-on-scroll" style="transition-delay: 0.1s;">
+              <div class="icon-placeholder mb-4" style="font-size: 2rem; color: var(--accent-electric);">📱</div>
+              <h3 class="mb-2">BUILT FOR EVERY SCREEN</h3>
+              <p class="text-sm">Desktop. Tablet. Mobile. Your experience works everywhere.</p>
+            </div>
+            
+            <div class="animate-on-scroll" style="transition-delay: 0.2s;">
+              <div class="icon-placeholder mb-4" style="font-size: 2rem; color: var(--accent-electric);">🚀</div>
+              <h3 class="mb-2">BUILT TO GROW</h3>
+              <p class="text-sm">Your website isn't just designed for where your business is today — it's built for where you're going.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section id="faq" class="section">
+        <div class="container">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h2>FREQUENTLY ASKED QUESTIONS</h2>
+          </div>
+          
+          <div class="faq-container animate-on-scroll" style="max-width: 800px; margin: 0 auto;">
+            <!-- FAQ items will be initialized via JS for accordion functionality -->
+            <div class="faq-item">
+              <button class="faq-question">How much does a website cost?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Pricing depends on project complexity, pages, functionality, and timeline. Contact us for a custom project quote tailored to your vision.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">How long does a website take to build?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Timeline varies based on the scope of the project. A standard business website might take 2-4 weeks, while an e-commerce platform could take longer.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Do I need to provide the content?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>We recommend you provide the core messaging, but we can structure and style it for maximum impact. We can also assist with copywriting if needed.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Can you redesign my existing website?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Yes, we specialize in modernizing outdated websites to improve design, user experience, and conversion rates.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Will my website work on mobile devices?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Absolutely. Every website we build is fully responsive and optimized for desktop, tablet, and mobile screens.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Can you build an online store?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Yes, we design and build complete e-commerce experiences with secure checkout, product management, and payment integration.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Can you maintain my website after launch?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Yes, we offer ongoing Website Care plans to handle updates, backups, security, and minor changes.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Can you help me choose what type of website I need?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Definitely. Book a consultation and we'll discuss your goals to determine the best digital solution.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">Will I own my website?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>Yes, once the project is completed and paid in full, you own the website and its assets.</p></div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">What happens after I submit a project request?<span class="faq-icon">+</span></button>
+              <div class="faq-answer"><p>We will review your details and reach out to schedule a brief call to discuss your vision, timeline, and pricing.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Final CTA Section -->
+      <section class="section final-cta-section" style="background: var(--bg-secondary);">
+        <div class="container text-center animate-on-scroll">
+          <p class="text-sm highlight mb-2 font-bold tracking-wide">STILL DREAMING ABOUT THAT WEBSITE?</p>
+          <h2 class="text-gradient" style="font-size: clamp(3rem, 6vw, 6rem);">LET’S BUILD IT.</h2>
+          <p class="mt-4 mb-8" style="max-width: 600px; margin: 1rem auto 3rem auto;">Whether you're starting something new or finally giving your business the website it deserves, Dream Built Studios can bring your vision to life.</p>
+          
+          <div class="hero-actions" style="justify-content: center; margin-bottom: 4rem;">
+            <a href="/project.html" class="btn btn-primary">START YOUR PROJECT</a>
+          </div>
+          
+          <div class="final-brand-mark">
+            <h3 class="text-gradient">YOU DREAM IT. WE BUILD IT.</h3>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <app-footer></app-footer>
+    <script type="module" src="/main.js"></script>
+    <style>
+      /* Hero Specific Styles */
+      .hero-section {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding-top: calc(var(--nav-height) + 20vh);
+        padding-bottom: 6rem;
+        position: relative;
+        z-index: 1;
+        background: url('/images/hero-bg.svg') no-repeat center right / cover;
+        overflow: hidden;
+      }
+
+      .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(2, 8, 19, 0.95) 0%, rgba(2, 8, 19, 0.75) 45%, rgba(2, 8, 19, 0.2) 75%, transparent 100%);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .hero-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+
+      .hero-content {
+        max-width: 1050px;
+        margin-left: 5%;
+        text-align: center;
+      }
+
+      .hero-title {
+        font-size: clamp(3.75rem, 6.25vw, 6.25rem);
+      }
+
+      .hero-title .text-gradient {
+        white-space: nowrap;
+      }
+
+      .hero-subtitle {
+        font-size: 1.4rem;
+      }
+
+      .hero-lead-text {
+        display: block;
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 1.55rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2.25rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .hero-actions .btn-primary {
+        animation: floatSlow 4s ease-in-out infinite;
+        box-shadow: 0 4px 25px rgba(0, 240, 255, 0.45);
+        padding: 1.1rem 2.5rem;
+        font-size: 1.25rem;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .hero-actions .btn-primary:hover {
+        box-shadow: 0 10px 35px rgba(0, 240, 255, 0.85);
+      }
+
+      @media (max-width: 768px) {
+        .hero-content {
+          margin-left: 0;
+        }
+        .hero-title .text-gradient {
+          white-space: normal;
+        }
+      }
+
+      .brand-statement-img {
+        max-width: 600px;
+        width: 100%;
+        height: auto;
+        margin: 1.75rem auto 0 auto;
+        display: block;
+        filter: drop-shadow(0 0 22px rgba(0, 240, 255, 0.45));
+        animation: floatSlow 4s ease-in-out infinite;
+        transition: filter 0.3s ease;
+      }
+
+      @keyframes floatSlow {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-12px);
+        }
+      }
+
+      .brand-statement-img:hover {
+        filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.7));
+      }
+
+      .device-mockup-wrapper {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);
+        transition: transform 0.5s ease;
+      }
+      
+      .device-mockup-wrapper:hover {
+        transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+      }
+
+      .mockup-glow {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), transparent);
+        pointer-events: none;
+      }
+
+      .mockup-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        opacity: 0.8;
+      }
+
+      /* Trust Strip */
+      .trust-strip {
+        padding: 3rem 0;
+        background: rgba(2, 8, 19, 0.4);
+        border-top: 1px solid var(--glass-border);
+        border-bottom: 1px solid var(--glass-border);
+        overflow: hidden;
+      }
+
+      .trust-title {
+        color: var(--text-secondary);
+        letter-spacing: 2px;
+        font-weight: 600;
+      }
+
+      .trust-scroller {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .trust-items {
+        display: flex;
+        gap: 4rem;
+        white-space: nowrap;
+        animation: scrollText 30s linear infinite;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      @keyframes scrollText {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-50% - 2rem)); } /* -50% because we duplicated items */
+      }
+
+      @media (max-width: 992px) {
+        .hero-container {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+        .hero-actions {
+          justify-content: center;
+        }
+        .device-mockup-wrapper {
+          transform: none;
+        }
+        .device-mockup-wrapper:hover {
+          transform: none;
+        }
+      }
+    </style>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true">
+      <button id="lightbox-close" class="lightbox-close" aria-label="Close modal">&times;</button>
+      <div class="lightbox-content">
+        <img id="lightbox-img" src="" alt="Enlarged Visual Card" />
+      </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

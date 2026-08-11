@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book a Consultation | Dream Built Studios</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <app-header></app-header>
+    
+    <main style="padding-top: var(--nav-height);">
+      <section class="section">
+        <div class="container">
+          <div class="text-center mb-8 animate-on-scroll">
+            <h1 class="text-gradient mb-2" style="font-size: clamp(2.5rem, 4vw, 4rem);">LET’S TALK ABOUT YOUR VISION.</h1>
+            <p style="max-width: 600px; margin: 0 auto;">Tell us what you're building, where you are today, and where you want to go. We'll help determine the best way to bring it to life.</p>
+          </div>
+          
+          <div class="form-container animate-on-scroll" style="transition-delay: 0.1s;">
+            <!-- Step Progress Header -->
+            <div class="form-progress-bar">
+              <div class="progress-track"><div class="progress-fill" id="consultation-progress-fill" style="width: 33.3%;"></div></div>
+              <div class="progress-steps-indicators">
+                <div class="step-indicator active" data-step-num="1"><span class="step-num">1</span><span class="step-title">Type</span></div>
+                <div class="step-indicator" data-step-num="2"><span class="step-num">2</span><span class="step-title">Schedule</span></div>
+                <div class="step-indicator" data-step-num="3"><span class="step-num">3</span><span class="step-title">Details</span></div>
+              </div>
+            </div>
+
+            <form id="consultation-form" novalidate>
+              <!-- Step 1 -->
+              <div class="form-step active" data-step="1">
+                <h3 class="mb-4">STEP 1: Choose consultation type</h3>
+                <div class="radio-group mb-4">
+                  <label class="radio-label">
+                    <input type="radio" name="consultation_type" value="Website Consultation" required>
+                    <span>Website Consultation</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="consultation_type" value="Website Redesign">
+                    <span>Website Redesign</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="consultation_type" value="E-Commerce">
+                    <span>E-Commerce Consultation</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="consultation_type" value="Landing Page">
+                    <span>Landing Page Consultation</span>
+                  </label>
+                </div>
+                <div style="text-align: right;">
+                  <button type="button" class="btn btn-primary next-step">Next Step &rarr;</button>
+                </div>
+              </div>
+
+              <!-- Step 2 & 3 (Combined for simplicity, mock calendar) -->
+              <div class="form-step" data-step="2">
+                <h3 class="mb-4">STEP 2: Choose Date & Time</h3>
+                <p class="text-sm mb-4">Select your preferred date and time for the consultation call.</p>
+                
+                <div class="grid grid-cols-2 mb-4">
+                  <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control" name="consultation_date" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Time</label>
+                    <select class="form-control" name="consultation_time" required>
+                      <option value="">Select a time...</option>
+                      <option value="09:00 AM">09:00 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="11:00 AM">11:00 AM</option>
+                      <option value="01:00 PM">01:00 PM</option>
+                      <option value="02:00 PM">02:00 PM</option>
+                      <option value="03:00 PM">03:00 PM</option>
+                      <option value="04:00 PM">04:00 PM</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between;">
+                  <button type="button" class="btn btn-secondary prev-step">&larr; Back</button>
+                  <button type="button" class="btn btn-primary next-step">Next Step &rarr;</button>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="form-step" data-step="3">
+                <h3 class="mb-4">STEP 3: Your Information</h3>
+                <div class="grid grid-cols-2 mb-4">
+                  <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="first_name" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phone">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Company / Brand</label>
+                    <input type="text" class="form-control" name="company">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Current Website URL</label>
+                    <input type="url" class="form-control" name="website">
+                  </div>
+                </div>
+                <div class="form-group mb-4">
+                  <label class="form-label">Type of Business</label>
+                  <input type="text" class="form-control" name="business_type">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between;">
+                  <button type="button" class="btn btn-secondary prev-step">&larr; Back</button>
+                  <button type="button" class="btn btn-primary next-step">Next Step &rarr;</button>
+                </div>
+              </div>
+
+              <!-- Step 5 -->
+              <div class="form-step" data-step="4">
+                <h3 class="mb-4">STEP 4: Project Information</h3>
+                
+                <div class="form-group">
+                  <label class="form-label">What are you looking to build?</label>
+                  <textarea class="form-control" name="what_to_build" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Do you currently have a website?</label>
+                  <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="has_website" value="Yes"><span>Yes</span></label>
+                    <label class="radio-label"><input type="radio" name="has_website" value="No"><span>No</span></label>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">What is your primary goal for the website?</label>
+                  <input type="text" class="form-control" name="primary_goal">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">What features do you need?</label>
+                  <input type="text" class="form-control" name="features">
+                </div>
+                
+                <div class="grid grid-cols-2 mb-4">
+                  <div class="form-group">
+                    <label class="form-label">Estimated Budget</label>
+                    <select class="form-control" name="budget" required>
+                      <option value="">Select...</option>
+                      <option value="Under $300">Under $300</option>
+                      <option value="$300–$800">$300–$800</option>
+                      <option value="$800+">$800+</option>
+                      <option value="Not Sure Yet">Not Sure Yet</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Desired Launch Timeline</label>
+                    <select class="form-control" name="timeline" required>
+                      <option value="">Select...</option>
+                      <option value="ASAP">ASAP</option>
+                      <option value="2–4 Weeks">2–4 Weeks</option>
+                      <option value="1–2 Months">1–2 Months</option>
+                      <option value="2–3 Months">2–3 Months</option>
+                      <option value="Flexible / Not Sure">Flexible / Not Sure</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-group mb-4">
+                  <label class="form-label text-gradient">Tell us about your vision.</label>
+                  <textarea class="form-control" name="vision" style="min-height: 150px;"></textarea>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between;">
+                  <button type="button" class="btn btn-secondary prev-step">&larr; Back</button>
+                  <button type="submit" class="btn btn-primary">BOOK MY CONSULTATION</button>
+                </div>
+              </div>
+
+              <!-- Success State -->
+              <div class="form-step text-center" id="success-state">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                <h3 class="text-gradient mb-2">YOUR CONSULTATION IS BOOKED.</h3>
+                <p>We’re excited to hear about your vision. A confirmation email has been sent to your address.</p>
+                <a href="/index.html" class="btn btn-secondary mt-4">Return Home</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <app-footer></app-footer>
+    <script type="module" src="/main.js"></script>
+    <script type="module" src="/forms.js"></script>
+  </body>
+</html>
