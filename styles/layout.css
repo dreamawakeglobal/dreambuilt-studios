@@ -58,6 +58,19 @@
   align-items: center;
 }
 
+@keyframes navBtnPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.25), 0 0 20px rgba(0, 240, 255, 0.15);
+    border-color: rgba(0, 240, 255, 0.35);
+    color: #ffffff;
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.75), 0 0 45px rgba(0, 240, 255, 0.4);
+    border-color: #00f0ff;
+    color: #00f0ff;
+  }
+}
+
 .nav-circle-btn {
   width: 48px;
   height: 48px;
@@ -72,14 +85,14 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  animation: navBtnPulseGlow 2.8s ease-in-out infinite;
 }
 
 .nav-circle-btn:hover, .nav-circle-btn.active {
-  background: rgba(0, 240, 255, 0.12);
+  background: rgba(0, 240, 255, 0.18);
   border-color: var(--accent-electric);
   color: var(--accent-electric);
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.85);
   transform: scale(1.08);
 }
 
