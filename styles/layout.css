@@ -60,12 +60,12 @@
 
 @keyframes navBtnPulseGlow {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.25), 0 0 20px rgba(0, 240, 255, 0.15);
-    border-color: rgba(0, 240, 255, 0.35);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2), 0 0 16px rgba(0, 240, 255, 0.12);
+    border-color: rgba(0, 240, 255, 0.3);
     color: #ffffff;
   }
   50% {
-    box-shadow: 0 0 25px rgba(0, 240, 255, 0.75), 0 0 45px rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 0 35px rgba(0, 240, 255, 0.3);
     border-color: #00f0ff;
     color: #00f0ff;
   }
