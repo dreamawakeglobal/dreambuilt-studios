@@ -6,7 +6,11 @@ class AppHeader extends HTMLElement {
           <a href="/index.html" class="logo">
             <img src="/logo.png" alt="Dream Built Studios Logo" class="logo-image" />
           </a>
-          
+
+          <div style="display: flex; align-items: center; justify-content: center; flex: 1; margin: 0 1rem; transform: translateX(-1%);">
+            <img src="/images/dream-built-studios-lab-logo.png" alt="Dream Built Studios Lab" style="height: 78px; width: auto; filter: drop-shadow(0 0 24px rgba(0, 102, 255, 0.95)); display: block;" />
+          </div>
+
           <div class="nav-dropdown-wrapper">
             <button class="nav-circle-btn" id="nav-dropdown-toggle" aria-label="Pages Menu" title="Explore Pages">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -26,10 +30,6 @@ class AppHeader extends HTMLElement {
                 <li><a href="/index.html#faq">FAQ</a></li>
               </ul>
             </div>
-          </div>
-          
-          <div class="header-actions">
-            <a href="/project.html" class="btn btn-primary">Start Your Project</a>
           </div>
         </div>
       </header>

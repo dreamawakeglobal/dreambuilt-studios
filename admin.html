@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Command Center | Dream Built Studios</title>
+    <meta name="description" content="Dream Built Studios Internal Operational Admin Portal." />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="module" src="/main.js"></script>
+    <link rel="stylesheet" href="/styles/portal.css" />
+  </head>
+  <body class="portal-body" style="position: relative; overflow-x: hidden;">
+    <!-- Neural Network Moving & Sparkling Background Canvas -->
+    <canvas class="neural-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0;"></canvas>
+
+    <app-header style="position: relative; z-index: 10;"></app-header>
+
+    <!-- ADMIN AUTH CONTAINER -->
+    <div id="admin-auth-container" style="min-height: calc(85vh - 80px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; max-width: 550px; margin: 0 auto; position: relative; z-index: 2; transform: translateY(15%);">
+      <div class="portal-glass" style="padding: 3.25rem 2.75rem; text-align: center; width: 100%; border: 2px solid #0066ff; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 35px rgba(0,102,255,0.35);">
+        <img src="/logo.png" alt="Dream Built Studios" style="height: 56px; margin-bottom: 1.75rem;" />
+        <h2 style="font-size: 1.85rem; margin-bottom: 0.65rem; color: var(--color-cyan-glow);">ADMIN COMMAND CENTER</h2>
+        <p style="color: var(--text-secondary); font-size: 1.05rem; margin-bottom: 2.25rem;">
+          Dream Built Studios Staff Login
+        </p>
+
+        <form id="admin-login-form">
+          <div class="portal-form-group" style="text-align: left; margin-bottom: 1.5rem;">
+            <label class="portal-label" style="font-size: 0.9rem; margin-bottom: 0.6rem;">ADMIN EMAIL</label>
+            <input type="email" id="admin-email" class="portal-input" placeholder="admin@dreambuiltstudios.com" required value="admin@dreambuiltstudios.com" style="padding: 1rem 1.15rem; font-size: 1.05rem;" />
+          </div>
+
+          <div class="portal-form-group" style="text-align: left; margin-bottom: 1.75rem;">
+            <label class="portal-label" style="font-size: 0.9rem; margin-bottom: 0.6rem;">PASSWORD</label>
+            <input type="password" id="admin-password" class="portal-input" placeholder="••••••••" required value="admin1234" style="padding: 1rem 1.15rem; font-size: 1.05rem;" />
+          </div>
+
+          <button type="submit" class="attention-cta-btn" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 30px;">
+            ACCESS COMMAND CENTER &rarr;
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ADMIN WORKSPACE CONTAINER -->
+    <div id="admin-workspace-container" style="display: none; position: relative; z-index: 2;">
+      <!-- Admin Header -->
+      <div class="portal-header" style="border-bottom-color: var(--color-cyan-glow);">
+        <div class="portal-brand">
+          <img src="/logo.png" alt="Dream Built Studios" class="portal-logo" />
+          <span class="portal-badge" style="background: rgba(0,240,255,0.15); color: var(--color-cyan-glow); border-color: var(--color-cyan-glow);">ADMIN OPERATIONAL CENTER</span>
+        </div>
+
+        <div class="portal-header-center" style="display: flex; align-items: center; justify-content: center; transform: translateX(-1%);">
+          <img src="/images/dream-built-studios-lab-logo.png" alt="Dream Built Studios Lab" style="height: 72px; width: auto; filter: drop-shadow(0 0 22px rgba(0, 240, 255, 0.9)); display: block;" />
+        </div>
+
+        <div class="portal-user-actions">
+          <button id="btn-create-client" class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;">+ CREATE CLIENT</button>
+          <button id="btn-create-project" class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem; background: var(--color-success);">+ CREATE PROJECT</button>
+          <button id="btn-admin-logout" class="portal-badge" style="cursor: pointer; background: transparent;">SIGN OUT</button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: HIGH-LEVEL ADMIN DASHBOARD -->
+      <div id="admin-main-dashboard">
+        <div class="portal-container">
+          <!-- ATTENTION REQUIRED OPERATIONAL METRICS -->
+          <div class="health-grid" style="margin-bottom: 2rem;">
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Active Client Projects</div>
+              <div class="health-card-value" id="adm-count-projects">2</div>
+            </div>
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Pending Feedback Requests</div>
+              <div class="health-card-value" style="color: var(--color-warning);" id="adm-count-feedback">2</div>
+            </div>
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Pending Client Action Items</div>
+              <div class="health-card-value" style="color: var(--color-cyan-glow);" id="adm-count-actions">3</div>
+            </div>
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Approvals Requested</div>
+              <div class="health-card-value" style="color: var(--color-success);" id="adm-count-approvals">1</div>
+            </div>
+          </div>
+
+          <!-- ACTIVE PROJECTS COMMAND LIST -->
+          <div class="portal-glass" style="padding: 1.75rem; margin-bottom: 2.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+              <h2 style="margin: 0; font-size: 1.35rem;">ACTIVE CLIENT PROJECTS</h2>
+              <span style="font-size: 0.85rem; color: var(--text-secondary);">Click MANAGE to enter client workspace with full admin controls</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">
+                    <th style="padding: 0.75rem 1rem;">Client / Project</th>
+                    <th style="padding: 0.75rem 1rem;">Current Phase</th>
+                    <th style="padding: 0.75rem 1rem;">Progress %</th>
+                    <th style="padding: 0.75rem 1rem;">Target Launch</th>
+                    <th style="padding: 0.75rem 1rem;">Status</th>
+                    <th style="padding: 0.75rem 1rem;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-projects-table-body">
+                  <!-- Dynamically populated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- QUICK MANAGEMENT ACTIONS & FEEDBACK CONTROL -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- ADMIN FEEDBACK MANAGER -->
+            <div class="portal-glass" style="padding: 1.75rem;">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; color: #ffffff;">REVISION &amp; FEEDBACK MANAGER</h3>
+              <div id="admin-feedback-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Admin feedback items -->
+              </div>
+            </div>
+
+            <!-- ADMIN PROJECT CONTROLS & UPDATES -->
+            <div class="portal-glass" style="padding: 1.75rem;">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; color: #ffffff;">POST PROJECT UPDATE / ACTION ITEM</h3>
+              <form id="admin-post-update-form">
+                <div class="portal-form-group">
+                  <label class="portal-label">TARGET CLIENT PROJECT</label>
+                  <select id="adm-target-project" class="portal-select">
+                    <option value="Psycortex Corporate Website">Psycortex Corporate Website</option>
+                  </select>
+                </div>
+
+                <div class="portal-form-group">
+                  <label class="portal-label">UPDATE TITLE</label>
+                  <input type="text" id="adm-update-title" class="portal-input" placeholder="e.g. Build Phase 2 Completed" required />
+                </div>
+
+                <div class="portal-form-group">
+                  <label class="portal-label">UPDATE MESSAGE BODY</label>
+                  <textarea id="adm-update-body" class="portal-textarea" rows="3" placeholder="Write message to client dashboard..." required></textarea>
+                </div>
+
+                <button type="submit" class="attention-cta-btn" style="width: 100%; justify-content: center;">POST OFFICIAL UPDATE TO CLIENT &rarr;</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: DEDICATED ADMIN CLIENT WORKSPACE (Opened via MANAGE button) -->
+      <div id="admin-project-manage-view" style="display: none;">
+        <!-- Top Sub-Header Bar -->
+        <div style="background: rgba(10, 16, 30, 0.9); border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding: 0.85rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <button id="btn-back-to-dashboard" class="portal-badge" style="cursor: pointer; background: rgba(255,255,255,0.1); color: #ffffff;">&larr; BACK TO ALL PROJECTS</button>
+            <div>
+              <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;" id="adm-manage-title">Psycortex Corporate Website</h3>
+              <span style="font-size: 0.8rem; color: var(--color-cyan-glow);" id="adm-manage-client-sub">Client: Alba Cortez (Psycortex)</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Current Phase:</span>
+            <select id="adm-manage-phase-select" class="portal-select" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; width: auto;">
+              <option value="Dream">1. Dream Phase</option>
+              <option value="Design">2. Design Phase</option>
+              <option value="Build" selected>3. Build Phase</option>
+              <option value="Review">4. Review Phase</option>
+              <option value="Launch">5. Launch Phase</option>
+            </select>
+            <button id="btn-adm-add-task" class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;">+ ADD CHECKLIST TASK</button>
+          </div>
+        </div>
+
+        <!-- Admin Workspace Tabs Nav -->
+        <div class="portal-tabs-nav">
+          <button class="portal-tab-btn active" data-adm-tab="overview">OVERVIEW</button>
+          <button class="portal-tab-btn" data-adm-tab="pages">WEBSITE PAGES</button>
+          <button class="portal-tab-btn" data-adm-tab="feedback">FEEDBACK BOARD</button>
+          <button class="portal-tab-btn" data-adm-tab="assets">ASSET LIBRARY</button>
+          <button class="portal-tab-btn" data-adm-tab="messages">MESSAGES</button>
+          <button class="portal-tab-btn" data-adm-tab="checklist">PROJECT CHECKLIST</button>
+        </div>
+
+        <div class="portal-container">
+          <!-- ADMIN OVERVIEW TAB -->
+          <div id="adm-tab-overview" class="adm-tab-pane">
+            <div class="welcome-card">
+              <h2>ADMIN MANAGING: PSYVERTEX WORKSPACE</h2>
+              <p style="margin: 0; color: var(--text-secondary); line-height: 1.5;">
+                Full operational control over client deliverables, page screenshots, checklist tasks, and real-time chat.
+              </p>
+            </div>
+
+            <!-- HEALTH GRID -->
+            <div class="health-grid" style="margin-bottom: 2rem;">
+              <div class="portal-glass health-card">
+                <div class="health-card-label">Overall Progress (Auto-Calculated)</div>
+                <div class="health-card-value" id="adm-manage-progress-val">69%</div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="adm-manage-progress-fill" style="width: 69%;"></div>
+                </div>
+              </div>
+
+              <div class="portal-glass health-card">
+                <div class="health-card-label">Target Launch Date</div>
+                <input type="text" id="adm-manage-target-launch" class="portal-input" style="font-size: 1.2rem; font-weight: 800; color: #ffffff; background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 240, 255, 0.3); padding: 0.35rem 0.6rem; width: 100%; border-radius: var(--radius-sm); margin-top: 0.35rem;" value="Sept 15, 2026" onchange="updateProjectTargetLaunchFromOverview(this.value)" title="Click to change target launch date" />
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">Status: <span class="status-badge active">On Track</span></div>
+              </div>
+
+              <div class="portal-glass health-card">
+                <div class="health-card-label">Staging Preview Link</div>
+                <div class="health-card-value" style="font-size: 0.95rem; color: var(--color-cyan-glow);">https://staging.dreambuiltstudios.com/psycortex</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem;">Updated 2 hours ago</div>
+              </div>
+            </div>
+
+            <!-- ACTION ITEMS PANEL -->
+            <div class="attention-section">
+              <div class="attention-header">
+                <div class="attention-title">
+                  <span>📋 ASSIGNED CLIENT ACTION ITEMS</span>
+                </div>
+                <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #fff;" onclick="openModal('modal-add-action-item')">+ ASSIGN NEW ACTION ITEM</button>
+              </div>
+
+              <div class="attention-grid" id="adm-manage-action-grid">
+                <!-- Action items list -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ADMIN WEBSITE PAGES TAB -->
+          <div id="adm-tab-pages" class="adm-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 style="margin: 0 0 0.35rem 0;">WEBSITE PAGE SCREENSHOT MANAGER</h2>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Upload latest high-resolution page design mockups for client preview.</p>
+              </div>
+              <button class="attention-cta-btn" onclick="openModal('modal-upload-screenshot')">+ UPLOAD NEW PAGE SCREENSHOT</button>
+            </div>
+
+            <div class="pages-grid" id="adm-manage-pages-grid">
+              <!-- Dynamically populated page cards with Upload buttons -->
+            </div>
+          </div>
+
+          <!-- ADMIN FEEDBACK TAB -->
+          <div id="adm-tab-feedback" class="adm-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 style="margin: 0 0 0.35rem 0;">CLIENT FEEDBACK &amp; REVISION BOARD</h2>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Review and resolve client visual feedback and change requests.</p>
+              </div>
+            </div>
+
+            <div id="adm-manage-feedback-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+              <!-- Feedback list -->
+            </div>
+          </div>
+
+          <!-- ADMIN ASSET LIBRARY TAB -->
+          <div id="adm-tab-assets" class="adm-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 style="margin: 0 0 0.35rem 0;">PROJECT ASSET VAULT</h2>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Inspect uploaded client brand assets or upload deliverables for the client.</p>
+              </div>
+              <button class="attention-cta-btn" onclick="openModal('modal-upload-deliverable')">+ UPLOAD PROJECT DELIVERABLE</button>
+            </div>
+
+            <div class="files-grid" id="adm-manage-assets-grid">
+              <!-- Asset grid -->
+            </div>
+          </div>
+
+          <!-- ADMIN MESSAGES TAB -->
+          <div id="adm-tab-messages" class="adm-tab-pane" style="display: none;">
+            <div class="portal-glass" style="padding: 1.5rem; max-width: 900px; margin: 0 auto;">
+              <h3 style="margin: 0 0 1rem 0;">DIRECT CLIENT CHAT (Alba Cortez)</h3>
+              
+              <div id="adm-manage-chat-messages" style="display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; margin-bottom: 1.25rem; padding-right: 0.5rem;">
+                <!-- Chat messages -->
+              </div>
+
+              <form id="adm-chat-send-form" style="display: flex; gap: 0.75rem;">
+                <input type="text" id="adm-chat-input" class="portal-input" placeholder="Type message to Alba Cortez..." required />
+                <button type="submit" class="attention-cta-btn" style="white-space: nowrap;">SEND MESSAGE &rarr;</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- ADMIN PROJECT CHECKLIST TAB -->
+          <div id="adm-tab-checklist" class="adm-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 style="margin: 0 0 0.35rem 0;">PROJECT CHECKLIST CONTROL</h2>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Check off tasks, modify statuses, and add custom project tasks.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <span class="portal-badge" style="background: rgba(0,102,255,0.2); font-size: 0.85rem;" id="adm-checklist-badge">11 of 16 Tasks Completed (69%)</span>
+                <button class="attention-cta-btn" onclick="openModal('modal-add-checklist-task')">+ ADD NEW TASK</button>
+              </div>
+            </div>
+
+            <div id="adm-manage-checklist-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <!-- Interactive admin checklist phases -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CREATE CLIENT -->
+    <div class="portal-modal-overlay" id="modal-create-client">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">CREATE NEW CLIENT PROFILE</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-create-client')">&times;</button>
+        </div>
+
+        <form id="form-create-client">
+          <div class="portal-form-group">
+            <label class="portal-label">BUSINESS NAME</label>
+            <input type="text" id="c-business" class="portal-input" placeholder="e.g. Psycortex" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">PRIMARY CONTACT NAME</label>
+            <input type="text" id="c-contact" class="portal-input" placeholder="e.g. Alba Cortez" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">CLIENT EMAIL ADDRESS</label>
+            <input type="email" id="c-email" class="portal-input" placeholder="alba@psycortex.com" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">INITIAL PASSWORD</label>
+            <input type="text" id="c-password" class="portal-input" placeholder="demo1234" value="demo1234" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">PHONE NUMBER</label>
+            <input type="text" id="c-phone" class="portal-input" placeholder="(555) 234-5678" />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-create-client')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">CREATE CLIENT PROFILE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CREATE PROJECT -->
+    <div class="portal-modal-overlay" id="modal-create-project">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">LAUNCH NEW CLIENT PROJECT</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-create-project')">&times;</button>
+        </div>
+
+        <form id="form-create-project">
+          <div class="portal-form-group">
+            <label class="portal-label">ASSIGN TO CLIENT</label>
+            <select id="p-client" class="portal-select" required>
+              <option value="Psycortex">Psycortex (Alba Cortez)</option>
+              <option value="Dream Wealthy">Dream Wealthy (Marcus Vance)</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">PROJECT NAME</label>
+            <input type="text" id="p-name" class="portal-input" placeholder="e.g. Psycortex Corporate Website" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">INITIAL LIFECYCLE PHASE</label>
+            <select id="p-phase" class="portal-select" required>
+              <option value="Dream">1. Dream Phase</option>
+              <option value="Design">2. Design Phase</option>
+              <option value="Build" selected>3. Build Phase</option>
+              <option value="Review">4. Review Phase</option>
+              <option value="Launch">5. Launch Phase</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">TARGET LAUNCH DATE</label>
+            <input type="date" id="p-launch" class="portal-input" value="2026-09-15" required />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-create-project')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn" style="background: var(--color-success);">LAUNCH PROJECT WORKSPACE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: UPLOAD PAGE SCREENSHOT -->
+    <div class="portal-modal-overlay" id="modal-upload-screenshot">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">UPLOAD PAGE DESIGN SCREENSHOT</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-upload-screenshot')">&times;</button>
+        </div>
+
+        <form id="form-upload-screenshot">
+          <div class="portal-form-group">
+            <label class="portal-label">TARGET WEBSITE PAGE</label>
+            <select id="s-page" class="portal-select" required>
+              <option value="p1">Home Page</option>
+              <option value="p2">About Page</option>
+              <option value="p3">Services Page</option>
+              <option value="p4">Contact Page</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">SCREENSHOT IMAGE URL / ASSET PATH</label>
+            <input type="text" id="s-url" class="portal-input" placeholder="/images/card-01-custom-design.jpg" value="/images/card-01-custom-design.jpg" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">VERSION NOTES</label>
+            <input type="text" id="s-notes" class="portal-input" placeholder="e.g. Updated hero banner and typography" required />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-upload-screenshot')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">UPDATE PAGE SCREENSHOT</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD CHECKLIST TASK -->
+    <div class="portal-modal-overlay" id="modal-add-checklist-task">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">ADD NEW CHECKLIST TASK</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-add-checklist-task')">&times;</button>
+        </div>
+
+        <form id="form-add-checklist-task">
+          <div class="portal-form-group">
+            <label class="portal-label">LIFECYCLE PHASE</label>
+            <select id="t-phase" class="portal-select" required>
+              <option value="1. INTAKE &amp; DISCOVERY">1. INTAKE &amp; DISCOVERY</option>
+              <option value="2. DESIGN PHASE">2. DESIGN PHASE</option>
+              <option value="3. BUILD PHASE" selected>3. BUILD PHASE</option>
+              <option value="4. REVIEW PHASE">4. REVIEW PHASE</option>
+              <option value="5. LAUNCH PHASE">5. LAUNCH PHASE</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">TASK TITLE</label>
+            <input type="text" id="t-title" class="portal-input" placeholder="e.g. Integrate Payment Gateway" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">ASSIGNED OWNER</label>
+            <select id="t-owner" class="portal-select" required>
+              <option value="Dream Built">Dream Built</option>
+              <option value="Client Action">Client Action</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">INITIAL STATUS</label>
+            <select id="t-status" class="portal-select" required>
+              <option value="In Progress" selected>In Progress</option>
+              <option value="Action Required">Action Required</option>
+              <option value="Upcoming">Upcoming</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-add-checklist-task')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">ADD CHECKLIST TASK</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD ACTION ITEM -->
+    <div class="portal-modal-overlay" id="modal-add-action-item">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">ASSIGN NEW CLIENT ACTION ITEM</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-add-action-item')">&times;</button>
+        </div>
+
+        <form id="form-add-action-item">
+          <div class="portal-form-group">
+            <label class="portal-label">ACTION ITEM TITLE</label>
+            <input type="text" id="act-title" class="portal-input" placeholder="e.g. Upload High-Res Logo Files" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">DESCRIPTION / INSTRUCTIONS</label>
+            <textarea id="act-desc" class="portal-textarea" rows="3" placeholder="Please upload SVG or transparent PNG vector files..." required></textarea>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">DUE DATE</label>
+            <input type="text" id="act-due" class="portal-input" placeholder="August 20, 2026" value="August 20, 2026" required />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-add-action-item')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">ASSIGN ACTION ITEM</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/admin.js"></script>
+  </body>
+</html>

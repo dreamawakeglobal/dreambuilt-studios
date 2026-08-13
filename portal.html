@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Portal | Dream Built Studios</title>
+    <meta name="description" content="Dream Built Studios Client Project Collaboration Portal." />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="module" src="/main.js"></script>
+    <link rel="stylesheet" href="/styles/portal.css" />
+  </head>
+  <body class="portal-body" style="position: relative; overflow-x: hidden;">
+    <!-- Neural Network Moving & Sparkling Background Canvas -->
+    <canvas class="neural-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0;"></canvas>
+    
+    <app-header style="position: relative; z-index: 10;"></app-header>
+
+    <!-- AUTH SECTION (Show if not logged in) -->
+    <div id="auth-container" style="min-height: calc(85vh - 80px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; max-width: 550px; margin: 0 auto; position: relative; z-index: 2; transform: translateY(15%);">
+      <div class="portal-glass" style="padding: 3.25rem 2.75rem; text-align: center; width: 100%; border: 2px solid #0066ff; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 35px rgba(0,102,255,0.35);">
+        <img src="/logo.png" alt="Dream Built Studios" style="height: 56px; margin-bottom: 1.75rem;" />
+        <h2 style="font-size: 1.85rem; margin-bottom: 0.65rem;">CLIENT PORTAL SIGN IN</h2>
+        <p style="color: var(--text-secondary); font-size: 1.05rem; margin-bottom: 2.25rem; line-height: 1.5;">
+          Enter your authorized client email and password to access your project workspace.
+        </p>
+
+        <form id="portal-login-form">
+          <div class="portal-form-group" style="text-align: left; margin-bottom: 1.5rem;">
+            <label class="portal-label" style="font-size: 0.9rem; margin-bottom: 0.6rem;">EMAIL ADDRESS</label>
+            <input type="email" id="login-email" class="portal-input" placeholder="client@company.com" required value="alba@psycortex.com" style="padding: 1rem 1.15rem; font-size: 1.05rem;" />
+          </div>
+
+          <div class="portal-form-group" style="text-align: left; margin-bottom: 1.75rem;">
+            <label class="portal-label" style="font-size: 0.9rem; margin-bottom: 0.6rem;">PASSWORD</label>
+            <input type="password" id="login-password" class="portal-input" placeholder="••••••••" required value="demo1234" style="padding: 1rem 1.15rem; font-size: 1.05rem;" />
+          </div>
+
+          <div id="login-error" style="color: var(--color-danger); font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
+
+          <button type="submit" class="attention-cta-btn" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 30px;">
+            SIGN IN TO YOUR PORTAL &rarr;
+          </button>
+        </form>
+
+        <div style="margin-top: 1.75rem; font-size: 0.95rem; color: var(--text-secondary);">
+          Demo Testing Credentials:<br/>
+          <strong style="color: #ffffff;">Email:</strong> alba@psycortex.com | <strong style="color: #ffffff;">Password:</strong> demo1234
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CLIENT WORKSPACE (Show if logged in) -->
+    <div id="workspace-container" style="display: none; position: relative; z-index: 2;">
+      <!-- Portal Sub-Header -->
+      <div class="portal-header">
+        <div class="portal-brand">
+          <img src="/logo.png" alt="Dream Built Studios" class="portal-logo" />
+          <span class="portal-badge" id="client-business-name">Psycortex Workspace</span>
+        </div>
+
+        <div class="portal-header-center" style="display: flex; align-items: center; justify-content: center; transform: translateX(-1%);">
+          <img src="/images/dream-built-studios-lab-logo.png" alt="Dream Built Studios Lab" style="height: 72px; width: auto; filter: drop-shadow(0 0 22px rgba(0, 102, 255, 0.9)); display: block;" />
+        </div>
+
+        <div class="portal-user-actions">
+          <div class="portal-user-info">
+            <div class="portal-avatar" id="user-avatar-initials">AC</div>
+            <span style="font-weight: 700; font-size: 0.9rem;" id="user-display-name">Alba Cortez</span>
+          </div>
+          <button id="btn-sign-out" class="portal-badge" style="cursor: pointer; background: transparent; border-color: rgba(255,255,255,0.2); color: var(--text-secondary);">
+            SIGN OUT
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="portal-tabs-nav">
+        <button class="portal-tab-btn active" data-tab="overview">OVERVIEW</button>
+        <button class="portal-tab-btn" data-tab="pages">WEBSITE PAGES</button>
+        <button class="portal-tab-btn" data-tab="feedback">FEEDBACK BOARD</button>
+        <button class="portal-tab-btn" data-tab="files">ASSET LIBRARY</button>
+        <button class="portal-tab-btn" data-tab="messages">MESSAGES</button>
+        <button class="portal-tab-btn" data-tab="checklist">PROJECT CHECKLIST</button>
+      </div>
+
+      <div class="portal-container">
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-pane active">
+          <!-- Welcome Onboarding Card -->
+          <div class="welcome-card">
+            <h2>WELCOME TO DREAM BUILT.</h2>
+            <p style="margin: 0; color: var(--text-secondary); line-height: 1.5;">
+              Your vision is officially in motion. This workspace is your single source of truth to track progress, review builds, request changes, and collaborate directly with Dream Built.
+            </p>
+            <div class="welcome-bullets">
+              <div class="welcome-bullet-item"><span>✓</span> Track Your Build Pipeline</div>
+              <div class="welcome-bullet-item"><span>✓</span> Preview Staging Builds</div>
+              <div class="welcome-bullet-item"><span>✓</span> Submit Revision Requests</div>
+              <div class="welcome-bullet-item"><span>✓</span> Approve Milestones</div>
+            </div>
+          </div>
+
+          <!-- NEEDS YOUR ATTENTION SECTION -->
+          <div class="attention-section">
+            <div class="attention-header">
+              <div class="attention-title">
+                <span>⚠️ NEEDS YOUR ATTENTION</span>
+                <span class="attention-badge-count" id="attention-count">3</span>
+              </div>
+            </div>
+
+            <div id="attention-grid-container" class="attention-grid">
+              <!-- Dynamically populated action cards -->
+            </div>
+          </div>
+
+          <!-- PROJECT LIFECYCLE STEPPER -->
+          <div class="stepper-container">
+            <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 1.25rem;">
+              PROJECT LIFECYCLE STAGE
+            </div>
+            <div class="stepper-pipeline" id="lifecycle-stepper">
+              <div class="step-node completed">
+                <div class="step-circle">✓</div>
+                <div class="step-label">DREAM</div>
+              </div>
+              <div class="step-node completed">
+                <div class="step-circle">✓</div>
+                <div class="step-label">DESIGN</div>
+              </div>
+              <div class="step-node current">
+                <div class="step-circle">●</div>
+                <div class="step-label">BUILD</div>
+              </div>
+              <div class="step-node">
+                <div class="step-circle">○</div>
+                <div class="step-label">REVIEW</div>
+              </div>
+              <div class="step-node">
+                <div class="step-circle">○</div>
+                <div class="step-label">LAUNCH</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HEALTH GRID -->
+          <div class="health-grid">
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Overall Progress</div>
+              <div class="health-card-value" id="health-progress-value">69%</div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="health-progress-fill" style="width: 69%;"></div>
+              </div>
+            </div>
+
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Target Launch Date</div>
+              <div class="health-card-value" id="health-launch-date" style="font-size: 1.4rem;">Sept 15, 2026</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">Status: <span class="status-badge active">On Track</span></div>
+            </div>
+
+            <div class="portal-glass health-card">
+              <div class="health-card-label">Next Milestone</div>
+              <div class="health-card-value" id="health-next-milestone" style="font-size: 1.25rem;">Homepage Review</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">Due: Aug 18, 2026</div>
+            </div>
+          </div>
+
+          <!-- LATEST UPDATE CARD -->
+          <div class="portal-glass" style="padding: 1.75rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff;">📢 LATEST PROJECT UPDATE FROM DREAM BUILT</h3>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);" id="update-date">Today</span>
+            </div>
+            <h4 style="margin: 0 0 0.5rem 0; color: var(--color-cyan-glow);" id="update-title">Homepage Build Complete</h4>
+            <p style="margin: 0 0 1.25rem 0; color: var(--text-secondary); line-height: 1.6;" id="update-body">
+              We've completed the first responsive build of your homepage! Please review the latest build on the preview link and submit any requested changes through the feedback section.
+            </p>
+            <a href="https://dreambuiltstudios.com" target="_blank" class="attention-cta-btn">
+              VIEW LIVE PREVIEW &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- TAB 2: WEBSITE PAGES -->
+        <div id="tab-pages" class="tab-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+              <h2 style="margin: 0 0 0.35rem 0;">WEBSITE PAGES &amp; DESIGN MOCKUPS</h2>
+              <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Review uploaded design screenshots and approve page builds.</p>
+            </div>
+            <button class="attention-cta-btn" onclick="openScreenshotLightbox('/images/card-01-custom-design.jpg', 'Project Design Overview')">VIEW DESIGN OVERVIEW 🖼️</button>
+          </div>
+
+          <div class="pages-grid" id="pages-grid-container">
+            <!-- Dynamically populated page cards -->
+          </div>
+        </div>
+
+        <!-- TAB 3: FEEDBACK BOARD -->
+        <div id="tab-feedback" class="tab-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+              <h2 style="margin: 0 0 0.35rem 0;">REVISION &amp; FEEDBACK BOARD</h2>
+              <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Single source of truth for all design and content requests.</p>
+            </div>
+            <button id="btn-open-request-change" class="attention-cta-btn">+ REQUEST A CHANGE</button>
+          </div>
+
+          <div class="board-grid">
+            <div class="board-col">
+              <div class="board-col-title"><span>Submitted</span> <span id="count-submitted">0</span></div>
+              <div id="col-submitted"></div>
+            </div>
+
+            <div class="board-col">
+              <div class="board-col-title"><span>In Progress</span> <span id="count-in-progress">0</span></div>
+              <div id="col-in-progress"></div>
+            </div>
+
+            <div class="board-col">
+              <div class="board-col-title"><span>Ready for Review</span> <span id="count-ready">0</span></div>
+              <div id="col-ready"></div>
+            </div>
+
+            <div class="board-col">
+              <div class="board-col-title"><span>Completed</span> <span id="count-completed">0</span></div>
+              <div id="col-completed"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: ASSET LIBRARY -->
+        <div id="tab-files" class="tab-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>PROJECT ASSET LIBRARY</h2>
+          </div>
+
+          <div class="portal-glass" style="padding: 2rem; margin-bottom: 2rem; text-align: center; border-style: dashed;" id="file-drop-zone">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+            <h3 style="margin: 0 0 0.5rem 0;">UPLOAD PROJECT ASSETS</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem;">
+              Drag and drop logos, brand photos, website copy, or inspiration files here.
+            </p>
+            <input type="file" id="file-input-element" style="display: none;" />
+            <button class="attention-cta-btn" onclick="document.getElementById('file-input-element').click()">SELECT FILE TO UPLOAD</button>
+          </div>
+
+          <div class="pages-grid" id="files-grid-container">
+            <!-- Dynamically populated files -->
+          </div>
+        </div>
+
+        <!-- TAB 5: MESSAGES -->
+        <div id="tab-messages" class="tab-pane" style="display: none;">
+          <h2>PROJECT MESSAGES</h2>
+          <div class="portal-glass" style="padding: 1.5rem; min-height: 400px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div id="messages-list" style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; max-height: 450px; padding-right: 0.5rem;">
+              <!-- Messages stream -->
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+              <input type="text" id="msg-input" class="portal-input" placeholder="Type a message for Dream Built Studios..." />
+              <button id="btn-send-msg" class="attention-cta-btn">SEND</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: PROJECT CHECKLIST -->
+        <div id="tab-checklist" class="tab-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+              <h2 style="margin: 0 0 0.35rem 0;">PROJECT ROADMAP &amp; CHECKLIST</h2>
+              <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Complete task blueprint from intake to final launch.</p>
+            </div>
+            <span class="portal-badge" style="background: rgba(0,102,255,0.2); font-size: 0.85rem;" id="checklist-progress-badge">11 of 16 Tasks Completed (69%)</span>
+          </div>
+
+          <div id="checklist-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Phase 1 -->
+            <div class="portal-glass" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">1. DREAM PHASE</h3>
+                <span class="status-badge completed">Completed</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Project Intake &amp; Scope Confirmation</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Brand Discovery &amp; Color Palette Selection</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Upload Brand Assets &amp; Logos</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-color: transparent;">Client Action</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="portal-glass" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">2. DESIGN PHASE</h3>
+                <span class="status-badge completed">Completed</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Sitemap &amp; Page Architecture</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Homepage Design Concept</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Homepage Design Approval</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-color: transparent;">Client Action</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="portal-glass" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">3. BUILD PHASE</h3>
+                <span class="status-badge active">Current Phase</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Homepage Build &amp; Micro-Animations</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-cyan-glow); width: 20px; text-align: center;">●</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">About Page Build &amp; Bio Layout</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-warning); width: 20px; text-align: center;">⚠️</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Upload High-Res Founder Headshot</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-color: transparent;">Client Action</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--color-success); width: 20px; text-align: center;">✓</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); text-decoration: line-through;">Services Page Build &amp; Copy Integration</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phase 4 -->
+            <div class="portal-glass" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">4. REVIEW PHASE</h3>
+                <span class="status-badge planned">Upcoming</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Responsive Desktop &amp; Mobile QA</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Client Revision &amp; Feedback Round</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-color: transparent;">Client Action</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Final Page &amp; Milestone Approvals</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-color: transparent;">Client Action</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phase 5 -->
+            <div class="portal-glass" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">5. LAUNCH PHASE</h3>
+                <span class="status-badge planned">Upcoming</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Domain &amp; DNS Configuration</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">SEO Checks &amp; Analytics Setup</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 900; font-size: 1.1rem; color: var(--text-muted); width: 20px; text-align: center;">○</span>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #ffffff;">Live Production Deployment</div>
+                  </div>
+                  <span class="portal-badge" style="background: rgba(0, 102, 255, 0.15); color: var(--color-royal-blue); border-color: transparent;">Dream Built</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: REQUEST A CHANGE -->
+    <div class="portal-modal-overlay" id="modal-request-change">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">SUBMIT A REVISION REQUEST</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-request-change')">&times;</button>
+        </div>
+
+        <form id="form-request-change">
+          <div class="portal-form-group">
+            <label class="portal-label">TARGET WEBSITE PAGE</label>
+            <select id="req-page" class="portal-select" required>
+              <option value="Home Page">Home Page</option>
+              <option value="About Page">About Page</option>
+              <option value="Services Page">Services Page</option>
+              <option value="Contact Page">Contact Page</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">PAGE SECTION (OPTIONAL)</label>
+            <input type="text" id="req-section" class="portal-input" placeholder="e.g. Hero Banner, Founder Bio, Footer" />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">SUMMARY TITLE</label>
+            <input type="text" id="req-title" class="portal-input" placeholder="e.g. Replace founder photo with studio shot" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">CHANGE DESCRIPTION</label>
+            <textarea id="req-desc" class="portal-textarea" rows="4" placeholder="Describe the change you would like us to make in detail..." required></textarea>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">PRIORITY</label>
+            <select id="req-priority" class="portal-select">
+              <option value="Normal">Normal</option>
+              <option value="Important">Important</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" style="cursor: pointer;" onclick="closeModal('modal-request-change')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">SUBMIT REVISION REQUEST</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: PAGE WORKSPACE & APPROVAL -->
+    <div class="portal-modal-overlay" id="modal-page-workspace">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title" id="pwd-page-name">HOME PAGE WORKSPACE</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-page-workspace')">&times;</button>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <span class="status-badge ready-for-review" id="pwd-page-status">Ready for Review</span>
+              <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 0.75rem;">Version: <strong id="pwd-page-version" style="color: #fff;">1.2</strong></span>
+            </div>
+            <button class="attention-cta-btn" style="padding: 0.4rem 1rem; font-size: 0.8rem;" id="btn-view-pwd-screenshot">
+              VIEW FULL SCREENSHOT 🖼️
+            </button>
+          </div>
+
+          <!-- Page Screenshot Preview Container -->
+          <div style="position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--color-royal-blue); margin-bottom: 1.25rem; background: #000; cursor: pointer;" id="pwd-screenshot-container">
+            <img src="/images/card-01-custom-design.jpg" alt="Page Screenshot Preview" id="pwd-page-img" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+            <div style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.85); color: var(--color-cyan-glow); padding: 0.3rem 0.65rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+              🔍 Click to Expand Screenshot
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.4); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);" id="pwd-page-notes">
+            Latest build screenshot uploaded for review. Please inspect design details.
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <button class="attention-cta-btn" style="flex: 1; justify-content: center; background: var(--color-success);" id="btn-approve-page">
+              ✓ APPROVE THIS PAGE
+            </button>
+            <button class="attention-cta-btn" style="flex: 1; justify-content: center; background: var(--color-warning);" onclick="closeModal('modal-page-workspace'); openModal('modal-request-change');">
+              ✏️ REQUEST CHANGES
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: SCREENSHOT LIGHTBOX -->
+    <div class="portal-modal-overlay" id="modal-screenshot-lightbox">
+      <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+        <button class="portal-modal-close" style="position: absolute; top: -2.5rem; right: 0; color: #fff; font-size: 2rem;" onclick="closeModal('modal-screenshot-lightbox')">&times;</button>
+        <img id="lightbox-img" src="" alt="Screenshot" style="max-width: 100%; max-height: 85vh; border-radius: 12px; border: 2px solid var(--color-royal-blue); box-shadow: 0 0 50px rgba(0,102,255,0.6); display: block;" />
+        <div style="text-align: center; margin-top: 0.75rem; color: #ffffff; font-weight: 700; font-size: 0.95rem;" id="lightbox-caption">Page Screenshot Preview</div>
+      </div>
+    </div>
+
+    <script type="module" src="/portal.js"></script>
+  </body>
+</html>
+
+    <script type="module" src="/portal.js"></script>
+  </body>
+</html>
