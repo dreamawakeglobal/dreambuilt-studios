@@ -187,12 +187,51 @@ function loadPortalState() {
 async function fetchSupabaseData() {
   if (!supabase) return;
   try {
-    const { data, error } = await supabase.from('projects').select('*').limit(5);
-    if (!error && data && data.length > 0) {
-      console.log('✓ Connected to Supabase Database: fetched projects', data);
+    const { data: projects, error } = await supabase.from('projects').select('*');
+    if (!error && projects && projects.length > 0) {
+      const p = projects.find(x => x.project_name.toLowerCase().includes('psycortex') || x.id === '22222222-2222-2222-2222-222222222222') || projects[0];
+      if (p) {
+        mockClientState.project.name = p.project_name;
+        mockClientState.project.currentPhase = p.current_phase;
+        mockClientState.project.progress = p.progress_pct;
+        mockClientState.project.targetLaunchDate = p.target_launch_date;
+        mockClientState.project.status = p.status;
+      }
     }
+
+    const { data: chkData } = await supabase.from('project_checklist_items').select('*');
+    if (chkData && chkData.length > 0) {
+      const phasesMap = {};
+      chkData.forEach(item => {
+        if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
+        phasesMap[item.phase_name].push({
+          id: item.id,
+          title: item.title,
+          owner: item.owner || 'Dream Built',
+          status: item.status || 'Upcoming'
+        });
+      });
+
+      if (Object.keys(phasesMap).length > 0) {
+        mockClientState.checklistPhases = Object.keys(phasesMap).map(phaseName => ({
+          phaseName: phaseName,
+          status: phasesMap[phaseName].every(i => i.status === 'Completed') ? 'Completed' : 'In Progress',
+          items: phasesMap[phaseName]
+        }));
+      }
+    }
+
+    if (userSession) renderAllViews();
+
+    supabase.channel('public:projects_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_checklist_items' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_items' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchSupabaseData())
+      .subscribe();
+
   } catch (e) {
-    console.warn('Supabase live database check:', e);
+    console.warn('Supabase live sync:', e);
   }
 }
 

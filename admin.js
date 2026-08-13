@@ -144,12 +144,83 @@ function loadAdminState() {
 async function fetchSupabaseAdminData() {
   if (!supabase) return;
   try {
-    const { data, error } = await supabase.from('projects').select('*');
-    if (!error && data && data.length > 0) {
-      console.log('✓ Connected to Supabase Admin Database: fetched projects', data);
+    const { data: dbProjects, error } = await supabase.from('projects').select('*');
+    const { data: dbClients } = await supabase.from('clients').select('*');
+    const { data: dbChecklist } = await supabase.from('project_checklist_items').select('*');
+
+    if (!error && dbProjects && dbProjects.length > 0) {
+      dbProjects.forEach(dp => {
+        const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
+        let existingPrj = adminState.projects.find(p => p.id === dp.id || p.name === dp.project_name);
+        
+        if (!existingPrj) {
+          existingPrj = {
+            id: dp.id,
+            client: matchingClient ? matchingClient.business_name : 'Psycortex',
+            contact: matchingClient ? matchingClient.contact_name : 'Alba Cortez',
+            clientEmail: matchingClient ? matchingClient.email : 'alba@psycortex.com',
+            clientPassword: matchingClient ? matchingClient.password_hash : 'demo1234',
+            name: dp.project_name,
+            currentPhase: dp.current_phase,
+            progress: dp.progress_pct,
+            targetLaunch: dp.target_launch_date,
+            status: dp.status,
+            actionItems: [],
+            pages: [],
+            feedback: [],
+            assets: [],
+            messages: [],
+            checklistPhases: []
+          };
+          adminState.projects.push(existingPrj);
+        } else {
+          existingPrj.currentPhase = dp.current_phase;
+          existingPrj.progress = dp.progress_pct;
+          existingPrj.targetLaunch = dp.target_launch_date;
+          existingPrj.status = dp.status;
+          if (matchingClient) {
+            existingPrj.clientEmail = matchingClient.email;
+            existingPrj.clientPassword = matchingClient.password_hash;
+            existingPrj.client = matchingClient.business_name;
+            existingPrj.contact = matchingClient.contact_name;
+          }
+        }
+
+        if (dbChecklist && dbChecklist.length > 0) {
+          const projChecklist = dbChecklist.filter(c => c.project_id === dp.id);
+          if (projChecklist.length > 0) {
+            const phasesMap = {};
+            projChecklist.forEach(item => {
+              if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
+              phasesMap[item.phase_name].push({
+                id: item.id,
+                title: item.title,
+                owner: item.owner,
+                status: item.status
+              });
+            });
+            existingPrj.checklistPhases = Object.keys(phasesMap).map(pName => ({
+              phaseName: pName,
+              status: phasesMap[pName].every(i => i.status === 'Completed') ? 'Completed' : 'In Progress',
+              items: phasesMap[pName]
+            }));
+          }
+        }
+      });
+
+      renderAdminDashboard();
     }
+
+    supabase.channel('public:admin_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_checklist_items' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_items' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchSupabaseAdminData())
+      .subscribe();
+
   } catch (e) {
-    console.warn('Supabase Admin DB connection status:', e);
+    console.warn('Supabase Admin live sync:', e);
   }
 }
 
