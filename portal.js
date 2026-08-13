@@ -122,13 +122,25 @@ let mockClientState = {
 const STORAGE_KEY = 'dreambuilt_app_state_v1';
 
 function ensurePsycortexChecklist(state) {
-  let totalItems = 0;
-  if (state.checklistPhases) {
+  let isOld = false;
+  if (!state.checklistPhases || !Array.isArray(state.checklistPhases)) {
+    isOld = true;
+  } else {
+    let total = 0;
     state.checklistPhases.forEach(ph => {
-      if (ph.items) totalItems += ph.items.length;
+      if (ph.items) {
+        total += ph.items.length;
+        ph.items.forEach(i => {
+          if (i.title && (i.title.includes('Scope Confirmation') || i.title.includes('Sitemap & Page Architecture'))) {
+            isOld = true;
+          }
+        });
+      }
     });
+    if (total !== 21) isOld = true;
   }
-  if (totalItems < 21 || !state.checklistPhases) {
+
+  if (isOld) {
     state.checklistPhases = [
       {
         phaseName: '1. INTAKE & DISCOVERY',
