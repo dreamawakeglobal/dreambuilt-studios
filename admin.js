@@ -41,46 +41,51 @@ let adminState = {
           phaseName: '1. INTAKE & DISCOVERY',
           status: 'Completed',
           items: [
-            { id: 'c1', title: 'Kickoff Call & Strategy Alignment', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c2', title: 'Content & Brand Asset Gathering', owner: 'Client Action', status: 'Completed' },
-            { id: 'c3', title: 'Technical Architecture & Sitemap Approval', owner: 'Dream Built', status: 'Completed' }
+            { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
           ]
         },
         {
           phaseName: '2. DESIGN PHASE',
           status: 'Completed',
           items: [
-            { id: 'c4', title: 'Wireframing & UI Component System', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c5', title: 'High-Fidelity Homepage Concept', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c6', title: 'Client Design Review & Sign-Off', owner: 'Client Action', status: 'Completed' },
-            { id: 'c7', title: 'Mobile Responsive Layout Designs', owner: 'Dream Built', status: 'Completed' }
+            { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
           ]
         },
         {
           phaseName: '3. BUILD PHASE',
           status: 'Current Phase',
           items: [
-            { id: 'c8', title: 'Homepage Build & Micro-Animations', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c9', title: 'About Page Build & Bio Layout', owner: 'Dream Built', status: 'In Progress' },
-            { id: 'c10', title: 'Upload High-Res Founder Headshot', owner: 'Client Action', status: 'Action Required' },
-            { id: 'c11', title: 'Services Page Build & Copy Integration', owner: 'Dream Built', status: 'Completed' }
+            { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
+            { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
+            { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
           ]
         },
         {
           phaseName: '4. REVIEW PHASE',
           status: 'Upcoming',
           items: [
-            { id: 'c12', title: 'Responsive Desktop & Mobile QA', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c13', title: 'Client Revision & Feedback Round', owner: 'Client Action', status: 'Upcoming' },
-            { id: 'c14', title: 'Final Page & Milestone Approvals', owner: 'Client Action', status: 'Upcoming' }
+            { id: 'c14', title: 'Cross-browser and mobile device testing', owner: 'Dream Built', status: 'Upcoming' },
+            { id: 'c15', title: 'Proofreading Spanish copy and checking grammar/accents', owner: 'Client Action', status: 'Upcoming' },
+            { id: 'c16', title: 'Testing all links, forms, and widgets for proper functionality', owner: 'Dream Built', status: 'Upcoming' },
+            { id: 'c17', title: 'Client review and final feedback rounds', owner: 'Client Action', status: 'Upcoming' }
           ]
         },
         {
           phaseName: '5. LAUNCH PHASE',
           status: 'Upcoming',
           items: [
-            { id: 'c15', title: 'Domain & DNS Configuration', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c16', title: 'SEO Checks & Analytics Setup', owner: 'Dream Built', status: 'Upcoming' }
+            { id: 'c18', title: 'Final performance optimization and cache busting', owner: 'Dream Built', status: 'Upcoming' },
+            { id: 'c19', title: 'Configuring domain and hosting deployment', owner: 'Dream Built', status: 'Upcoming' },
+            { id: 'c20', title: 'SEO metadata implementation (titles, descriptions)', owner: 'Dream Built', status: 'Upcoming' },
+            { id: 'c21', title: 'Post-launch monitoring and client hand-off', owner: 'Dream Built', status: 'Upcoming' }
           ]
         }
       ]
