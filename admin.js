@@ -224,21 +224,40 @@ function loadAdminState() {
 async function fetchSupabaseAdminData() {
   if (!supabase) return;
   try {
-    const { data: dbProjects, error } = await supabase.from('projects').select('*');
-    const { data: dbClients } = await supabase.from('clients').select('*');
-    const { data: dbChecklist } = await supabase.from('project_checklist_items').select('*');
+    const [
+      { data: dbProjects, error: prjErr },
+      { data: dbClients },
+      { data: dbChecklist },
+      { data: dbActionItems },
+      { data: dbWebsitePages },
+      { data: dbFeedback },
+      { data: dbMessages },
+      { data: dbAssets }
+    ] = await Promise.all([
+      supabase.from('projects').select('*'),
+      supabase.from('clients').select('*'),
+      supabase.from('project_checklist_items').select('*'),
+      supabase.from('action_items').select('*'),
+      supabase.from('website_pages').select('*'),
+      supabase.from('feedback_items').select('*'),
+      supabase.from('messages').select('*').order('created_at', { ascending: true }),
+      supabase.from('project_assets').select('*')
+    ]);
 
-    if (!error && dbProjects && dbProjects.length > 0) {
+    if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
+
+    if (!prjErr && dbProjects && dbProjects.length > 0) {
       dbProjects.forEach(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
-        let existingPrj = adminState.projects.find(p => p.id === dp.id || p.name === dp.project_name);
+        let existingPrj = adminState.projects.find(p => p.id === dp.id || p.name.toLowerCase() === dp.project_name.toLowerCase());
         
         if (!existingPrj) {
           existingPrj = {
             id: dp.id,
-            client: matchingClient ? matchingClient.business_name : 'Psycortex',
-            contact: matchingClient ? matchingClient.contact_name : 'Alba Cortez',
-            clientEmail: matchingClient ? matchingClient.email : 'alba@psycortex.com',
+            clientId: dp.client_id,
+            client: matchingClient ? matchingClient.business_name : 'Client',
+            contact: matchingClient ? matchingClient.contact_name : 'Contact',
+            clientEmail: matchingClient ? matchingClient.email : 'client@dreambuiltstudios.com',
             clientPassword: matchingClient ? matchingClient.password_hash : 'demo1234',
             name: dp.project_name,
             currentPhase: dp.current_phase,
@@ -246,23 +265,96 @@ async function fetchSupabaseAdminData() {
             targetLaunch: dp.target_launch_date,
             status: dp.status,
             actionItems: [],
-            pages: [],
+            pages: [
+              { id: `pg-1`, title: 'Home Page', image: '/images/card-01-custom-design.jpg', status: 'Ready for Review', version: 'v1.0' },
+              { id: `pg-2`, title: 'About Page', image: '/images/card-02-website-development.jpg', status: 'Building', version: 'v1.0' }
+            ],
             feedback: [],
             assets: [],
             messages: [],
             checklistPhases: []
           };
+          ensurePsycortexChecklist(existingPrj);
           adminState.projects.push(existingPrj);
         } else {
+          existingPrj.id = dp.id;
           existingPrj.currentPhase = dp.current_phase;
           existingPrj.progress = dp.progress_pct;
           existingPrj.targetLaunch = dp.target_launch_date;
           existingPrj.status = dp.status;
           if (matchingClient) {
+            existingPrj.clientId = matchingClient.id;
             existingPrj.clientEmail = matchingClient.email;
             existingPrj.clientPassword = matchingClient.password_hash;
             existingPrj.client = matchingClient.business_name;
             existingPrj.contact = matchingClient.contact_name;
+          }
+        }
+
+        if (dbActionItems) {
+          const prjActions = dbActionItems.filter(a => a.project_id === dp.id);
+          if (prjActions.length > 0) {
+            existingPrj.actionItems = prjActions.map(a => ({
+              id: a.id,
+              title: a.title,
+              description: a.description,
+              dueDate: a.due_date,
+              actionType: a.action_type || 'upload_file',
+              completed: a.completed
+            }));
+          }
+        }
+
+        if (dbWebsitePages) {
+          const prjPages = dbWebsitePages.filter(pg => pg.project_id === dp.id);
+          if (prjPages.length > 0) {
+            existingPrj.pages = prjPages.map(pg => ({
+              id: pg.id,
+              title: pg.title,
+              image: pg.screenshot_url,
+              version: pg.version,
+              status: pg.status
+            }));
+          }
+        }
+
+        if (dbFeedback) {
+          const prjFb = dbFeedback.filter(f => f.project_id === dp.id);
+          if (prjFb.length > 0) {
+            existingPrj.feedback = prjFb.map(f => ({
+              id: f.id,
+              client: existingPrj.client,
+              page: f.page_title,
+              title: f.title,
+              status: f.status,
+              priority: f.priority,
+              comment: f.comment
+            }));
+          }
+        }
+
+        if (dbMessages) {
+          const prjMsgs = dbMessages.filter(m => m.project_id === dp.id);
+          if (prjMsgs.length > 0) {
+            existingPrj.messages = prjMsgs.map(m => ({
+              id: m.id,
+              sender: m.sender_name,
+              text: m.message_text,
+              time: m.time_formatted
+            }));
+          }
+        }
+
+        if (dbAssets) {
+          const prjAssets = dbAssets.filter(ast => ast.project_id === dp.id);
+          if (prjAssets.length > 0) {
+            existingPrj.assets = prjAssets.map(ast => ({
+              id: ast.id,
+              name: ast.file_name,
+              size: ast.file_size,
+              date: new Date(ast.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+              type: ast.file_type
+            }));
           }
         }
 
@@ -290,14 +382,18 @@ async function fetchSupabaseAdminData() {
 
       window.saveAdminState();
       renderAdminDashboard();
+      if (typeof renderManagedWorkspace === 'function') renderManagedWorkspace();
     }
 
     supabase.channel('public:admin_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchSupabaseAdminData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_checklist_items' }, () => fetchSupabaseAdminData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'action_items' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'website_pages' }, () => fetchSupabaseAdminData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_items' }, () => fetchSupabaseAdminData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchSupabaseAdminData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_assets' }, () => fetchSupabaseAdminData())
       .subscribe();
 
   } catch (e) {
@@ -824,10 +920,16 @@ window.updateTaskStatus = function(taskId, status) {
       if (item.id === taskId) {
         item.status = status;
         window.showAdminToast(`✓ Set task status to '${status}'`);
+        if (supabase) {
+          supabase.from('project_checklist_items').update({ status: status }).eq('id', taskId).then(({ error }) => {
+            if (error) console.error('Task status update error:', error);
+          });
+        }
       }
     });
   });
 
+  window.saveAdminState();
   renderManagedWorkspace();
 };
 
@@ -839,7 +941,14 @@ window.toggleActionComplete = function(actionId) {
   if (item) {
     item.completed = !item.completed;
     window.showAdminToast(`✓ Updated action item '${item.title}'`);
+    window.saveAdminState();
     renderManagedWorkspace();
+
+    if (supabase) {
+      supabase.from('action_items').update({ completed: item.completed }).eq('id', actionId).then(({ error }) => {
+        if (error) console.error('Action item update error:', error);
+      });
+    }
   }
 };
 
@@ -895,17 +1004,19 @@ window.updateFeedbackStatus = function(id, status) {
     if (f) {
       f.status = status;
       window.showAdminToast(`✓ Updated feedback '${f.title}' status to ${status}`);
+      window.saveAdminState();
       renderManagedWorkspace();
+
+      if (supabase) {
+        supabase.from('feedback_items').update({ status: status }).eq('id', id).then(({ error }) => {
+          if (error) console.error('Feedback update error:', error);
+        });
+      }
     }
   }
 };
 
 function initAdminForms() {
-  const btnCreateClient = document.getElementById('btn-create-client');
-  if (btnCreateClient) {
-    btnCreateClient.addEventListener('click', () => window.openModal('modal-create-client'));
-  }
-
   const btnCreateProject = document.getElementById('btn-create-project');
   if (btnCreateProject) {
     btnCreateProject.addEventListener('click', () => window.openModal('modal-create-project'));
@@ -914,19 +1025,6 @@ function initAdminForms() {
   const btnAddTask = document.getElementById('btn-adm-add-task');
   if (btnAddTask) {
     btnAddTask.addEventListener('click', () => window.openModal('modal-add-checklist-task'));
-  }
-
-  const formCreateClient = document.getElementById('form-create-client');
-  if (formCreateClient) {
-    formCreateClient.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const business = document.getElementById('c-business').value;
-      const contact = document.getElementById('c-contact').value;
-      
-      window.showAdminToast(`✓ Created new client profile for ${business} (${contact})`);
-      window.closeModal('modal-create-client');
-      formCreateClient.reset();
-    });
   }
 
   const formCreateProject = document.getElementById('form-create-project');
@@ -1033,33 +1131,79 @@ function initAdminForms() {
       window.saveAdminState();
 
       if (supabase) {
-        supabase.from('clients').upsert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(({ error }) => {
-          if (error) console.error('Clients insert error:', error);
-        });
+        (async () => {
+          try {
+            let targetClientId = newClientId;
+            const { data: existingClients } = await supabase.from('clients').select('id, email').eq('email', clientEmail);
+            if (existingClients && existingClients.length > 0) {
+              targetClientId = existingClients[0].id;
+              newPrj.clientId = targetClientId;
+              await supabase.from('clients').update({
+                business_name: clientName,
+                contact_name: contactName,
+                password_hash: clientPassword
+              }).eq('id', targetClientId);
+            } else {
+              const { error: cliErr } = await supabase.from('clients').insert([{
+                id: newClientId,
+                business_name: clientName,
+                contact_name: contactName,
+                email: clientEmail,
+                password_hash: clientPassword
+              }]);
+              if (cliErr) console.error('Clients insert error:', cliErr);
+            }
 
-        supabase.from('projects').upsert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 0, status: 'Active' }]).then(({ error }) => {
-          if (error) {
-            console.error('Projects insert error:', error);
-            return;
-          }
-          const checklistInserts = [];
-          newPrj.checklistPhases.forEach(ph => {
-            ph.items.forEach(i => {
-              checklistInserts.push({
-                project_id: newProjId,
-                phase_name: ph.phaseName,
-                title: i.title,
-                owner: i.owner,
-                status: i.status
+            const { error: prjErr } = await supabase.from('projects').insert([{
+              id: newProjId,
+              client_id: targetClientId,
+              project_name: name,
+              current_phase: phase,
+              target_launch_date: launch,
+              progress_pct: 0,
+              status: 'Active'
+            }]);
+
+            if (prjErr) {
+              console.error('Projects insert error:', prjErr);
+              return;
+            }
+
+            await supabase.from('website_pages').insert([
+              { project_id: newProjId, title: 'Home Page', screenshot_url: '/images/card-01-custom-design.jpg', version: 'v1.0', status: 'Ready for Review' },
+              { project_id: newProjId, title: 'About Page', screenshot_url: '/images/card-02-website-development.jpg', version: 'v1.0', status: 'Building' }
+            ]);
+
+            await supabase.from('action_items').insert([{
+              project_id: newProjId,
+              title: 'Upload Brand Assets & Guidelines',
+              description: 'Please upload transparent SVG logos and brand color guidelines.',
+              due_date: 'Upcoming',
+              action_type: 'upload_file',
+              completed: false
+            }]);
+
+            const checklistInserts = [];
+            newPrj.checklistPhases.forEach(ph => {
+              ph.items.forEach(i => {
+                checklistInserts.push({
+                  project_id: newProjId,
+                  phase_name: ph.phaseName,
+                  title: i.title,
+                  owner: i.owner,
+                  status: i.status
+                });
               });
             });
-          });
-          if (checklistInserts.length > 0) {
-            supabase.from('project_checklist_items').insert(checklistInserts).then(({ error: chkErr }) => {
-              if (chkErr) console.error('Checklist insert error:', chkErr);
-            });
+            if (checklistInserts.length > 0) {
+              await supabase.from('project_checklist_items').insert(checklistInserts);
+            }
+
+            console.log(`Successfully synced new workspace '${name}' to Supabase!`);
+          } catch (err) {
+            console.error('Failed creating project in Supabase:', err);
           }
-        });
+        })();
       }
 
       renderAdminDashboard();
@@ -1147,16 +1291,34 @@ function initAdminForms() {
 
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
-        project.assets.unshift({
-          id: `a-${Date.now()}`,
+        const newAssetId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `a-${Date.now()}`;
+        const newAsset = {
+          id: newAssetId,
           name: title,
           size: window.lastSelectedDeliverableSize || '2.4 MB',
           date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
           type: type
-        });
+        };
+        if (!project.assets) project.assets = [];
+        project.assets.unshift(newAsset);
+
+        window.saveAdminState();
+        renderManagedWorkspace();
+
+        if (supabase) {
+          supabase.from('project_assets').insert([{
+            id: newAssetId,
+            project_id: project.id,
+            file_name: title,
+            file_url: '/assets/sample.pdf',
+            file_size: newAsset.size,
+            file_type: type
+          }]).then(({ error }) => {
+            if (error) console.error('Asset insert error:', error);
+          });
+        }
 
         window.showAdminToast(`✓ Uploaded deliverable asset '${title}'!`);
-        renderManagedWorkspace();
       }
 
       const fileNameEl = document.getElementById('d-file-name');
@@ -1184,15 +1346,32 @@ function initAdminForms() {
           phaseObj = { phaseName: phaseName, status: 'In Progress', items: [] };
           project.checklistPhases.push(phaseObj);
         }
-        phaseObj.items.push({
-          id: `c-${Date.now()}`,
+        const newTaskId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `c-${Date.now()}`;
+        const newTask = {
+          id: newTaskId,
           title: title,
           owner: owner,
           status: status
-        });
+        };
+        phaseObj.items.push(newTask);
+
+        window.saveAdminState();
+        renderManagedWorkspace();
+
+        if (supabase) {
+          supabase.from('project_checklist_items').insert([{
+            id: newTaskId,
+            project_id: project.id,
+            phase_name: phaseName,
+            title: title,
+            owner: owner,
+            status: status
+          }]).then(({ error }) => {
+            if (error) console.error('Checklist task insert error:', error);
+          });
+        }
 
         window.showAdminToast(`✓ Added checklist task '${title}' to ${phaseName}`);
-        renderManagedWorkspace();
       }
 
       window.closeModal('modal-add-checklist-task');
@@ -1210,15 +1389,34 @@ function initAdminForms() {
 
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
-        project.actionItems.unshift({
-          id: `act-${Date.now()}`,
+        const newActId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `act-${Date.now()}`;
+        const newAction = {
+          id: newActId,
           title: title,
           description: desc,
           dueDate: due,
           completed: false
-        });
-        window.showAdminToast(`✓ Assigned action item '${title}' to client`);
+        };
+        if (!project.actionItems) project.actionItems = [];
+        project.actionItems.unshift(newAction);
+
+        window.saveAdminState();
         renderManagedWorkspace();
+
+        if (supabase) {
+          supabase.from('action_items').insert([{
+            id: newActId,
+            project_id: project.id,
+            title: title,
+            description: desc,
+            due_date: due,
+            completed: false
+          }]).then(({ error }) => {
+            if (error) console.error('Action item insert error:', error);
+          });
+        }
+
+        window.showAdminToast(`✓ Assigned action item '${title}' to client`);
       }
 
       window.closeModal('modal-add-action-item');
@@ -1252,10 +1450,13 @@ function initAdminForms() {
         if (supabase) {
           supabase.from('messages').insert([{
             project_id: project.id,
-            sender: 'Dream Built',
-            text: text,
+            sender_name: 'Dream Built',
+            message_text: text,
+            time_formatted: timeNow,
             created_at: new Date().toISOString()
-          }]).then(() => {});
+          }]).then(({ error }) => {
+            if (error) console.error('Message insert error:', error);
+          });
         }
 
         window.showAdminToast('✓ Message sent to client!');
@@ -1274,8 +1475,18 @@ function initAdminForms() {
       if (project) {
         project.clientEmail = email;
         project.clientPassword = pass;
-        window.showAdminToast(`✓ Updated login credentials for ${project.client}!`);
+
+        window.saveAdminState();
         renderManagedWorkspace();
+        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+
+        if (supabase && project.clientId) {
+          supabase.from('clients').update({ email: email, password_hash: pass }).eq('id', project.clientId).then(({ error }) => {
+            if (error) console.error('Client creds update error:', error);
+          });
+        }
+
+        window.showAdminToast(`✓ Updated login credentials for ${project.client}!`);
       }
 
       window.closeModal('modal-edit-credentials');

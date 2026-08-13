@@ -61,8 +61,7 @@
         </div>
 
         <div class="portal-user-actions">
-          <button id="btn-create-client" class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;">+ CREATE CLIENT</button>
-          <button id="btn-create-project" class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem; background: var(--color-success);">+ CREATE PROJECT</button>
+          <button id="btn-create-project" class="attention-cta-btn" style="padding: 0.45rem 1.1rem; font-size: 0.85rem; background: var(--color-success);">+ CREATE CLIENT &amp; PROJECT</button>
           <button id="btn-admin-logout" class="portal-badge" style="cursor: pointer; background: transparent;">SIGN OUT</button>
         </div>
       </div>
@@ -330,47 +329,7 @@
       </div>
     </div>
 
-    <!-- MODAL: CREATE CLIENT -->
-    <div class="portal-modal-overlay" id="modal-create-client">
-      <div class="portal-modal-box">
-        <div class="portal-modal-header">
-          <h3 class="portal-modal-title">CREATE NEW CLIENT PROFILE</h3>
-          <button class="portal-modal-close" onclick="closeModal('modal-create-client')">&times;</button>
-        </div>
 
-        <form id="form-create-client">
-          <div class="portal-form-group">
-            <label class="portal-label">BUSINESS NAME</label>
-            <input type="text" id="c-business" class="portal-input" placeholder="e.g. Psycortex" required />
-          </div>
-
-          <div class="portal-form-group">
-            <label class="portal-label">PRIMARY CONTACT NAME</label>
-            <input type="text" id="c-contact" class="portal-input" placeholder="e.g. Alba Cortez" required />
-          </div>
-
-          <div class="portal-form-group">
-            <label class="portal-label">CLIENT EMAIL ADDRESS</label>
-            <input type="email" id="c-email" class="portal-input" placeholder="alba@psycortex.com" required />
-          </div>
-
-          <div class="portal-form-group">
-            <label class="portal-label">INITIAL PASSWORD</label>
-            <input type="text" id="c-password" class="portal-input" placeholder="demo1234" value="demo1234" required />
-          </div>
-
-          <div class="portal-form-group">
-            <label class="portal-label">PHONE NUMBER</label>
-            <input type="text" id="c-phone" class="portal-input" placeholder="(555) 234-5678" />
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
-            <button type="button" class="portal-badge" onclick="closeModal('modal-create-client')">CANCEL</button>
-            <button type="submit" class="attention-cta-btn">CREATE CLIENT PROFILE</button>
-          </div>
-        </form>
-      </div>
-    </div>
 
     <!-- MODAL: CREATE NEW CLIENT & PROJECT WORKSPACE -->
     <div class="portal-modal-overlay" id="modal-create-project">

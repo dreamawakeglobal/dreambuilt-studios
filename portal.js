@@ -268,19 +268,107 @@ function loadPortalState() {
 async function fetchSupabaseData() {
   if (!supabase) return;
   try {
-    const { data: projects, error } = await supabase.from('projects').select('*');
+    const [
+      { data: projects, error },
+      { data: chkData },
+      { data: dbActions },
+      { data: dbPages },
+      { data: dbFeedback },
+      { data: dbMessages },
+      { data: dbAssets }
+    ] = await Promise.all([
+      supabase.from('projects').select('*'),
+      supabase.from('project_checklist_items').select('*'),
+      supabase.from('action_items').select('*'),
+      supabase.from('website_pages').select('*'),
+      supabase.from('feedback_items').select('*'),
+      supabase.from('messages').select('*').order('created_at', { ascending: true }),
+      supabase.from('project_assets').select('*')
+    ]);
+
     if (!error && projects && projects.length > 0) {
       const p = projects.find(x => x.project_name.toLowerCase().includes('psycortex') || x.id === '22222222-2222-2222-2222-222222222222') || projects[0];
       if (p) {
+        mockClientState.project.id = p.id;
         mockClientState.project.name = p.project_name;
         mockClientState.project.currentPhase = p.current_phase;
         mockClientState.project.progress = p.progress_pct;
         mockClientState.project.targetLaunchDate = p.target_launch_date;
         mockClientState.project.status = p.status;
+
+        if (dbActions && dbActions.length > 0) {
+          const prjActions = dbActions.filter(a => a.project_id === p.id);
+          if (prjActions.length > 0) {
+            mockClientState.actionItems = prjActions.map(a => ({
+              id: a.id,
+              title: a.title,
+              description: a.description,
+              dueDate: a.due_date,
+              actionType: a.action_type || 'upload_file',
+              ctaText: 'ACTION REQUIRED',
+              targetPage: 'Home Page',
+              completed: a.completed
+            }));
+          }
+        }
+
+        if (dbPages && dbPages.length > 0) {
+          const prjPages = dbPages.filter(pg => pg.project_id === p.id);
+          if (prjPages.length > 0) {
+            mockClientState.pages = prjPages.map(pg => ({
+              id: pg.id,
+              name: pg.title,
+              slug: `/${pg.title.toLowerCase().replace(/ /g, '-')}`,
+              status: pg.status,
+              version: pg.version,
+              screenshotUrl: pg.screenshot_url,
+              notes: `Version ${pg.version}`
+            }));
+          }
+        }
+
+        if (dbFeedback && dbFeedback.length > 0) {
+          const prjFb = dbFeedback.filter(f => f.project_id === p.id);
+          if (prjFb.length > 0) {
+            mockClientState.feedbackItems = prjFb.map(f => ({
+              id: f.id,
+              title: f.title,
+              page: f.page_title,
+              section: 'Revision Request',
+              desc: f.comment,
+              priority: f.priority,
+              status: f.status
+            }));
+          }
+        }
+
+        if (dbMessages && dbMessages.length > 0) {
+          const prjMsgs = dbMessages.filter(m => m.project_id === p.id);
+          if (prjMsgs.length > 0) {
+            mockClientState.messages = prjMsgs.map(m => ({
+              id: m.id,
+              sender: m.sender_name,
+              text: m.message_text,
+              time: m.time_formatted
+            }));
+          }
+        }
+
+        if (dbAssets && dbAssets.length > 0) {
+          const prjAssets = dbAssets.filter(ast => ast.project_id === p.id);
+          if (prjAssets.length > 0) {
+            mockClientState.files = prjAssets.map(ast => ({
+              id: ast.id,
+              name: ast.file_name,
+              category: ast.file_type,
+              size: ast.file_size,
+              uploadDate: new Date(ast.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+            }));
+          }
+        }
       }
     }
 
-    const { data: chkData } = await supabase.from('project_checklist_items').select('*');
     if (chkData && chkData.length > 0) {
       const phasesMap = {};
       chkData.forEach(item => {
@@ -307,8 +395,11 @@ async function fetchSupabaseData() {
     supabase.channel('public:projects_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchSupabaseData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_checklist_items' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'action_items' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'website_pages' }, () => fetchSupabaseData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_items' }, () => fetchSupabaseData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchSupabaseData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_assets' }, () => fetchSupabaseData())
       .subscribe();
 
   } catch (e) {
