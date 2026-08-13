@@ -220,6 +220,19 @@
                 <div class="health-card-value" style="font-size: 0.95rem; color: var(--color-cyan-glow);">https://staging.dreambuiltstudios.com/psycortex</div>
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem;">Updated 2 hours ago</div>
               </div>
+
+              <div class="portal-glass health-card">
+                <div class="health-card-label">Client Portal Credentials</div>
+                <div style="font-size: 0.85rem; color: #ffffff; margin-top: 0.35rem;">
+                  Email: <strong id="adm-manage-client-email" style="color: var(--color-cyan-glow);">alba@psycortex.com</strong>
+                </div>
+                <div style="font-size: 0.85rem; color: #ffffff; margin-top: 0.2rem;">
+                  Password: <strong id="adm-manage-client-pass" style="color: var(--text-secondary);">demo1234</strong>
+                </div>
+                <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #fff; margin-top: 0.65rem; width: 100%; justify-content: center; font-size: 0.75rem;" onclick="openEditCredentialsModal()">
+                  🔑 EDIT EMAIL &amp; PASSWORD
+                </button>
+              </div>
             </div>
 
             <!-- ACTION ITEMS PANEL -->
@@ -521,6 +534,41 @@
           <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
             <button type="button" class="portal-badge" onclick="closeModal('modal-add-action-item')">CANCEL</button>
             <button type="submit" class="attention-cta-btn">ASSIGN ACTION ITEM</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT CLIENT CREDENTIALS -->
+    <div class="portal-modal-overlay" id="modal-edit-credentials">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">EDIT CLIENT LOGIN CREDENTIALS</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-edit-credentials')">&times;</button>
+        </div>
+
+        <form id="form-edit-credentials">
+          <div class="portal-form-group">
+            <label class="portal-label">TARGET CLIENT ACCOUNT</label>
+            <input type="text" id="edit-cred-client" class="portal-input" value="Psycortex (Alba Cortez)" readonly style="opacity: 0.7; cursor: not-allowed;" />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">LOGIN EMAIL ADDRESS</label>
+            <input type="email" id="edit-cred-email" class="portal-input" value="alba@psycortex.com" required />
+          </div>
+
+          <div class="portal-form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label class="portal-label" style="margin-bottom: 0;">CLIENT PASSWORD</label>
+              <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15);" onclick="generateRandomPassword()">🎲 GENERATE PASSWORD</button>
+            </div>
+            <input type="text" id="edit-cred-password" class="portal-input" value="demo1234" required />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-edit-credentials')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">SAVE UPDATED CREDENTIALS</button>
           </div>
         </form>
       </div>

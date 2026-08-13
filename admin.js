@@ -9,6 +9,8 @@ let adminState = {
       id: 'prj-1',
       client: 'Psycortex',
       contact: 'Alba Cortez',
+      clientEmail: 'alba@psycortex.com',
+      clientPassword: 'demo1234',
       name: 'Psycortex Corporate Website',
       currentPhase: 'Build',
       progress: 69,
@@ -350,6 +352,11 @@ function renderManagedWorkspace() {
 
   const targetLaunchInput = document.getElementById('adm-manage-target-launch');
   if (targetLaunchInput) targetLaunchInput.value = project.targetLaunch;
+
+  const emailEl = document.getElementById('adm-manage-client-email');
+  const passEl = document.getElementById('adm-manage-client-pass');
+  if (emailEl) emailEl.textContent = project.clientEmail || 'alba@psycortex.com';
+  if (passEl) passEl.textContent = project.clientPassword || 'demo1234';
 
   // Render Action Items
   renderAdminActionItems(project);
@@ -810,4 +817,45 @@ function initAdminForms() {
       }
     });
   }
+
+  const formEditCreds = document.getElementById('form-edit-credentials');
+  if (formEditCreds) {
+    formEditCreds.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('edit-cred-email').value;
+      const pass = document.getElementById('edit-cred-password').value;
+
+      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      if (project) {
+        project.clientEmail = email;
+        project.clientPassword = pass;
+        window.showAdminToast(`✓ Updated login credentials for ${project.client}!`);
+        renderManagedWorkspace();
+      }
+
+      window.closeModal('modal-edit-credentials');
+    });
+  }
 }
+
+// EDIT CREDENTIALS HELPERS
+window.openEditCredentialsModal = function() {
+  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  if (project) {
+    document.getElementById('edit-cred-client').value = `${project.client} (${project.contact})`;
+    document.getElementById('edit-cred-email').value = project.clientEmail || 'alba@psycortex.com';
+    document.getElementById('edit-cred-password').value = project.clientPassword || 'demo1234';
+  }
+  window.openModal('modal-edit-credentials');
+};
+
+window.generateRandomPassword = function() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+  let pass = 'Dream';
+  for (let i = 0; i < 4; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  pass += '!';
+  document.getElementById('edit-cred-password').value = pass;
+  window.showAdminToast(`✓ Generated new password: ${pass}`);
+};
