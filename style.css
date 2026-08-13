@@ -296,8 +296,8 @@ p {
 }
 
 .faq-item.active {
-  border-color: rgba(0, 240, 255, 0.3);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  border: 1.5px solid #0066ff;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 102, 255, 0.45);
 }
 
 .faq-question {
@@ -317,12 +317,13 @@ p {
 
 .faq-icon {
   font-size: 1.5rem;
-  color: var(--accent-electric);
-  transition: transform 0.3s ease;
+  color: #0066ff;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .faq-item.active .faq-icon {
   transform: rotate(45deg);
+  color: #0066ff;
 }
 
 .faq-answer {
@@ -958,5 +959,35 @@ select.form-control option {
     gap: 2rem;
     padding: 1.75rem;
   }
+}
+
+.cosmic-glass-card {
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  border: 2px solid #0066ff !important;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 102, 255, 0.45), 0 0 70px rgba(0, 102, 255, 0.25) !important;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  isolation: isolate;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.cosmic-glass-card:hover {
+  border-color: #0066ff !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 102, 255, 0.65), 0 0 90px rgba(0, 102, 255, 0.35) !important;
+  transform: translateY(-6px) translateZ(0);
+}
+
+.card-video-wrapper {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  overflow: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+.card-video-wrapper video {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 

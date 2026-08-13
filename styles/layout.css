@@ -151,9 +151,9 @@
   background: rgba(2, 8, 19, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 240, 255, 0.35);
+  border: 1.5px solid #0066ff;
   border-radius: 30px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 102, 255, 0.45);
   opacity: 0;
   transform: translateY(-20px) scale(0.65) rotateX(15deg);
   transition: opacity 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), 
@@ -199,11 +199,11 @@
 
 /* Individual Floating Hover Effect */
 .dropdown-links li a:hover {
-  background: rgba(0, 240, 255, 0.22);
-  color: #00f0ff;
-  border-color: #00f0ff;
+  background: rgba(0, 102, 255, 0.22);
+  color: #0066ff;
+  border-color: #0066ff;
   transform: translateY(-5px) scale(1.08);
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.7), 0 12px 25px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 30px rgba(0, 102, 255, 0.85), 0 12px 25px rgba(0, 0, 0, 0.8);
 }
 
 .dropdown-links li a:active {
