@@ -820,44 +820,53 @@ function initAdminForms() {
         checklistPhases: [
           {
             phaseName: '1. INTAKE & DISCOVERY',
-            status: 'In Progress',
+            status: 'Completed',
             items: [
-              { id: `c-1`, title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-2`, title: 'Target audience and market research', owner: 'Dream Built', status: 'In Progress' },
-              { id: `c-3`, title: 'Defining brand identity & style direction', owner: 'Dream Built', status: 'In Progress' },
-              { id: `c-4`, title: 'Outlining site architecture & page tree', owner: 'Dream Built', status: 'Upcoming' }
+              { id: `c-${Date.now()}-1`, title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-2`, title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-3`, title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-4`, title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
             ]
           },
           {
             phaseName: '2. DESIGN PHASE',
-            status: 'Upcoming',
+            status: 'Completed',
             items: [
-              { id: `c-5`, title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Upcoming' },
-              { id: `c-6`, title: 'Selecting typography and visual elements', owner: 'Dream Built', status: 'Upcoming' },
-              { id: `c-7`, title: 'Designing custom UI components', owner: 'Dream Built', status: 'Upcoming' }
+              { id: `c-${Date.now()}-5`, title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-6`, title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-7`, title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-8`, title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
             ]
           },
           {
             phaseName: '3. BUILD PHASE',
-            status: 'Upcoming',
+            status: 'In Progress',
             items: [
-              { id: `c-8`, title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Upcoming' },
-              { id: `c-9`, title: 'Implementing CSS styling and responsive layouts', owner: 'Dream Built', status: 'Upcoming' }
+              { id: `c-${Date.now()}-9`, title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-10`, title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-11`, title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-${Date.now()}-12`, title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
+              { id: `c-${Date.now()}-13`, title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
             ]
           },
           {
             phaseName: '4. REVIEW PHASE',
             status: 'Upcoming',
             items: [
-              { id: `c-10`, title: 'Cross-browser and mobile testing', owner: 'Dream Built', status: 'Upcoming' },
-              { id: `c-11`, title: 'Client review and final feedback rounds', owner: 'Client Action', status: 'Upcoming' }
+              { id: `c-${Date.now()}-14`, title: 'Cross-browser and mobile device testing', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-15`, title: 'Proofreading Spanish copy and checking grammar/accents', owner: 'Client Action', status: 'Upcoming' },
+              { id: `c-${Date.now()}-16`, title: 'Testing all links, forms, and widgets for proper functionality', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-17`, title: 'Client review and final feedback rounds', owner: 'Client Action', status: 'Upcoming' }
             ]
           },
           {
             phaseName: '5. LAUNCH PHASE',
             status: 'Upcoming',
             items: [
-              { id: `c-12`, title: 'Final performance optimization and deployment', owner: 'Dream Built', status: 'Upcoming' }
+              { id: `c-${Date.now()}-18`, title: 'Final performance optimization and cache busting', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-19`, title: 'Configuring domain and hosting deployment', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-20`, title: 'SEO metadata implementation (titles, descriptions)', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-21`, title: 'Post-launch monitoring and client hand-off', owner: 'Dream Built', status: 'Upcoming' }
             ]
           }
         ]
