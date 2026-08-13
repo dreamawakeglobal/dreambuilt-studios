@@ -1,132 +1,18 @@
 import { supabase } from './lib/supabase.js';
 
 let adminSession = null;
-let activeManagedProjectId = 'prj-1';
+let activeManagedProjectId = null;
 
 let adminState = {
-  projects: [
-    {
-      id: 'prj-1',
-      client: 'Psycortex',
-      contact: 'Alba Cortez',
-      clientEmail: 'alba@psycortex.com',
-      clientPassword: 'demo1234',
-      name: 'Psycortex Corporate Website',
-      currentPhase: 'Build',
-      progress: 69,
-      targetLaunch: 'Sept 15, 2026',
-      status: 'Active',
-      actionItems: [
-        { id: 'act-1', title: 'Upload High-Res Founder Headshot', description: 'Please upload transparent background headshots for team page bio.', dueDate: 'August 18, 2026', completed: false },
-        { id: 'act-2', title: 'Review & Approve Homepage Staging', description: 'Check micro-animations and typography layout on mobile devices.', dueDate: 'August 22, 2026', completed: false }
-      ],
-      pages: [
-        { id: 'p1', title: 'Home Page', image: '/images/card-01-custom-design.jpg', status: 'Approved', version: 'v2.4' },
-        { id: 'p2', title: 'About Page', image: '/images/card-02-website-development.jpg', status: 'Changes Requested', version: 'v1.8' },
-        { id: 'p3', title: 'Services Page', image: '/images/card-03-ecommerce.jpg', status: 'Ready for Review', version: 'v2.1' },
-        { id: 'p4', title: 'Contact Page', image: '/images/card-05-landing-pages.jpg', status: 'Approved', version: 'v1.2' }
-      ],
-      feedback: [
-        { id: 'f1', client: 'Psycortex', page: 'About Page', title: 'Replace Founder Photo with High-Res Shot', status: 'In Progress', priority: 'Normal', comment: 'Uploading new high-res asset shortly.' },
-        { id: 'f2', client: 'Psycortex', page: 'Services Page', title: 'Update Headline Copy to Enterprise Focus', status: 'Ready for Review', priority: 'Important', comment: 'Updated copy in staging preview build.' }
-      ],
-      assets: [
-        { id: 'a1', name: 'psycortex-logo-vector.svg', size: '2.4 MB', date: 'Aug 10, 2026', type: 'SVG Vector' },
-        { id: 'a2', name: 'brand-color-palette-guidelines.pdf', size: '4.8 MB', date: 'Aug 12, 2026', type: 'PDF Document' }
-      ],
-      messages: [
-        { sender: 'Dream Built', text: 'Welcome to your workspace, Alba! Your homepage build is officially live on staging preview.', time: '10:15 AM' },
-        { sender: 'Alba Cortez', text: 'Looks amazing! We uploaded the brand guidelines to the Asset Vault.', time: '10:42 AM' }
-      ],
-      checklistPhases: [
-        {
-          phaseName: '1. INTAKE & DISCOVERY',
-          status: 'Completed',
-          items: [
-            { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
-          ]
-        },
-        {
-          phaseName: '2. DESIGN PHASE',
-          status: 'Completed',
-          items: [
-            { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
-          ]
-        },
-        {
-          phaseName: '3. BUILD PHASE',
-          status: 'Current Phase',
-          items: [
-            { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
-            { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
-            { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
-          ]
-        },
-        {
-          phaseName: '4. REVIEW PHASE',
-          status: 'Upcoming',
-          items: [
-            { id: 'c14', title: 'Cross-browser and mobile device testing', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c15', title: 'Proofreading Spanish copy and checking grammar/accents', owner: 'Client Action', status: 'Upcoming' },
-            { id: 'c16', title: 'Testing all links, forms, and widgets for proper functionality', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c17', title: 'Client review and final feedback rounds', owner: 'Client Action', status: 'Upcoming' }
-          ]
-        },
-        {
-          phaseName: '5. LAUNCH PHASE',
-          status: 'Upcoming',
-          items: [
-            { id: 'c18', title: 'Final performance optimization and cache busting', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c19', title: 'Configuring domain and hosting deployment', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c20', title: 'SEO metadata implementation (titles, descriptions)', owner: 'Dream Built', status: 'Upcoming' },
-            { id: 'c21', title: 'Post-launch monitoring and client hand-off', owner: 'Dream Built', status: 'Upcoming' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'prj-2',
-      client: 'Dream Wealthy',
-      contact: 'Marcus Vance',
-      name: 'Dream Wealthy Budgeting App',
-      currentPhase: 'Launch',
-      progress: 95,
-      targetLaunch: 'Aug 25, 2026',
-      status: 'In Review',
-      actionItems: [
-        { id: 'act-3', title: 'Approve Launch Readiness Checklist', description: 'Review final production build and sign off on DNS cutover.', dueDate: 'August 16, 2026', completed: false }
-      ],
-      pages: [
-        { id: 'p5', title: 'Dashboard View', image: '/images/dream-wealthy.jpg', status: 'Approved', version: 'v3.0' }
-      ],
-      feedback: [],
-      assets: [],
-      messages: [],
-      checklistPhases: [
-        {
-          phaseName: '1. INTAKE & DISCOVERY',
-          status: 'Completed',
-          items: [{ id: 'c17', title: 'App Specs & Plaid Integration Setup', owner: 'Dream Built', status: 'Completed' }]
-        }
-      ]
-    }
-  ]
+  projects: []
 };
 
 const STORAGE_KEY = 'dreambuilt_app_state_v1';
 
-function ensurePsycortexChecklist(project) {
-  if (project.client !== 'Psycortex' && !project.name.toLowerCase().includes('psycortex')) return;
+function ensureProjectChecklist(project) {
+  if (!project) return;
   let isOld = false;
-  if (!project.checklistPhases || !Array.isArray(project.checklistPhases)) {
+  if (!project.checklistPhases || !Array.isArray(project.checklistPhases) || project.checklistPhases.length === 0) {
     isOld = true;
   } else {
     let total = 0;
@@ -206,16 +92,20 @@ function loadAdminState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      const parsed = JSON.parse(saved);
-      if (parsed && Array.isArray(parsed.projects)) {
-        adminState.projects = parsed.projects;
+      if (saved.includes('prj-1') || saved.includes('22222222-2222-2222-2222-222222222222') || saved.includes('alba@psycortex.com')) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.projects)) {
+          adminState.projects = parsed.projects;
+        }
       }
     } catch (e) {
       console.error('Failed loading admin state:', e);
     }
   }
 
-  adminState.projects.forEach(p => ensurePsycortexChecklist(p));
+  adminState.projects.forEach(p => ensureProjectChecklist(p));
   window.saveAdminState();
 
   fetchSupabaseAdminData();
@@ -246,10 +136,13 @@ async function fetchSupabaseAdminData() {
 
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
-    if (!prjErr && dbProjects && dbProjects.length > 0) {
+    if (!prjErr && dbProjects) {
+      const activeIds = dbProjects.map(dp => dp.id);
+      adminState.projects = adminState.projects.filter(p => activeIds.includes(p.id));
+
       dbProjects.forEach(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
-        let existingPrj = adminState.projects.find(p => p.id === dp.id || p.name.toLowerCase() === dp.project_name.toLowerCase());
+        let existingPrj = adminState.projects.find(p => p.id === dp.id);
         
         if (!existingPrj) {
           existingPrj = {
@@ -271,7 +164,7 @@ async function fetchSupabaseAdminData() {
             messages: [],
             checklistPhases: []
           };
-          ensurePsycortexChecklist(existingPrj);
+          ensureProjectChecklist(existingPrj);
           adminState.projects.push(existingPrj);
         } else {
           existingPrj.id = dp.id;
@@ -358,7 +251,16 @@ async function fetchSupabaseAdminData() {
         if (dbChecklist && dbChecklist.length > 0) {
           const projChecklist = dbChecklist.filter(c => c.project_id === dp.id);
           if (projChecklist.length > 0) {
+            const standardPhases = [
+              '1. INTAKE & DISCOVERY',
+              '2. DESIGN PHASE',
+              '3. BUILD PHASE',
+              '4. REVIEW PHASE',
+              '5. LAUNCH PHASE'
+            ];
             const phasesMap = {};
+            standardPhases.forEach(phName => phasesMap[phName] = []);
+
             const seenKeys = new Set();
             projChecklist.forEach(item => {
               const k = `${item.phase_name}::${item.title}`;
@@ -373,14 +275,50 @@ async function fetchSupabaseAdminData() {
                 });
               }
             });
-            existingPrj.checklistPhases = Object.keys(phasesMap).map(pName => ({
-              phaseName: pName,
-              status: phasesMap[pName].every(i => i.status === 'Completed') ? 'Completed' : 'In Progress',
-              items: phasesMap[pName]
-            }));
+            existingPrj.checklistPhases = standardPhases.map(pName => {
+              const items = (phasesMap[pName] || []).sort((a, b) => {
+                const defaultTaskOrder = [
+                  'Initial client consultation and requirements gathering',
+                  'Target audience and market research (El Salvador corporate focus)',
+                  'Defining brand identity (Premium, Deep Blue, Gold)',
+                  'Outlining site architecture (Home, About, Services, Packages, Contact)',
+                  'UI/UX layout planning',
+                  'Selecting modern typography and visual elements',
+                  'Designing custom UI components (metallic gold gradients, glow effects)',
+                  'Drafting localized copy and service structures',
+                  'Developing HTML structure and semantic markup',
+                  'Implementing CSS styling and responsive mobile layouts',
+                  'Refining package features, monthly structures, and pricing models',
+                  'Adding social media links (LinkedIn, Instagram, TikTok)',
+                  'Finalizing interactive elements and form functionality',
+                  'Cross-browser and mobile device testing',
+                  'Proofreading Spanish copy and checking grammar/accents',
+                  'Testing all links, forms, and widgets for proper functionality',
+                  'Client review and final feedback rounds',
+                  'Final performance optimization and cache busting',
+                  'Configuring domain and hosting deployment',
+                  'SEO metadata implementation (titles, descriptions)',
+                  'Post-launch monitoring and client hand-off'
+                ];
+                const idxA = defaultTaskOrder.indexOf(a.title);
+                const idxB = defaultTaskOrder.indexOf(b.title);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                return 0;
+              });
+
+              return {
+                phaseName: pName,
+                status: (items.length > 0 && items.every(i => i.status === 'Completed')) ? 'Completed' : 'In Progress',
+                items: items
+              };
+            }).filter(ph => ph.items.length > 0);
           }
         }
       });
+
+      if (adminState.projects.length > 0 && (!activeManagedProjectId || !adminState.projects.some(p => p.id === activeManagedProjectId))) {
+        activeManagedProjectId = adminState.projects[0].id;
+      }
 
       window.saveAdminState();
       window.restoreAdminView();
@@ -641,6 +579,8 @@ window.restoreAdminView = function() {
       if (titleEl) titleEl.textContent = project.name;
       if (subEl) subEl.textContent = `Client: ${project.contact} (${project.client})`;
       if (phaseEl) phaseEl.value = project.currentPhase;
+      const launchEl = document.getElementById('adm-manage-target-launch');
+      if (launchEl) launchEl.value = project.targetLaunch || 'Sept 15, 2026';
 
       window.switchAdminTab(savedTab);
       renderManagedWorkspace();
@@ -669,6 +609,8 @@ window.openProjectManageView = function(projectId, tabName) {
   document.getElementById('adm-manage-title').textContent = project.name;
   document.getElementById('adm-manage-client-sub').textContent = `Client: ${project.contact} (${project.client})`;
   document.getElementById('adm-manage-phase-select').value = project.currentPhase;
+  const launchEl = document.getElementById('adm-manage-target-launch');
+  if (launchEl) launchEl.value = project.targetLaunch || 'Sept 15, 2026';
 
   const targetTab = tabName || localStorage.getItem('dreambuilt_admin_active_tab') || 'overview';
   window.switchAdminTab(targetTab);
@@ -981,13 +923,21 @@ window.deleteChecklistItem = function(taskId) {
       const removed = ph.items.splice(idx, 1)[0];
       window.showAdminToast(`✓ Deleted checklist task '${removed.title}'`);
       if (supabase) {
-        supabase.from('project_checklist_items').delete().eq('title', removed.title).then(() => {});
+        supabase.from('project_checklist_items')
+          .delete()
+          .eq('project_id', project.id)
+          .eq('title', removed.title)
+          .then(({ error }) => {
+            if (error) console.error('Task deletion error:', error);
+          });
       }
     }
   });
 
+  window.saveAdminState();
   renderManagedWorkspace();
 };
+
 window.toggleChecklistItem = function(taskId) {
   const project = adminState.projects.find(p => p.id === activeManagedProjectId);
   if (!project) return;
@@ -998,12 +948,19 @@ window.toggleChecklistItem = function(taskId) {
         item.status = item.status === 'Completed' ? 'In Progress' : 'Completed';
         window.showAdminToast(`✓ Updated checklist item: ${item.title}`);
         if (supabase) {
-          supabase.from('project_checklist_items').update({ status: item.status }).eq('title', item.title).then(() => {});
+          supabase.from('project_checklist_items')
+            .update({ status: item.status })
+            .eq('project_id', project.id)
+            .eq('title', item.title)
+            .then(({ error }) => {
+              if (error) console.error('Task status toggle error:', error);
+            });
         }
       }
     });
   });
 
+  window.saveAdminState();
   renderManagedWorkspace();
 };
 
@@ -1017,9 +974,13 @@ window.updateTaskStatus = function(taskId, status) {
         item.status = status;
         window.showAdminToast(`✓ Set task status to '${status}'`);
         if (supabase) {
-          supabase.from('project_checklist_items').update({ status: status }).eq('id', taskId).then(({ error }) => {
-            if (error) console.error('Task status update error:', error);
-          });
+          supabase.from('project_checklist_items')
+            .update({ status: status })
+            .eq('project_id', project.id)
+            .eq('title', item.title)
+            .then(({ error }) => {
+              if (error) console.error('Task status update error:', error);
+            });
         }
       }
     });
@@ -1571,14 +1532,17 @@ function initAdminForms() {
 }
 
 // EDIT CREDENTIALS HELPERS
+let editingProjectId = null;
+
 window.openEditCredentialsModal = function(projectId) {
   const targetId = projectId || activeManagedProjectId || (adminState.projects[0] && adminState.projects[0].id);
+  editingProjectId = targetId;
   const project = adminState.projects.find(p => p.id === targetId);
   if (project) {
     activeManagedProjectId = targetId;
     document.getElementById('edit-cred-client').value = `${project.client} (${project.contact})`;
-    document.getElementById('edit-cred-email').value = project.clientEmail || 'alba@psycortex.com';
-    document.getElementById('edit-cred-password').value = project.clientPassword || 'demo1234';
+    document.getElementById('edit-cred-email').value = project.clientEmail || '';
+    document.getElementById('edit-cred-password').value = project.clientPassword || '';
   }
   window.openModal('modal-edit-credentials');
 };
@@ -1594,21 +1558,39 @@ window.generateRandomPassword = function() {
   window.showAdminToast(`✓ Generated new password: ${pass}`);
 };
 
+window.deleteCurrentEditingAccount = function() {
+  const targetId = editingProjectId || activeManagedProjectId || (adminState.projects[0] && adminState.projects[0].id);
+  window.deleteClientAccount(targetId);
+};
+
 window.deleteClientAccount = function(projectId) {
-  const project = adminState.projects.find(p => p.id === projectId);
+  const targetId = projectId || editingProjectId || activeManagedProjectId || (adminState.projects[0] && adminState.projects[0].id);
+  const project = adminState.projects.find(p => p.id === targetId);
   if (!project) return;
 
   const confirmDelete = confirm(`Are you sure you want to permanently delete the client account for ${project.client} (${project.contact})?\n\nThis action will remove all project workspace data, checklist items, and client portal access.`);
 
   if (confirmDelete) {
-    const idx = adminState.projects.findIndex(p => p.id === projectId);
+    const idx = adminState.projects.findIndex(p => p.id === targetId);
     if (idx !== -1) {
       adminState.projects.splice(idx, 1);
     }
 
-    window.saveAdminState();
     if (supabase) {
-      supabase.from('projects').delete().eq('id', projectId).then(() => {});
+      supabase.from('project_checklist_items').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('action_items').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('website_pages').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('feedback_items').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('messages').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('project_assets').delete().eq('project_id', targetId).then(() => {});
+      supabase.from('projects').delete().eq('id', targetId).then(() => {});
+
+      if (project.clientId) {
+        supabase.from('clients').delete().eq('id', project.clientId).then(() => {});
+      }
+      if (project.clientEmail) {
+        supabase.from('clients').delete().eq('email', project.clientEmail).then(() => {});
+      }
     }
 
     window.closeModal('modal-edit-credentials');

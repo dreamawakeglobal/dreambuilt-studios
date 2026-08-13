@@ -121,9 +121,9 @@ let mockClientState = {
 
 const STORAGE_KEY = 'dreambuilt_app_state_v1';
 
-function ensurePsycortexChecklist(state) {
+function ensureProjectChecklist(state) {
   let isOld = false;
-  if (!state.checklistPhases || !Array.isArray(state.checklistPhases)) {
+  if (!state.checklistPhases || !Array.isArray(state.checklistPhases) || state.checklistPhases.length === 0) {
     isOld = true;
   } else {
     let total = 0;
@@ -144,33 +144,33 @@ function ensurePsycortexChecklist(state) {
     state.checklistPhases = [
       {
         phaseName: '1. INTAKE & DISCOVERY',
-        status: 'Completed',
+        status: 'In Progress',
         items: [
-          { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
+          { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
         phaseName: '2. DESIGN PHASE',
-        status: 'Completed',
+        status: 'Upcoming',
         items: [
-          { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
+          { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
         phaseName: '3. BUILD PHASE',
-        status: 'Current Phase',
+        status: 'Upcoming',
         items: [
-          { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
-          { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
+          { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
@@ -194,7 +194,6 @@ function ensurePsycortexChecklist(state) {
         ]
       }
     ];
-    if (state.project) state.project.progress = 52;
   }
 }
 
@@ -202,55 +201,59 @@ function loadPortalState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      const parsed = JSON.parse(saved);
-      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
-        const p = parsed.projects.find(x => x.client === 'Psycortex' || x.id === 'prj-1') || parsed.projects[0];
-        if (p) {
-          mockClientState.client.businessName = p.client || 'Psycortex';
-          mockClientState.client.contactName = p.contact || 'Alba Cortez';
-          mockClientState.client.email = p.clientEmail || 'alba@psycortex.com';
-          mockClientState.client.password = p.clientPassword || 'demo1234';
+      if (saved.includes('prj-1') || saved.includes('22222222-2222-2222-2222-222222222222') || saved.includes('alba@psycortex.com')) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+          const p = parsed.projects[0];
+          if (p) {
+            mockClientState.client.businessName = p.client || 'Psycortex';
+            mockClientState.client.contactName = p.contact || 'Alba Cortez';
+            mockClientState.client.email = p.clientEmail || 'psycortex@portal.dbstudios.com';
+            mockClientState.client.password = p.clientPassword || 'Pass123!';
 
-          mockClientState.project.name = p.name || 'Psycortex Corporate Website';
-          mockClientState.project.currentPhase = p.currentPhase || 'Build';
-          mockClientState.project.targetLaunchDate = p.targetLaunch || 'Sept 15, 2026';
-          mockClientState.project.status = p.status || 'Active';
+            mockClientState.project.name = p.name || 'Psycortex Corporate Website';
+            mockClientState.project.currentPhase = p.currentPhase || 'Build';
+            mockClientState.project.targetLaunchDate = p.targetLaunch || 'Sept 15, 2026';
+            mockClientState.project.status = p.status || 'Active';
 
-          if (p.actionItems) mockClientState.actionItems = p.actionItems;
-          if (p.checklistPhases) mockClientState.checklistPhases = p.checklistPhases;
-          if (p.pages) {
-            mockClientState.pages = p.pages.map(pg => ({
-              id: pg.id,
-              name: pg.title || pg.name,
-              slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
-              status: pg.status,
-              version: pg.version,
-              screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
-              notes: pg.notes || `Version ${pg.version}`
-            }));
-          }
-          if (p.feedback) {
-            mockClientState.feedbackItems = p.feedback.map(f => ({
-              id: f.id,
-              title: f.title,
-              page: f.page,
-              section: 'Revision Request',
-              desc: f.comment,
-              priority: f.priority,
-              status: f.status
-            }));
-          }
-          if (p.messages && Array.isArray(p.messages)) {
-            mockClientState.messages = p.messages;
-          }
-          if (p.assets) {
-            mockClientState.files = p.assets.map(a => ({
-              id: a.id,
-              name: a.name,
-              category: a.type,
-              size: a.size,
-              uploadDate: a.date
-            }));
+            if (p.actionItems) mockClientState.actionItems = p.actionItems;
+            if (p.checklistPhases) mockClientState.checklistPhases = p.checklistPhases;
+            if (p.pages) {
+              mockClientState.pages = p.pages.map(pg => ({
+                id: pg.id,
+                name: pg.title || pg.name,
+                slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
+                status: pg.status,
+                version: pg.version,
+                screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
+                notes: pg.notes || `Version ${pg.version}`
+              }));
+            }
+            if (p.feedback) {
+              mockClientState.feedbackItems = p.feedback.map(f => ({
+                id: f.id,
+                title: f.title,
+                page: f.page,
+                section: 'Revision Request',
+                desc: f.comment,
+                priority: f.priority,
+                status: f.status
+              }));
+            }
+            if (p.messages && Array.isArray(p.messages)) {
+              mockClientState.messages = p.messages;
+            }
+            if (p.assets) {
+              mockClientState.files = p.assets.map(a => ({
+                id: a.id,
+                name: a.name,
+                category: a.type,
+                size: a.size,
+                uploadDate: a.date
+              }));
+            }
           }
         }
       }
@@ -259,7 +262,7 @@ function loadPortalState() {
     }
   }
 
-  ensurePsycortexChecklist(mockClientState);
+  ensureProjectChecklist(mockClientState);
   window.savePortalState();
 
   fetchSupabaseData();
@@ -270,6 +273,7 @@ async function fetchSupabaseData() {
   try {
     const [
       { data: projects, error },
+      { data: dbClients },
       { data: chkData },
       { data: dbActions },
       { data: dbPages },
@@ -278,6 +282,7 @@ async function fetchSupabaseData() {
       { data: dbAssets }
     ] = await Promise.all([
       supabase.from('projects').select('*'),
+      supabase.from('clients').select('*'),
       supabase.from('project_checklist_items').select('*'),
       supabase.from('action_items').select('*'),
       supabase.from('website_pages').select('*'),
@@ -287,7 +292,17 @@ async function fetchSupabaseData() {
     ]);
 
     if (!error && projects && projects.length > 0) {
-      const p = projects.find(x => x.project_name.toLowerCase().includes('psycortex') || x.id === '22222222-2222-2222-2222-222222222222') || projects[0];
+      let p = null;
+      if (userSession && userSession.email) {
+        const matchingClient = dbClients ? dbClients.find(c => c.email.toLowerCase() === userSession.email.toLowerCase()) : null;
+        if (matchingClient) {
+          p = projects.find(x => x.client_id === matchingClient.id);
+        }
+      }
+      if (!p) {
+        p = projects.find(x => x.project_name.toLowerCase().includes('psycortex') || x.id === '22222222-2222-2222-2222-222222222222') || projects[0];
+      }
+
       if (p) {
         mockClientState.project.id = p.id;
         mockClientState.project.name = p.project_name;
@@ -296,21 +311,17 @@ async function fetchSupabaseData() {
         mockClientState.project.targetLaunchDate = p.target_launch_date;
         mockClientState.project.status = p.status;
 
-        if (dbActions && dbActions.length > 0) {
-          const prjActions = dbActions.filter(a => a.project_id === p.id);
-          if (prjActions.length > 0) {
-            mockClientState.actionItems = prjActions.map(a => ({
-              id: a.id,
-              title: a.title,
-              description: a.description,
-              dueDate: a.due_date,
-              actionType: a.action_type || 'upload_file',
-              ctaText: 'ACTION REQUIRED',
-              targetPage: 'Home Page',
-              completed: a.completed
-            }));
-          }
-        }
+        const prjActions = dbActions ? dbActions.filter(a => a.project_id === p.id) : [];
+        mockClientState.actionItems = prjActions.map(a => ({
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          dueDate: a.due_date,
+          actionType: a.action_type || 'upload_file',
+          ctaText: 'ACTION REQUIRED',
+          targetPage: 'Home Page',
+          completed: a.completed
+        }));
 
         if (dbPages && dbPages.length > 0) {
           const prjPages = dbPages.filter(pg => pg.project_id === p.id);
@@ -366,36 +377,80 @@ async function fetchSupabaseData() {
             }));
           }
         }
-      }
-    }
 
-    if (chkData && chkData.length > 0) {
-      const phasesMap = {};
-      const seenKeys = new Set();
-      chkData.forEach(item => {
-        const k = `${item.phase_name}::${item.title}`;
-        if (!seenKeys.has(k)) {
-          seenKeys.add(k);
-          if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
-          phasesMap[item.phase_name].push({
-            id: item.id,
-            title: item.title,
-            owner: item.owner || 'Dream Built',
-            status: item.status || 'Upcoming'
-          });
+        const standardPhases = [
+          '1. INTAKE & DISCOVERY',
+          '2. DESIGN PHASE',
+          '3. BUILD PHASE',
+          '4. REVIEW PHASE',
+          '5. LAUNCH PHASE'
+        ];
+
+        const defaultTaskOrder = [
+          'Initial client consultation and requirements gathering',
+          'Target audience and market research (El Salvador corporate focus)',
+          'Defining brand identity (Premium, Deep Blue, Gold)',
+          'Outlining site architecture (Home, About, Services, Packages, Contact)',
+          'UI/UX layout planning',
+          'Selecting modern typography and visual elements',
+          'Designing custom UI components (metallic gold gradients, glow effects)',
+          'Drafting localized copy and service structures',
+          'Developing HTML structure and semantic markup',
+          'Implementing CSS styling and responsive mobile layouts',
+          'Refining package features, monthly structures, and pricing models',
+          'Adding social media links (LinkedIn, Instagram, TikTok)',
+          'Finalizing interactive elements and form functionality',
+          'Cross-browser and mobile device testing',
+          'Proofreading Spanish copy and checking grammar/accents',
+          'Testing all links, forms, and widgets for proper functionality',
+          'Client review and final feedback rounds',
+          'Final performance optimization and cache busting',
+          'Configuring domain and hosting deployment',
+          'SEO metadata implementation (titles, descriptions)',
+          'Post-launch monitoring and client hand-off'
+        ];
+
+        if (chkData && chkData.length > 0) {
+          const projChecklist = chkData.filter(c => c.project_id === p.id);
+          if (projChecklist.length > 0) {
+            const phasesMap = {};
+            standardPhases.forEach(phName => phasesMap[phName] = []);
+
+            const seenKeys = new Set();
+            projChecklist.forEach(item => {
+              const k = `${item.phase_name}::${item.title}`;
+              if (!seenKeys.has(k)) {
+                seenKeys.add(k);
+                if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
+                phasesMap[item.phase_name].push({
+                  id: item.id,
+                  title: item.title,
+                  owner: item.owner || 'Dream Built',
+                  status: item.status || 'Upcoming'
+                });
+              }
+            });
+
+            mockClientState.checklistPhases = standardPhases.map(phaseName => {
+              const items = (phasesMap[phaseName] || []).sort((a, b) => {
+                const idxA = defaultTaskOrder.indexOf(a.title);
+                const idxB = defaultTaskOrder.indexOf(b.title);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                return 0;
+              });
+
+              return {
+                phaseName: phaseName,
+                status: (items.length > 0 && items.every(i => i.status === 'Completed')) ? 'Completed' : 'In Progress',
+                items: items
+              };
+            }).filter(ph => ph.items.length > 0);
+          }
         }
-      });
-
-      if (Object.keys(phasesMap).length > 0) {
-        mockClientState.checklistPhases = Object.keys(phasesMap).map(phaseName => ({
-          phaseName: phaseName,
-          status: phasesMap[phaseName].every(i => i.status === 'Completed') ? 'Completed' : 'In Progress',
-          items: phasesMap[phaseName]
-        }));
       }
     }
 
-    if (userSession) renderAllViews();
+    renderAllViews();
 
     supabase.channel('public:projects_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchSupabaseData())
@@ -481,12 +536,50 @@ function initAuthAndPortal() {
   }
 
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const emailInput = document.getElementById('login-email');
-      const email = emailInput ? emailInput.value : 'alba@psycortex.com';
+      const passInput = document.getElementById('login-password');
 
-      userSession = { email: email, name: mockClientState.client.contactName, company: mockClientState.client.businessName };
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passInput ? passInput.value.trim() : '';
+
+      if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+      }
+
+      let matchedClient = null;
+      if (supabase) {
+        try {
+          const { data: clients } = await supabase.from('clients').select('*').eq('email', email);
+          if (clients && clients.length > 0) {
+            matchedClient = clients[0];
+            if (matchedClient.password_hash && matchedClient.password_hash !== password) {
+              alert(`❌ Incorrect password for ${email}. Please use the login password configured in the Admin Command Center.`);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Portal client authentication error:', err);
+        }
+      }
+
+      // Local fallback password check if offline
+      if (!matchedClient && mockClientState.client.email.toLowerCase() === email.toLowerCase()) {
+        if (mockClientState.client.password && mockClientState.client.password !== password) {
+          alert('❌ Incorrect password for this client account.');
+          return;
+        }
+      }
+
+      userSession = {
+        email: email,
+        name: matchedClient ? matchedClient.contact_name : mockClientState.client.contactName,
+        company: matchedClient ? matchedClient.business_name : mockClientState.client.businessName,
+        clientId: matchedClient ? matchedClient.id : null
+      };
+
       localStorage.setItem('dreambuilt_portal_session', JSON.stringify(userSession));
 
       document.getElementById('auth-container').style.display = 'none';
@@ -495,6 +588,7 @@ function initAuthAndPortal() {
       const appHeader = document.querySelector('app-header');
       if (appHeader) appHeader.style.display = 'none';
 
+      await fetchSupabaseData();
       renderAllViews();
     });
   }
@@ -550,15 +644,59 @@ function initTabNavigation() {
   });
 }
 
+function renderFeedback() {}
+function renderFiles() {}
+
+function renderMessages() {
+  const container = document.getElementById('messages-list');
+  if (!container) return;
+
+  if (!mockClientState.messages || mockClientState.messages.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: var(--text-secondary); padding: 3rem 1rem;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
+        <p style="margin: 0; font-weight: 600; color: #ffffff;">No messages in project workspace chat yet.</p>
+        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem;">Type a message below to communicate directly with Dream Built Studios.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const currentUser = (userSession && userSession.name) ? userSession.name.toLowerCase() : '';
+
+  container.innerHTML = mockClientState.messages.map(msg => {
+    const isMe = msg.sender.toLowerCase().includes('client') ||
+                 msg.sender.toLowerCase().includes('alba') ||
+                 (currentUser && msg.sender.toLowerCase() === currentUser);
+
+    return `
+      <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'}; margin-bottom: 0.5rem;">
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+          ${escapeHtml(msg.sender)} • ${escapeHtml(msg.time || '')}
+        </div>
+        <div style="max-width: 75%; padding: 0.85rem 1.15rem; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; ${
+          isMe
+            ? 'background: linear-gradient(135deg, #0066ff, #00f0ff); color: #000000; font-weight: 600; border-bottom-right-radius: 2px;'
+            : 'background: rgba(255,255,255,0.08); color: #ffffff; border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 2px;'
+        }">
+          ${escapeHtml(msg.text)}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
 // 3. RENDER ALL VIEWS
 function renderAllViews() {
-  renderOverview();
-  renderPages();
-  renderFeedback();
-  renderFiles();
-  renderMessages();
-  renderChecklist();
-  window.savePortalState();
+  if (typeof renderOverview === 'function') renderOverview();
+  if (typeof renderPages === 'function') renderPages();
+  if (typeof renderFeedback === 'function') renderFeedback();
+  if (typeof renderFiles === 'function') renderFiles();
+  if (typeof renderMessages === 'function') renderMessages();
+  if (typeof renderChecklist === 'function') renderChecklist();
+  if (typeof window.savePortalState === 'function') window.savePortalState();
 }
 
 // HELPER: CALCULATE DYNAMIC PROGRESS FROM CHECKLIST
@@ -589,6 +727,32 @@ function renderOverview() {
   const progressFillEl = document.getElementById('health-progress-fill');
   if (progressValEl) progressValEl.textContent = `${progressInfo.pct}%`;
   if (progressFillEl) progressFillEl.style.width = `${progressInfo.pct}%`;
+
+  // Sync Target Launch Date dynamically from Admin
+  const launchDateEl = document.getElementById('health-launch-date');
+  if (launchDateEl && mockClientState.project.targetLaunchDate) {
+    launchDateEl.textContent = mockClientState.project.targetLaunchDate;
+  }
+
+  // Sync Lifecycle Stepper Phase dynamically from Admin
+  const stepperContainer = document.getElementById('lifecycle-stepper');
+  if (stepperContainer && mockClientState.project.currentPhase) {
+    const phases = ['Dream', 'Design', 'Build', 'Review', 'Launch'];
+    const currentPhaseUpper = mockClientState.project.currentPhase.toUpperCase();
+    const currentIdx = phases.findIndex(p => p.toUpperCase() === currentPhaseUpper);
+    const validIdx = currentIdx !== -1 ? currentIdx : 2;
+
+    stepperContainer.innerHTML = phases.map((phaseName, i) => {
+      let isCompleted = i < validIdx;
+      let isCurrent = i === validIdx;
+      return `
+        <div class="step-node ${isCurrent ? 'current' : isCompleted ? 'completed' : ''}">
+          <div class="step-circle">${isCompleted ? '✓' : isCurrent ? '●' : '○'}</div>
+          <div class="step-label">${phaseName.toUpperCase()}</div>
+        </div>
+      `;
+    }).join('');
+  }
 
   const pendingActions = mockClientState.actionItems.filter(item => !item.completed);
   if (countBadge) countBadge.textContent = pendingActions.length;
@@ -737,9 +901,38 @@ function initFormsAndModals() {
         text: `Alba Cortez submitted revision request: ${title}`
       });
 
+      const newFbId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `f-${Date.now()}`;
+      const newFbItem = {
+        id: newFbId,
+        title,
+        page,
+        section,
+        desc,
+        priority,
+        status: 'Submitted'
+      };
+
+      if (!mockClientState.feedbackItems) mockClientState.feedbackItems = [];
+      mockClientState.feedbackItems.unshift(newFbItem);
+
       closeModal('modal-request-change');
       formRequestChange.reset();
       renderAllViews();
+
+      if (supabase && mockClientState.project && mockClientState.project.id) {
+        supabase.from('feedback_items').insert([{
+          id: newFbId,
+          project_id: mockClientState.project.id,
+          page_title: page,
+          title: title,
+          comment: desc,
+          priority: priority,
+          status: 'Submitted'
+        }]).then(({ error }) => {
+          if (error) console.error('Customer feedback insert error:', error);
+        });
+      }
+
       alert('✓ Your revision request has been submitted to Dream Built!');
     });
   }
@@ -750,27 +943,35 @@ function initFormsAndModals() {
       const input = document.getElementById('msg-input');
       if (input && input.value.trim()) {
         const text = input.value.trim();
-        const sender = mockClientState.client.contactName || 'Alba Cortez';
+        const sender = mockClientState.client.contactName || 'Client';
         const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        mockClientState.messages.push({
-          id: `m-${Date.now()}`,
+        const newMsgId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `m-${Date.now()}`;
+        const newMsg = {
+          id: newMsgId,
           sender: sender,
           text: text,
           time: timeNow
-        });
+        };
+
+        if (!mockClientState.messages) mockClientState.messages = [];
+        mockClientState.messages.push(newMsg);
 
         input.value = '';
         renderMessages();
         window.savePortalState();
 
-        if (supabase) {
+        if (supabase && mockClientState.project && mockClientState.project.id) {
           supabase.from('messages').insert([{
-            project_id: mockClientState.project.id || 'prj-1',
-            sender: sender,
-            text: text,
+            id: newMsgId,
+            project_id: mockClientState.project.id,
+            sender_name: sender,
+            message_text: text,
+            time_formatted: timeNow,
             created_at: new Date().toISOString()
-          }]).then(() => {});
+          }]).then(({ error }) => {
+            if (error) console.error('Customer chat insert error:', error);
+          });
         }
       }
     };
@@ -809,17 +1010,23 @@ function renderChecklist() {
   const badge = document.getElementById('checklist-progress-badge');
   if (!container) return;
 
+  if (!mockClientState.checklistPhases || !Array.isArray(mockClientState.checklistPhases) || mockClientState.checklistPhases.length === 0) {
+    ensureProjectChecklist(mockClientState);
+  }
+
   let totalItems = 0;
   let completedItems = 0;
 
   mockClientState.checklistPhases.forEach(p => {
-    p.items.forEach(i => {
-      totalItems++;
-      if (i.status === 'Completed') completedItems++;
-    });
+    if (p.items) {
+      p.items.forEach(i => {
+        totalItems++;
+        if (i.status === 'Completed') completedItems++;
+      });
+    }
   });
 
-  const pct = Math.round((completedItems / totalItems) * 100);
+  const pct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
   if (badge) badge.textContent = `${completedItems} of ${totalItems} Tasks Completed (${pct}%)`;
 
   container.innerHTML = mockClientState.checklistPhases.map(phase => `

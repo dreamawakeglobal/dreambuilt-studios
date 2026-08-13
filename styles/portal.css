@@ -630,6 +630,16 @@ body.portal-body {
   box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
 }
 
+.portal-select {
+  cursor: pointer;
+}
+
+.portal-select option {
+  background-color: #0d1527 !important;
+  color: #ffffff !important;
+  padding: 8px 12px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .portal-header {
