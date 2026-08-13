@@ -221,12 +221,12 @@ function loadPortalState() {
           if (p.pages) {
             mockClientState.pages = p.pages.map(pg => ({
               id: pg.id,
-              name: pg.title,
-              slug: `/${pg.title.toLowerCase().replace(/ /g, '-')}`,
+              name: pg.title || pg.name,
+              slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
               status: pg.status,
               version: pg.version,
-              screenshotUrl: pg.image,
-              notes: `Version ${pg.version}`
+              screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
+              notes: pg.notes || `Version ${pg.version}`
             }));
           }
           if (p.feedback) {

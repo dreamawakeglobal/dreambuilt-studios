@@ -288,6 +288,7 @@ async function fetchSupabaseAdminData() {
         }
       });
 
+      window.saveAdminState();
       renderAdminDashboard();
     }
 
@@ -656,7 +657,7 @@ function renderAdminPages(project) {
         </div>
       </div>
 
-      <button class="attention-cta-btn" style="width: 100%; justify-content: center; font-size: 0.85rem;" onclick="openModal('modal-upload-screenshot')">
+      <button class="attention-cta-btn" style="width: 100%; justify-content: center; font-size: 0.85rem;" onclick="openUploadScreenshotModal('${page.id}')">
         + UPLOAD / REPLACE SCREENSHOT &rarr;
       </button>
     </div>
@@ -1027,8 +1028,24 @@ function initAdminForms() {
       window.saveAdminState();
 
       if (supabase) {
-        supabase.from('clients').insert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(() => {});
-        supabase.from('projects').insert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 15, status: 'Active' }]).then(() => {});
+        supabase.from('clients').upsert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(() => {});
+        supabase.from('projects').upsert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 0, status: 'Active' }]).then(() => {
+          const checklistInserts = [];
+          newPrj.checklistPhases.forEach(ph => {
+            ph.items.forEach(i => {
+              checklistInserts.push({
+                project_id: newProjId,
+                phase_name: ph.phaseName,
+                title: i.title,
+                owner: i.owner,
+                status: i.status
+              });
+            });
+          });
+          if (checklistInserts.length > 0) {
+            supabase.from('project_checklist_items').insert(checklistInserts).then(() => {});
+          }
+        });
       }
 
       renderAdminDashboard();
@@ -1047,15 +1064,27 @@ function initAdminForms() {
       const urlInput = document.getElementById('s-url').value.trim();
       const notes = document.getElementById('s-notes').value.trim();
 
-      const finalUrl = urlInput || '/images/card-01-custom-design.jpg';
-
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
         const page = project.pages.find(p => p.id === pageId);
         if (page) {
-          page.image = finalUrl;
+          if (urlInput) {
+            page.image = urlInput;
+          }
           page.version = notes ? `v2.${Date.now().toString().slice(-2)}` : page.version;
-          window.showAdminToast(`✓ Uploaded new screenshot for ${page.title}!`);
+
+          window.saveAdminState();
+
+          if (supabase) {
+            supabase.from('website_pages').upsert({
+              project_id: project.id,
+              title: page.title,
+              screenshot_url: page.image,
+              version: page.version
+            }).then(() => {});
+          }
+
+          window.showAdminToast(`✓ Replaced screenshot for ${page.title}!`);
           renderManagedWorkspace();
         }
       }
@@ -1252,6 +1281,24 @@ window.deleteClientAccount = function(projectId) {
     renderProjectsTable();
     window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
   }
+};
+
+window.openUploadScreenshotModal = function(pageId) {
+  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  const select = document.getElementById('s-page');
+
+  if (select && project && project.pages) {
+    select.innerHTML = project.pages.map(p => `
+      <option value="${p.id}" ${p.id === pageId ? 'selected' : ''}>${p.title} (${p.version})</option>
+    `).join('');
+  }
+
+  const fileNameEl = document.getElementById('s-file-name');
+  if (fileNameEl) fileNameEl.textContent = 'No file selected';
+  const urlInput = document.getElementById('s-url');
+  if (urlInput) urlInput.value = '';
+
+  window.openModal('modal-upload-screenshot');
 };
 
 window.generateNewClientPassword = function() {
