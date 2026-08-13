@@ -265,10 +265,7 @@ async function fetchSupabaseAdminData() {
             targetLaunch: dp.target_launch_date,
             status: dp.status,
             actionItems: [],
-            pages: [
-              { id: `pg-1`, title: 'Home Page', image: '/images/card-01-custom-design.jpg', status: 'Ready for Review', version: 'v1.0' },
-              { id: `pg-2`, title: 'About Page', image: '/images/card-02-website-development.jpg', status: 'Building', version: 'v1.0' }
-            ],
+            pages: [],
             feedback: [],
             assets: [],
             messages: [],
@@ -739,8 +736,20 @@ function renderAdminPages(project) {
   const container = document.getElementById('adm-manage-pages-grid');
   if (!container) return;
 
+  if (!project.pages || project.pages.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 2.5rem; text-align: center; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md);">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🖼️</div>
+        <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.25rem; font-size: 1.1rem;">No Website Page Screenshots</div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Click the button below to upload your first website page mockup.</div>
+        <button class="attention-cta-btn" style="display: inline-flex;" onclick="openUploadScreenshotModal('NEW_PAGE')">+ ADD NEW WEBSITE PAGE SCREENSHOT</button>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = project.pages.map(page => `
-    <div class="portal-glass page-card">
+    <div class="portal-glass page-card" style="display: flex; flex-direction: column; justify-content: space-between;">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
           <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff;">${page.title}</h3>
@@ -753,12 +762,40 @@ function renderAdminPages(project) {
         </div>
       </div>
 
-      <button class="attention-cta-btn" style="width: 100%; justify-content: center; font-size: 0.85rem;" onclick="openUploadScreenshotModal('${page.id}')">
-        + UPLOAD / REPLACE SCREENSHOT &rarr;
-      </button>
+      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button class="attention-cta-btn" style="flex: 1; justify-content: center; font-size: 0.85rem;" onclick="openUploadScreenshotModal('${page.id}')">
+          + UPLOAD / REPLACE SCREENSHOT &rarr;
+        </button>
+        <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.45rem 0.75rem; font-size: 0.85rem; font-weight: 700;" onclick="deleteWebsitePage('${page.id}')" title="Delete Website Page Mockup">
+          🗑️ DELETE
+        </button>
+      </div>
     </div>
   `).join('');
 }
+
+window.deleteWebsitePage = function(pageId) {
+  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  if (!project || !project.pages) return;
+
+  const pageIdx = project.pages.findIndex(p => p.id === pageId);
+  if (pageIdx !== -1) {
+    const removedPage = project.pages.splice(pageIdx, 1)[0];
+    window.saveAdminState();
+    renderManagedWorkspace();
+
+    if (supabase) {
+      supabase.from('website_pages').delete().eq('id', pageId).then(({ error }) => {
+        if (error) {
+          console.warn('Delete page by ID error, attempting deletion by title:', error);
+          supabase.from('website_pages').delete().eq('project_id', project.id).eq('title', removedPage.title).then(() => {});
+        }
+      });
+    }
+
+    window.showAdminToast(`✓ Deleted screenshot for '${removedPage.title}'`);
+  }
+};
 
 function renderAdminFeedbackBoard(project) {
   const container = document.getElementById('adm-manage-feedback-list');
@@ -1063,10 +1100,7 @@ function initAdminForms() {
         actionItems: [
           { id: `act-${Date.now()}`, title: 'Upload Brand Assets & Guidelines', description: 'Please upload transparent SVG logos and brand color guidelines.', dueDate: 'Upcoming', completed: false }
         ],
-        pages: [
-          { id: `pg-1`, title: 'Home Page', image: '/images/card-01-custom-design.jpg', status: 'Ready for Review', version: 'v1.0' },
-          { id: `pg-2`, title: 'About Page', image: '/images/card-02-website-development.jpg', status: 'Building', version: 'v1.0' }
-        ],
+        pages: [],
         feedback: [],
         assets: [],
         messages: [
@@ -1169,10 +1203,7 @@ function initAdminForms() {
               return;
             }
 
-            await supabase.from('website_pages').insert([
-              { project_id: newProjId, title: 'Home Page', screenshot_url: '/images/card-01-custom-design.jpg', version: 'v1.0', status: 'Ready for Review' },
-              { project_id: newProjId, title: 'About Page', screenshot_url: '/images/card-02-website-development.jpg', version: 'v1.0', status: 'Building' }
-            ]);
+
 
             await supabase.from('action_items').insert([{
               project_id: newProjId,
