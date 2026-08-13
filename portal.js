@@ -246,13 +246,32 @@ function initAuthAndPortal() {
   const loginForm = document.getElementById('portal-login-form');
   const btnSignOut = document.getElementById('btn-sign-out');
 
+  // Restore session on browser refresh
+  const savedSession = localStorage.getItem('dreambuilt_portal_session');
+  if (savedSession) {
+    try {
+      userSession = JSON.parse(savedSession);
+      const authContainer = document.getElementById('auth-container');
+      const wsContainer = document.getElementById('workspace-container');
+      if (authContainer) authContainer.style.display = 'none';
+      if (wsContainer) wsContainer.style.display = 'block';
+
+      const appHeader = document.querySelector('app-header');
+      if (appHeader) appHeader.style.display = 'none';
+
+      renderAllViews();
+    } catch (e) {}
+  }
+
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('login-email').value;
+      const emailInput = document.getElementById('login-email');
+      const email = emailInput ? emailInput.value : 'alba@psycortex.com';
 
-      // Simulate Authentication session
-      userSession = { email: email, name: 'Alba Cortez', company: 'Psycortex' };
+      userSession = { email: email, name: mockClientState.client.contactName, company: mockClientState.client.businessName };
+      localStorage.setItem('dreambuilt_portal_session', JSON.stringify(userSession));
+
       document.getElementById('auth-container').style.display = 'none';
       document.getElementById('workspace-container').style.display = 'block';
 
@@ -266,6 +285,7 @@ function initAuthAndPortal() {
   if (btnSignOut) {
     btnSignOut.addEventListener('click', () => {
       userSession = null;
+      localStorage.removeItem('dreambuilt_portal_session');
       document.getElementById('workspace-container').style.display = 'none';
       document.getElementById('auth-container').style.display = 'block';
 

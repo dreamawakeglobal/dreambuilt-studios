@@ -128,7 +128,7 @@ function loadAdminState() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+      if (parsed && Array.isArray(parsed.projects)) {
         adminState.projects = parsed.projects;
       }
     } catch (e) {
@@ -224,10 +224,31 @@ function initAdminAuth() {
   const loginForm = document.getElementById('admin-login-form');
   const btnLogout = document.getElementById('btn-admin-logout');
 
+  // Restore session on browser refresh
+  const savedSession = localStorage.getItem('dreambuilt_admin_session');
+  if (savedSession) {
+    try {
+      adminSession = JSON.parse(savedSession);
+      const authContainer = document.getElementById('admin-auth-container');
+      const wsContainer = document.getElementById('admin-workspace-container');
+      if (authContainer) authContainer.style.display = 'none';
+      if (wsContainer) wsContainer.style.display = 'block';
+
+      const appHeader = document.querySelector('app-header');
+      if (appHeader) appHeader.style.display = 'none';
+
+      renderAdminDashboard();
+    } catch (e) {}
+  }
+
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      adminSession = { email: 'admin@dreambuiltstudios.com', role: 'admin' };
+      const emailInput = document.getElementById('admin-email');
+      const email = emailInput ? emailInput.value : 'admin@dreambuiltstudios.com';
+      adminSession = { email: email, role: 'admin' };
+      localStorage.setItem('dreambuilt_admin_session', JSON.stringify(adminSession));
+
       document.getElementById('admin-auth-container').style.display = 'none';
       document.getElementById('admin-workspace-container').style.display = 'block';
 
@@ -242,6 +263,7 @@ function initAdminAuth() {
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       adminSession = null;
+      localStorage.removeItem('dreambuilt_admin_session');
       document.getElementById('admin-workspace-container').style.display = 'none';
       document.getElementById('admin-auth-container').style.display = 'block';
 
@@ -991,6 +1013,11 @@ window.deleteClientAccount = function(projectId) {
     const idx = adminState.projects.findIndex(p => p.id === projectId);
     if (idx !== -1) {
       adminState.projects.splice(idx, 1);
+    }
+
+    window.saveAdminState();
+    if (supabase) {
+      supabase.from('projects').delete().eq('id', projectId).then(() => {});
     }
 
     window.closeModal('modal-edit-credentials');
