@@ -378,21 +378,48 @@
       </div>
     </div>
 
-    <!-- MODAL: CREATE PROJECT -->
+    <!-- MODAL: CREATE NEW CLIENT & PROJECT WORKSPACE -->
     <div class="portal-modal-overlay" id="modal-create-project">
-      <div class="portal-modal-box">
+      <div class="portal-modal-box" style="max-width: 580px;">
         <div class="portal-modal-header">
-          <h3 class="portal-modal-title">LAUNCH NEW CLIENT PROJECT</h3>
+          <h3 class="portal-modal-title">CREATE NEW CLIENT &amp; PROJECT WORKSPACE</h3>
           <button class="portal-modal-close" onclick="closeModal('modal-create-project')">&times;</button>
         </div>
 
         <form id="form-create-project">
-          <div class="portal-form-group">
-            <label class="portal-label">ASSIGN TO CLIENT</label>
-            <select id="p-client" class="portal-select" required>
-              <option value="Psycortex">Psycortex (Alba Cortez)</option>
-              <option value="Dream Wealthy">Dream Wealthy (Marcus Vance)</option>
-            </select>
+          <div style="font-size: 0.8rem; font-weight: 800; color: var(--color-cyan-glow); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.35rem;">
+            1. CLIENT ACCOUNT DETAILS
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="portal-form-group">
+              <label class="portal-label">CLIENT / BUSINESS NAME</label>
+              <input type="text" id="p-client-name" class="portal-input" placeholder="e.g. Psycortex" required />
+            </div>
+
+            <div class="portal-form-group">
+              <label class="portal-label">PRIMARY CONTACT NAME</label>
+              <input type="text" id="p-contact-name" class="portal-input" placeholder="e.g. Alba Cortez" required />
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="portal-form-group">
+              <label class="portal-label">CLIENT LOGIN EMAIL</label>
+              <input type="email" id="p-client-email" class="portal-input" placeholder="client@company.com" required />
+            </div>
+
+            <div class="portal-form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="portal-label" style="margin-bottom: 0;">PASSWORD</label>
+                <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15); font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="generateNewClientPassword()">🎲 AUTO</button>
+              </div>
+              <input type="text" id="p-client-password" class="portal-input" value="demo1234" required />
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; font-weight: 800; color: var(--color-cyan-glow); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 0.85rem; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.35rem;">
+            2. PROJECT WORKSPACE CONFIGURATION
           </div>
 
           <div class="portal-form-group">
@@ -400,25 +427,29 @@
             <input type="text" id="p-name" class="portal-input" placeholder="e.g. Psycortex Corporate Website" required />
           </div>
 
-          <div class="portal-form-group">
-            <label class="portal-label">INITIAL LIFECYCLE PHASE</label>
-            <select id="p-phase" class="portal-select" required>
-              <option value="Dream">1. Dream Phase</option>
-              <option value="Design">2. Design Phase</option>
-              <option value="Build" selected>3. Build Phase</option>
-              <option value="Review">4. Review Phase</option>
-              <option value="Launch">5. Launch Phase</option>
-            </select>
-          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="portal-form-group">
+              <label class="portal-label">INITIAL PHASE</label>
+              <select id="p-phase" class="portal-select" required>
+                <option value="Dream">1. Dream Phase</option>
+                <option value="Design">2. Design Phase</option>
+                <option value="Build" selected>3. Build Phase</option>
+                <option value="Review">4. Review Phase</option>
+                <option value="Launch">5. Launch Phase</option>
+              </select>
+            </div>
 
-          <div class="portal-form-group">
-            <label class="portal-label">TARGET LAUNCH DATE</label>
-            <input type="date" id="p-launch" class="portal-input" value="2026-09-15" required />
+            <div class="portal-form-group">
+              <label class="portal-label">TARGET LAUNCH DATE</label>
+              <input type="text" id="p-launch" class="portal-input" placeholder="Sept 15, 2026" value="Sept 15, 2026" required />
+            </div>
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
             <button type="button" class="portal-badge" onclick="closeModal('modal-create-project')">CANCEL</button>
-            <button type="submit" class="attention-cta-btn" style="background: var(--color-success);">LAUNCH PROJECT WORKSPACE</button>
+            <button type="submit" class="attention-cta-btn" style="background: var(--color-success); border-color: var(--color-success);">
+              CREATE CLIENT &amp; LAUNCH WORKSPACE
+            </button>
           </div>
         </form>
       </div>

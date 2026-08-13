@@ -781,38 +781,99 @@ function initAdminForms() {
   if (formCreateProject) {
     formCreateProject.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('p-name').value;
-      const client = document.getElementById('p-client').value;
+      const clientName = document.getElementById('p-client-name').value.trim();
+      const contactName = document.getElementById('p-contact-name').value.trim();
+      const clientEmail = document.getElementById('p-client-email').value.trim();
+      const clientPassword = document.getElementById('p-client-password').value.trim();
+
+      const name = document.getElementById('p-name').value.trim();
       const phase = document.getElementById('p-phase').value;
-      const launch = document.getElementById('p-launch').value;
+      const launch = document.getElementById('p-launch').value.trim();
+
+      const newProjId = `prj-${Date.now()}`;
+      const newClientId = `cli-${Date.now()}`;
 
       const newPrj = {
-        id: `prj-${Date.now()}`,
-        client: client,
-        contact: client === 'Psycortex' ? 'Alba Cortez' : 'Marcus Vance',
+        id: newProjId,
+        clientId: newClientId,
+        client: clientName,
+        contact: contactName,
+        clientEmail: clientEmail,
+        clientPassword: clientPassword,
         name: name,
         currentPhase: phase,
-        progress: 10,
+        progress: 15,
         targetLaunch: launch,
         status: 'Active',
-        actionItems: [],
-        pages: [],
+        actionItems: [
+          { id: `act-${Date.now()}`, title: 'Upload Brand Assets & Guidelines', description: 'Please upload transparent SVG logos and brand color guidelines.', dueDate: 'Upcoming', completed: false }
+        ],
+        pages: [
+          { id: `pg-1`, title: 'Home Page', image: '/images/card-01-custom-design.jpg', status: 'Ready for Review', version: 'v1.0' },
+          { id: `pg-2`, title: 'About Page', image: '/images/card-02-website-development.jpg', status: 'Building', version: 'v1.0' }
+        ],
         feedback: [],
         assets: [],
-        messages: [],
+        messages: [
+          { sender: 'Dream Built', text: `Welcome ${contactName}! Your project workspace for ${name} is live.`, time: 'Just now' }
+        ],
         checklistPhases: [
           {
             phaseName: '1. INTAKE & DISCOVERY',
             status: 'In Progress',
-            items: [{ id: `c-${Date.now()}`, title: 'Kickoff Call & Strategy Alignment', owner: 'Dream Built', status: 'In Progress' }]
+            items: [
+              { id: `c-1`, title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
+              { id: `c-2`, title: 'Target audience and market research', owner: 'Dream Built', status: 'In Progress' },
+              { id: `c-3`, title: 'Defining brand identity & style direction', owner: 'Dream Built', status: 'In Progress' },
+              { id: `c-4`, title: 'Outlining site architecture & page tree', owner: 'Dream Built', status: 'Upcoming' }
+            ]
+          },
+          {
+            phaseName: '2. DESIGN PHASE',
+            status: 'Upcoming',
+            items: [
+              { id: `c-5`, title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-6`, title: 'Selecting typography and visual elements', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-7`, title: 'Designing custom UI components', owner: 'Dream Built', status: 'Upcoming' }
+            ]
+          },
+          {
+            phaseName: '3. BUILD PHASE',
+            status: 'Upcoming',
+            items: [
+              { id: `c-8`, title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-9`, title: 'Implementing CSS styling and responsive layouts', owner: 'Dream Built', status: 'Upcoming' }
+            ]
+          },
+          {
+            phaseName: '4. REVIEW PHASE',
+            status: 'Upcoming',
+            items: [
+              { id: `c-10`, title: 'Cross-browser and mobile testing', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-11`, title: 'Client review and final feedback rounds', owner: 'Client Action', status: 'Upcoming' }
+            ]
+          },
+          {
+            phaseName: '5. LAUNCH PHASE',
+            status: 'Upcoming',
+            items: [
+              { id: `c-12`, title: 'Final performance optimization and deployment', owner: 'Dream Built', status: 'Upcoming' }
+            ]
           }
         ]
       };
 
       adminState.projects.unshift(newPrj);
+      window.saveAdminState();
+
+      if (supabase) {
+        supabase.from('clients').insert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(() => {});
+        supabase.from('projects').insert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 15, status: 'Active' }]).then(() => {});
+      }
+
       renderAdminDashboard();
 
-      window.showAdminToast(`✓ Successfully launched project workspace '${name}'!`);
+      window.showAdminToast(`✓ Created client '${clientName}' & launched workspace '${name}'!`);
       window.closeModal('modal-create-project');
       formCreateProject.reset();
     });
@@ -1031,6 +1092,18 @@ window.deleteClientAccount = function(projectId) {
     renderProjectsTable();
     window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
   }
+};
+
+window.generateNewClientPassword = function() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+  let pass = 'Dream';
+  for (let i = 0; i < 4; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  pass += '!';
+  const input = document.getElementById('p-client-password');
+  if (input) input.value = pass;
+  window.showAdminToast(`✓ Generated new client password: ${pass}`);
 };
 
 window.handleScreenshotFileSelect = function(event) {
