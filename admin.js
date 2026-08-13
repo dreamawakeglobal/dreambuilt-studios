@@ -1060,35 +1060,62 @@ function initAdminForms() {
   if (formUploadScreenshot) {
     formUploadScreenshot.addEventListener('submit', (e) => {
       e.preventDefault();
-      const pageId = document.getElementById('s-page').value;
+      const pageSelectVal = document.getElementById('s-page').value;
+      const newTitleInput = document.getElementById('s-new-title');
       const urlInput = document.getElementById('s-url').value.trim();
       const notes = document.getElementById('s-notes').value.trim();
 
+      const finalUrl = window.lastUploadedScreenshotDataUrl || urlInput || '/images/card-01-custom-design.jpg';
+
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
-        const page = project.pages.find(p => p.id === pageId);
-        if (page) {
-          if (urlInput) {
-            page.image = urlInput;
-          }
-          page.version = notes ? `v2.${Date.now().toString().slice(-2)}` : page.version;
-
-          window.saveAdminState();
+        if (pageSelectVal === 'NEW_PAGE' || (newTitleInput && newTitleInput.value.trim())) {
+          const newTitle = (newTitleInput && newTitleInput.value.trim()) || 'New Website Page';
+          const newPage = {
+            id: `pg-${Date.now()}`,
+            title: newTitle,
+            image: finalUrl,
+            status: 'Ready for Review',
+            version: notes ? `v1.0 (${notes})` : 'v1.0'
+          };
+          if (!project.pages) project.pages = [];
+          project.pages.push(newPage);
 
           if (supabase) {
-            supabase.from('website_pages').upsert({
+            supabase.from('website_pages').insert([{
               project_id: project.id,
-              title: page.title,
-              screenshot_url: page.image,
-              version: page.version
-            }).then(() => {});
+              title: newTitle,
+              screenshot_url: finalUrl,
+              version: newPage.version,
+              status: 'Ready for Review'
+            }]).then(() => {});
           }
 
-          window.showAdminToast(`✓ Replaced screenshot for ${page.title}!`);
-          renderManagedWorkspace();
+          window.showAdminToast(`✓ Uploaded new page screenshot for '${newTitle}'!`);
+        } else {
+          const page = project.pages.find(p => p.id === pageSelectVal);
+          if (page) {
+            page.image = finalUrl;
+            page.version = notes ? `v2.${Date.now().toString().slice(-2)}` : page.version;
+
+            if (supabase) {
+              supabase.from('website_pages').upsert({
+                project_id: project.id,
+                title: page.title,
+                screenshot_url: page.image,
+                version: page.version
+              }).then(() => {});
+            }
+
+            window.showAdminToast(`✓ Replaced screenshot for ${page.title}!`);
+          }
         }
+
+        window.saveAdminState();
+        renderManagedWorkspace();
       }
 
+      window.lastUploadedScreenshotDataUrl = null;
       const fileNameEl = document.getElementById('s-file-name');
       if (fileNameEl) fileNameEl.textContent = 'No file selected';
 
@@ -1196,14 +1223,27 @@ function initAdminForms() {
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
         const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (!project.messages) project.messages = [];
         project.messages.push({
+          id: `m-${Date.now()}`,
           sender: 'Dream Built',
           text: text,
           time: timeNow
         });
 
+        window.saveAdminState();
         renderAdminMessages(project);
         input.value = '';
+
+        if (supabase) {
+          supabase.from('messages').insert([{
+            project_id: project.id,
+            sender: 'Dream Built',
+            text: text,
+            created_at: new Date().toISOString()
+          }]).then(() => {});
+        }
+
         window.showAdminToast('✓ Message sent to client!');
       }
     });
@@ -1283,20 +1323,34 @@ window.deleteClientAccount = function(projectId) {
   }
 };
 
+window.toggleNewPageInput = function(val) {
+  const group = document.getElementById('s-new-title-group');
+  if (group) {
+    group.style.display = val === 'NEW_PAGE' ? 'block' : 'none';
+  }
+};
+
 window.openUploadScreenshotModal = function(pageId) {
+  window.lastUploadedScreenshotDataUrl = null;
   const project = adminState.projects.find(p => p.id === activeManagedProjectId);
   const select = document.getElementById('s-page');
 
   if (select && project && project.pages) {
-    select.innerHTML = project.pages.map(p => `
+    let options = project.pages.map(p => `
       <option value="${p.id}" ${p.id === pageId ? 'selected' : ''}>${p.title} (${p.version})</option>
     `).join('');
+    options += `<option value="NEW_PAGE" ${pageId === 'NEW_PAGE' ? 'selected' : ''}>+ ADD NEW WEBSITE PAGE SCREENSHOT</option>`;
+    select.innerHTML = options;
   }
+
+  window.toggleNewPageInput(pageId || (select ? select.value : ''));
 
   const fileNameEl = document.getElementById('s-file-name');
   if (fileNameEl) fileNameEl.textContent = 'No file selected';
   const urlInput = document.getElementById('s-url');
   if (urlInput) urlInput.value = '';
+  const notesInput = document.getElementById('s-notes');
+  if (notesInput) notesInput.value = '';
 
   window.openModal('modal-upload-screenshot');
 };
@@ -1325,6 +1379,7 @@ window.handleScreenshotFileSelect = function(event) {
   const reader = new FileReader();
   reader.onload = function(e) {
     const dataUrl = e.target.result;
+    window.lastUploadedScreenshotDataUrl = dataUrl;
     const urlInput = document.getElementById('s-url');
     if (urlInput) urlInput.value = dataUrl;
     window.showAdminToast(`✓ Loaded PC file: ${file.name}`);

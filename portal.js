@@ -240,6 +240,9 @@ function loadPortalState() {
               status: f.status
             }));
           }
+          if (p.messages && Array.isArray(p.messages)) {
+            mockClientState.messages = p.messages;
+          }
           if (p.assets) {
             mockClientState.files = p.assets.map(a => ({
               id: a.id,
@@ -340,6 +343,7 @@ window.savePortalState = function() {
   p.status = mockClientState.project.status;
   p.actionItems = mockClientState.actionItems;
   p.checklistPhases = mockClientState.checklistPhases;
+  p.messages = mockClientState.messages;
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: projects }));
 };
@@ -633,19 +637,46 @@ function initFormsAndModals() {
 
   const btnSendMsg = document.getElementById('btn-send-msg');
   if (btnSendMsg) {
-    btnSendMsg.addEventListener('click', () => {
+    const sendHandler = () => {
       const input = document.getElementById('msg-input');
       if (input && input.value.trim()) {
+        const text = input.value.trim();
+        const sender = mockClientState.client.contactName || 'Alba Cortez';
+        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         mockClientState.messages.push({
           id: `m-${Date.now()}`,
-          sender: 'Alba Cortez',
-          text: input.value.trim(),
-          time: 'Just now'
+          sender: sender,
+          text: text,
+          time: timeNow
         });
+
         input.value = '';
         renderMessages();
+        window.savePortalState();
+
+        if (supabase) {
+          supabase.from('messages').insert([{
+            project_id: mockClientState.project.id || 'prj-1',
+            sender: sender,
+            text: text,
+            created_at: new Date().toISOString()
+          }]).then(() => {});
+        }
       }
-    });
+    };
+
+    btnSendMsg.addEventListener('click', sendHandler);
+
+    const msgInput = document.getElementById('msg-input');
+    if (msgInput) {
+      msgInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendHandler();
+        }
+      });
+    }
   }
 
   const btnOpenRequest = document.getElementById('btn-open-request-change');

@@ -256,7 +256,7 @@
                 <h2 style="margin: 0 0 0.35rem 0;">WEBSITE PAGE SCREENSHOT MANAGER</h2>
                 <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Upload latest high-resolution page design mockups for client preview.</p>
               </div>
-              <button class="attention-cta-btn" onclick="openModal('modal-upload-screenshot')">+ UPLOAD NEW PAGE SCREENSHOT</button>
+              <button class="attention-cta-btn" onclick="openUploadScreenshotModal('NEW_PAGE')">+ UPLOAD NEW PAGE SCREENSHOT</button>
             </div>
 
             <div class="pages-grid" id="adm-manage-pages-grid">
@@ -453,19 +453,25 @@
     <div class="portal-modal-overlay" id="modal-upload-screenshot">
       <div class="portal-modal-box">
         <div class="portal-modal-header">
-          <h3 class="portal-modal-title">UPLOAD PAGE DESIGN SCREENSHOT</h3>
+          <h3 class="portal-modal-title">UPLOAD / REPLACE PAGE SCREENSHOT</h3>
           <button class="portal-modal-close" onclick="closeModal('modal-upload-screenshot')">&times;</button>
         </div>
 
         <form id="form-upload-screenshot">
           <div class="portal-form-group">
             <label class="portal-label">TARGET WEBSITE PAGE</label>
-            <select id="s-page" class="portal-select" required>
+            <select id="s-page" class="portal-select" required onchange="toggleNewPageInput(this.value)">
               <option value="p1">Home Page</option>
               <option value="p2">About Page</option>
               <option value="p3">Services Page</option>
               <option value="p4">Contact Page</option>
+              <option value="NEW_PAGE">+ ADD NEW WEBSITE PAGE SCREENSHOT</option>
             </select>
+          </div>
+
+          <div class="portal-form-group" id="s-new-title-group" style="display: none;">
+            <label class="portal-label">NEW PAGE TITLE</label>
+            <input type="text" id="s-new-title" class="portal-input" placeholder="e.g. Pricing Page, Dashboard Page" />
           </div>
 
           <div class="portal-form-group">
@@ -485,13 +491,13 @@
           </div>
 
           <div class="portal-form-group">
-            <label class="portal-label">VERSION NOTES</label>
-            <input type="text" id="s-notes" class="portal-input" placeholder="e.g. Updated hero banner and typography" required />
+            <label class="portal-label">VERSION NOTES (OPTIONAL)</label>
+            <input type="text" id="s-notes" class="portal-input" placeholder="e.g. Updated hero banner layout" />
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
             <button type="button" class="portal-badge" onclick="closeModal('modal-upload-screenshot')">CANCEL</button>
-            <button type="submit" class="attention-cta-btn">UPDATE PAGE SCREENSHOT</button>
+            <button type="submit" class="attention-cta-btn">SAVE &amp; PUBLISH SCREENSHOT</button>
           </div>
         </form>
       </div>
