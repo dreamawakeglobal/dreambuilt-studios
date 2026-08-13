@@ -124,6 +124,7 @@ let adminState = {
 const STORAGE_KEY = 'dreambuilt_app_state_v1';
 
 function ensurePsycortexChecklist(project) {
+  if (project.client !== 'Psycortex' && !project.name.toLowerCase().includes('psycortex')) return;
   let isOld = false;
   if (!project.checklistPhases || !Array.isArray(project.checklistPhases)) {
     isOld = true;
@@ -952,7 +953,7 @@ function initAdminForms() {
         clientPassword: clientPassword,
         name: name,
         currentPhase: phase,
-        progress: 15,
+        progress: 0,
         targetLaunch: launch,
         status: 'Active',
         actionItems: [
@@ -970,33 +971,33 @@ function initAdminForms() {
         checklistPhases: [
           {
             phaseName: '1. INTAKE & DISCOVERY',
-            status: 'Completed',
+            status: 'Upcoming',
             items: [
-              { id: `c-${Date.now()}-1`, title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-2`, title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-3`, title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-4`, title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
+              { id: `c-${Date.now()}-1`, title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-2`, title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-3`, title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-4`, title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Upcoming' }
             ]
           },
           {
             phaseName: '2. DESIGN PHASE',
-            status: 'Completed',
+            status: 'Upcoming',
             items: [
-              { id: `c-${Date.now()}-5`, title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-6`, title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-7`, title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-8`, title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
+              { id: `c-${Date.now()}-5`, title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-6`, title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-7`, title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-8`, title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Upcoming' }
             ]
           },
           {
             phaseName: '3. BUILD PHASE',
-            status: 'In Progress',
+            status: 'Upcoming',
             items: [
-              { id: `c-${Date.now()}-9`, title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-10`, title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-11`, title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
-              { id: `c-${Date.now()}-12`, title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
-              { id: `c-${Date.now()}-13`, title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
+              { id: `c-${Date.now()}-9`, title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-10`, title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-11`, title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-12`, title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'Upcoming' },
+              { id: `c-${Date.now()}-13`, title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'Upcoming' }
             ]
           },
           {
