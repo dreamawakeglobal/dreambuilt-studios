@@ -472,6 +472,50 @@
       </div>
     </div>
 
+    <!-- MODAL: UPLOAD PROJECT DELIVERABLE -->
+    <div class="portal-modal-overlay" id="modal-upload-deliverable">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">UPLOAD PROJECT DELIVERABLE / ASSET</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-upload-deliverable')">&times;</button>
+        </div>
+
+        <form id="form-upload-deliverable">
+          <div class="portal-form-group">
+            <label class="portal-label">UPLOAD FILE FROM PC / MAC</label>
+            <div style="border: 2px dashed rgba(0, 240, 255, 0.35); background: rgba(0,0,0,0.4); padding: 1.25rem; border-radius: var(--radius-sm); text-align: center;">
+              <input type="file" id="d-file" style="display: none;" onchange="handleDeliverableFileSelect(event)" />
+              <button type="button" class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.65rem 1.25rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="document.getElementById('d-file').click()">
+                📁 BROWSE PC / MAC FILES
+              </button>
+              <div id="d-file-name" style="font-size: 0.85rem; color: var(--color-cyan-glow); margin-top: 0.65rem;">No file selected</div>
+            </div>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">DELIVERABLE ASSET TITLE</label>
+            <input type="text" id="d-title" class="portal-input" placeholder="e.g. psycortex-brand-guide.pdf" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">FILE TYPE / CATEGORY</label>
+            <select id="d-type" class="portal-select" required>
+              <option value="PDF Document">PDF Document</option>
+              <option value="SVG Vector">SVG Vector</option>
+              <option value="Brand Assets">Brand Assets</option>
+              <option value="Design Source File">Design Source File (Figma / Adobe)</option>
+              <option value="Zip Archive">Zip Archive</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-upload-deliverable')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">UPLOAD ASSET DELIVERABLE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL: ADD CHECKLIST TASK -->
     <div class="portal-modal-overlay" id="modal-add-checklist-task">
       <div class="portal-modal-box">

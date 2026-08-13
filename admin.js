@@ -121,10 +121,61 @@ let adminState = {
   ]
 };
 
+const STORAGE_KEY = 'dreambuilt_app_state_v1';
+
+function loadAdminState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+        adminState.projects = parsed.projects;
+      }
+    } catch (e) {
+      console.error('Failed loading admin state:', e);
+    }
+  } else {
+    window.saveAdminState();
+  }
+
+  fetchSupabaseAdminData();
+}
+
+async function fetchSupabaseAdminData() {
+  if (!supabase) return;
+  try {
+    const { data, error } = await supabase.from('projects').select('*');
+    if (!error && data && data.length > 0) {
+      console.log('✓ Connected to Supabase Admin Database: fetched projects', data);
+    }
+  } catch (e) {
+    console.warn('Supabase Admin DB connection status:', e);
+  }
+}
+
+window.saveAdminState = function() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
+  } catch (e) {
+    console.error('Failed saving admin state:', e);
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+  loadAdminState();
   initAdminAuth();
   initAdminTabs();
   initAdminForms();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      loadAdminState();
+      renderAdminDashboard();
+      if (document.getElementById('admin-project-manage-view').style.display !== 'none') {
+        renderManagedWorkspace();
+      }
+    }
+  });
 });
 
 // MODALS & TOAST NOTIFICATIONS
@@ -383,6 +434,8 @@ function renderManagedWorkspace() {
 
   // Render Checklist
   renderAdminChecklist(project, totalTasks, completedTasks, pct);
+
+  window.saveAdminState();
 }
 
 function renderAdminActionItems(project) {
@@ -561,6 +614,9 @@ window.deleteChecklistItem = function(taskId) {
     if (idx !== -1) {
       const removed = ph.items.splice(idx, 1)[0];
       window.showAdminToast(`✓ Deleted checklist task '${removed.title}'`);
+      if (supabase) {
+        supabase.from('project_checklist_items').delete().eq('title', removed.title).then(() => {});
+      }
     }
   });
 
@@ -575,6 +631,9 @@ window.toggleChecklistItem = function(taskId) {
       if (item.id === taskId) {
         item.status = item.status === 'Completed' ? 'In Progress' : 'Completed';
         window.showAdminToast(`✓ Updated checklist item: ${item.title}`);
+        if (supabase) {
+          supabase.from('project_checklist_items').update({ status: item.status }).eq('title', item.title).then(() => {});
+        }
       }
     });
   });
@@ -615,6 +674,11 @@ window.updateProjectPhase = function(id, phase) {
   if (p) {
     p.currentPhase = phase;
     window.showAdminToast(`✓ Updated ${p.name} phase to ${phase}`);
+    window.saveAdminState();
+
+    if (supabase) {
+      supabase.from('projects').update({ current_phase: phase }).eq('id', id).then(() => {});
+    }
   }
 };
 
@@ -623,6 +687,12 @@ window.updateProjectTargetLaunch = function(id, dateVal) {
   if (p) {
     p.targetLaunch = dateVal;
     window.showAdminToast(`✓ Updated ${p.name} target launch date to '${dateVal}'`);
+    window.saveAdminState();
+
+    if (supabase) {
+      supabase.from('projects').update({ target_launch_date: dateVal }).eq('id', id).then(() => {});
+    }
+
     if (activeManagedProjectId === id) {
       renderManagedWorkspace();
     }
@@ -634,6 +704,12 @@ window.updateProjectTargetLaunchFromOverview = function(dateVal) {
   if (p) {
     p.targetLaunch = dateVal;
     window.showAdminToast(`✓ Updated ${p.name} target launch date to '${dateVal}'`);
+    window.saveAdminState();
+
+    if (supabase) {
+      supabase.from('projects').update({ target_launch_date: dateVal }).eq('id', p.id).then(() => {});
+    }
+
     renderProjectsTable();
   }
 };
@@ -746,6 +822,36 @@ function initAdminForms() {
 
       window.closeModal('modal-upload-screenshot');
       formUploadScreenshot.reset();
+    });
+  }
+
+  const formUploadDeliverable = document.getElementById('form-upload-deliverable');
+  if (formUploadDeliverable) {
+    formUploadDeliverable.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('d-title').value.trim();
+      const type = document.getElementById('d-type').value;
+
+      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      if (project) {
+        project.assets.unshift({
+          id: `a-${Date.now()}`,
+          name: title,
+          size: window.lastSelectedDeliverableSize || '2.4 MB',
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+          type: type
+        });
+
+        window.showAdminToast(`✓ Uploaded deliverable asset '${title}'!`);
+        renderManagedWorkspace();
+      }
+
+      const fileNameEl = document.getElementById('d-file-name');
+      if (fileNameEl) fileNameEl.textContent = 'No file selected';
+      window.lastSelectedDeliverableSize = null;
+
+      window.closeModal('modal-upload-deliverable');
+      formUploadDeliverable.reset();
     });
   }
 
@@ -917,4 +1023,27 @@ window.handleScreenshotFileSelect = function(event) {
     window.showAdminToast(`✓ Loaded PC file: ${file.name}`);
   };
   reader.readAsDataURL(file);
+};
+
+window.handleDeliverableFileSelect = function(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const formattedSize = file.size > 1024 * 1024 
+    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+    : `${(file.size / 1024).toFixed(0)} KB`;
+  
+  window.lastSelectedDeliverableSize = formattedSize;
+
+  const fileNameEl = document.getElementById('d-file-name');
+  if (fileNameEl) {
+    fileNameEl.textContent = `✓ Selected: ${file.name} (${formattedSize})`;
+  }
+
+  const titleInput = document.getElementById('d-title');
+  if (titleInput && !titleInput.value) {
+    titleInput.value = file.name;
+  }
+
+  window.showAdminToast(`✓ Selected deliverable file: ${file.name}`);
 };

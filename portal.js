@@ -119,10 +119,126 @@ let mockClientState = {
   ]
 };
 
+const STORAGE_KEY = 'dreambuilt_app_state_v1';
+
+function loadPortalState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+        const p = parsed.projects.find(x => x.client === 'Psycortex' || x.id === 'prj-1') || parsed.projects[0];
+        if (p) {
+          mockClientState.client.businessName = p.client || 'Psycortex';
+          mockClientState.client.contactName = p.contact || 'Alba Cortez';
+          mockClientState.client.email = p.clientEmail || 'alba@psycortex.com';
+          mockClientState.client.password = p.clientPassword || 'demo1234';
+
+          mockClientState.project.name = p.name || 'Psycortex Corporate Website';
+          mockClientState.project.currentPhase = p.currentPhase || 'Build';
+          mockClientState.project.targetLaunchDate = p.targetLaunch || 'Sept 15, 2026';
+          mockClientState.project.status = p.status || 'Active';
+
+          if (p.actionItems) mockClientState.actionItems = p.actionItems;
+          if (p.checklistPhases) mockClientState.checklistPhases = p.checklistPhases;
+          if (p.pages) {
+            mockClientState.pages = p.pages.map(pg => ({
+              id: pg.id,
+              name: pg.title,
+              slug: `/${pg.title.toLowerCase().replace(/ /g, '-')}`,
+              status: pg.status,
+              version: pg.version,
+              screenshotUrl: pg.image,
+              notes: `Version ${pg.version}`
+            }));
+          }
+          if (p.feedback) {
+            mockClientState.feedbackItems = p.feedback.map(f => ({
+              id: f.id,
+              title: f.title,
+              page: f.page,
+              section: 'Revision Request',
+              desc: f.comment,
+              priority: f.priority,
+              status: f.status
+            }));
+          }
+          if (p.assets) {
+            mockClientState.files = p.assets.map(a => ({
+              id: a.id,
+              name: a.name,
+              category: a.type,
+              size: a.size,
+              uploadDate: a.date
+            }));
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed loading portal state:', e);
+    }
+  } else {
+    window.savePortalState();
+  }
+
+  fetchSupabaseData();
+}
+
+async function fetchSupabaseData() {
+  if (!supabase) return;
+  try {
+    const { data, error } = await supabase.from('projects').select('*').limit(5);
+    if (!error && data && data.length > 0) {
+      console.log('✓ Connected to Supabase Database: fetched projects', data);
+    }
+  } catch (e) {
+    console.warn('Supabase live database check:', e);
+  }
+}
+
+window.savePortalState = function() {
+  let saved = localStorage.getItem(STORAGE_KEY);
+  let projects = [];
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.projects)) projects = parsed.projects;
+    } catch (e) {}
+  }
+
+  let p = projects.find(x => x.id === 'prj-1' || x.client === 'Psycortex');
+  if (!p) {
+    p = { id: 'prj-1', client: 'Psycortex', contact: 'Alba Cortez' };
+    projects.unshift(p);
+  }
+
+  p.client = mockClientState.client.businessName;
+  p.contact = mockClientState.client.contactName;
+  p.clientEmail = mockClientState.client.email;
+  p.clientPassword = mockClientState.client.password || 'demo1234';
+  p.name = mockClientState.project.name;
+  p.currentPhase = mockClientState.project.currentPhase;
+  p.progress = mockClientState.project.progress;
+  p.targetLaunch = mockClientState.project.targetLaunchDate;
+  p.status = mockClientState.project.status;
+  p.actionItems = mockClientState.actionItems;
+  p.checklistPhases = mockClientState.checklistPhases;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: projects }));
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+  loadPortalState();
   initAuthAndPortal();
   initTabNavigation();
   initFormsAndModals();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      loadPortalState();
+      if (userSession) renderAllViews();
+    }
+  });
 });
 
 // 1. AUTHENTICATION & INITIALIZATION
@@ -192,6 +308,7 @@ function renderAllViews() {
   renderFiles();
   renderMessages();
   renderChecklist();
+  window.savePortalState();
 }
 
 // HELPER: CALCULATE DYNAMIC PROGRESS FROM CHECKLIST
