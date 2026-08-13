@@ -444,8 +444,19 @@
           </div>
 
           <div class="portal-form-group">
-            <label class="portal-label">SCREENSHOT IMAGE URL / ASSET PATH</label>
-            <input type="text" id="s-url" class="portal-input" placeholder="/images/card-01-custom-design.jpg" value="/images/card-01-custom-design.jpg" required />
+            <label class="portal-label">UPLOAD SCREENSHOT FROM PC / MAC</label>
+            <div style="border: 2px dashed rgba(0, 240, 255, 0.35); background: rgba(0,0,0,0.4); padding: 1.25rem; border-radius: var(--radius-sm); text-align: center;">
+              <input type="file" id="s-file" accept="image/*" style="display: none;" onchange="handleScreenshotFileSelect(event)" />
+              <button type="button" class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.65rem 1.25rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="document.getElementById('s-file').click()">
+                📁 BROWSE PC / MAC FILES
+              </button>
+              <div id="s-file-name" style="font-size: 0.85rem; color: var(--color-cyan-glow); margin-top: 0.65rem;">No file selected</div>
+            </div>
+          </div>
+
+          <div class="portal-form-group" style="margin-top: 1rem;">
+            <label class="portal-label">OR ENTER IMAGE URL / ASSET PATH</label>
+            <input type="text" id="s-url" class="portal-input" placeholder="/images/card-01-custom-design.jpg" />
           </div>
 
           <div class="portal-form-group">

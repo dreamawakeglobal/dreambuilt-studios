@@ -725,19 +725,24 @@ function initAdminForms() {
     formUploadScreenshot.addEventListener('submit', (e) => {
       e.preventDefault();
       const pageId = document.getElementById('s-page').value;
-      const url = document.getElementById('s-url').value;
-      const notes = document.getElementById('s-notes').value;
+      const urlInput = document.getElementById('s-url').value.trim();
+      const notes = document.getElementById('s-notes').value.trim();
+
+      const finalUrl = urlInput || '/images/card-01-custom-design.jpg';
 
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
         const page = project.pages.find(p => p.id === pageId);
         if (page) {
-          page.image = url;
+          page.image = finalUrl;
           page.version = notes ? `v2.${Date.now().toString().slice(-2)}` : page.version;
-          window.showAdminToast(`✓ Updated screenshot for ${page.title}!`);
+          window.showAdminToast(`✓ Uploaded new screenshot for ${page.title}!`);
           renderManagedWorkspace();
         }
       }
+
+      const fileNameEl = document.getElementById('s-file-name');
+      if (fileNameEl) fileNameEl.textContent = 'No file selected';
 
       window.closeModal('modal-upload-screenshot');
       formUploadScreenshot.reset();
@@ -893,4 +898,23 @@ window.deleteClientAccount = function(projectId) {
     renderProjectsTable();
     window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
   }
+};
+
+window.handleScreenshotFileSelect = function(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const fileNameEl = document.getElementById('s-file-name');
+  if (fileNameEl) {
+    fileNameEl.textContent = `✓ Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const urlInput = document.getElementById('s-url');
+    if (urlInput) urlInput.value = dataUrl;
+    window.showAdminToast(`✓ Loaded PC file: ${file.name}`);
+  };
+  reader.readAsDataURL(file);
 };
