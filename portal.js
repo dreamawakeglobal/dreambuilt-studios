@@ -371,14 +371,19 @@ async function fetchSupabaseData() {
 
     if (chkData && chkData.length > 0) {
       const phasesMap = {};
+      const seenKeys = new Set();
       chkData.forEach(item => {
-        if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
-        phasesMap[item.phase_name].push({
-          id: item.id,
-          title: item.title,
-          owner: item.owner || 'Dream Built',
-          status: item.status || 'Upcoming'
-        });
+        const k = `${item.phase_name}::${item.title}`;
+        if (!seenKeys.has(k)) {
+          seenKeys.add(k);
+          if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
+          phasesMap[item.phase_name].push({
+            id: item.id,
+            title: item.title,
+            owner: item.owner || 'Dream Built',
+            status: item.status || 'Upcoming'
+          });
+        }
       });
 
       if (Object.keys(phasesMap).length > 0) {
@@ -507,8 +512,20 @@ function initAuthAndPortal() {
   }
 }
 
-// 2. TAB NAVIGATION
 function initTabNavigation() {
+  const savedTab = localStorage.getItem('dreambuilt_portal_active_tab');
+  if (savedTab) {
+    currentTab = savedTab;
+    const tabBtns = document.querySelectorAll('.portal-tab-btn');
+    tabBtns.forEach(b => {
+      if (b.getAttribute('data-tab') === savedTab) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.style.display = 'none');
+    const activePane = document.getElementById(`tab-${savedTab}`);
+    if (activePane) activePane.style.display = 'block';
+  }
+
   const tabBtns = document.querySelectorAll('.portal-tab-btn');
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -517,6 +534,7 @@ function initTabNavigation() {
 
       const targetTab = btn.getAttribute('data-tab');
       currentTab = targetTab;
+      localStorage.setItem('dreambuilt_portal_active_tab', targetTab);
 
       document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.style.display = 'none';

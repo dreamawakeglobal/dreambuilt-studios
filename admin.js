@@ -359,14 +359,19 @@ async function fetchSupabaseAdminData() {
           const projChecklist = dbChecklist.filter(c => c.project_id === dp.id);
           if (projChecklist.length > 0) {
             const phasesMap = {};
+            const seenKeys = new Set();
             projChecklist.forEach(item => {
-              if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
-              phasesMap[item.phase_name].push({
-                id: item.id,
-                title: item.title,
-                owner: item.owner,
-                status: item.status
-              });
+              const k = `${item.phase_name}::${item.title}`;
+              if (!seenKeys.has(k)) {
+                seenKeys.add(k);
+                if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
+                phasesMap[item.phase_name].push({
+                  id: item.id,
+                  title: item.title,
+                  owner: item.owner,
+                  status: item.status
+                });
+              }
             });
             existingPrj.checklistPhases = Object.keys(phasesMap).map(pName => ({
               phaseName: pName,
@@ -378,8 +383,7 @@ async function fetchSupabaseAdminData() {
       });
 
       window.saveAdminState();
-      renderAdminDashboard();
-      if (typeof renderManagedWorkspace === 'function') renderManagedWorkspace();
+      window.restoreAdminView();
     }
 
     supabase.channel('public:admin_changes')
@@ -482,7 +486,7 @@ function initAdminAuth() {
       const appHeader = document.querySelector('app-header');
       if (appHeader) appHeader.style.display = 'none';
 
-      renderAdminDashboard();
+      window.restoreAdminView();
     } catch (e) {}
   }
 
@@ -596,9 +600,66 @@ function renderAdminFeedbackSummary() {
   `).join('');
 }
 
+window.switchAdminTab = function(targetTab) {
+  if (!targetTab) return;
+  localStorage.setItem('dreambuilt_admin_active_tab', targetTab);
+
+  const tabBtns = document.querySelectorAll('.portal-tabs-nav button[data-adm-tab]');
+  tabBtns.forEach(btn => {
+    if (btn.getAttribute('data-adm-tab') === targetTab) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  document.querySelectorAll('.adm-tab-pane').forEach(pane => pane.style.display = 'none');
+  const activePane = document.getElementById(`adm-tab-${targetTab}`);
+  if (activePane) activePane.style.display = 'block';
+};
+
+window.restoreAdminView = function() {
+  const activeView = localStorage.getItem('dreambuilt_admin_active_view');
+  const savedProjectId = localStorage.getItem('dreambuilt_admin_managed_project_id');
+  const savedTab = localStorage.getItem('dreambuilt_admin_active_tab') || 'overview';
+
+  renderAdminDashboard();
+
+  if (activeView === 'manage' && savedProjectId) {
+    const project = adminState.projects.find(p => p.id === savedProjectId);
+    if (project) {
+      activeManagedProjectId = savedProjectId;
+      const mainDash = document.getElementById('admin-main-dashboard');
+      const manageView = document.getElementById('admin-project-manage-view');
+      if (mainDash) mainDash.style.display = 'none';
+      if (manageView) manageView.style.display = 'block';
+
+      const titleEl = document.getElementById('adm-manage-title');
+      const subEl = document.getElementById('adm-manage-client-sub');
+      const phaseEl = document.getElementById('adm-manage-phase-select');
+
+      if (titleEl) titleEl.textContent = project.name;
+      if (subEl) subEl.textContent = `Client: ${project.contact} (${project.client})`;
+      if (phaseEl) phaseEl.value = project.currentPhase;
+
+      window.switchAdminTab(savedTab);
+      renderManagedWorkspace();
+      return;
+    }
+  }
+
+  const mainDash = document.getElementById('admin-main-dashboard');
+  const manageView = document.getElementById('admin-project-manage-view');
+  if (mainDash) mainDash.style.display = 'block';
+  if (manageView) manageView.style.display = 'none';
+};
+
 // SWITCH TO PROJECT MANAGEMENT VIEW
-window.openProjectManageView = function(projectId) {
+window.openProjectManageView = function(projectId, tabName) {
   activeManagedProjectId = projectId;
+  localStorage.setItem('dreambuilt_admin_managed_project_id', projectId);
+  localStorage.setItem('dreambuilt_admin_active_view', 'manage');
+  
   const project = adminState.projects.find(p => p.id === projectId);
   if (!project) return;
 
@@ -609,6 +670,9 @@ window.openProjectManageView = function(projectId) {
   document.getElementById('adm-manage-client-sub').textContent = `Client: ${project.contact} (${project.client})`;
   document.getElementById('adm-manage-phase-select').value = project.currentPhase;
 
+  const targetTab = tabName || localStorage.getItem('dreambuilt_admin_active_tab') || 'overview';
+  window.switchAdminTab(targetTab);
+
   renderManagedWorkspace();
   window.showAdminToast(`✓ Opened operational management for ${project.name}`);
 };
@@ -618,6 +682,7 @@ function initAdminTabs() {
   const btnBack = document.getElementById('btn-back-to-dashboard');
   if (btnBack) {
     btnBack.addEventListener('click', () => {
+      localStorage.setItem('dreambuilt_admin_active_view', 'dashboard');
       document.getElementById('admin-project-manage-view').style.display = 'none';
       document.getElementById('admin-main-dashboard').style.display = 'block';
       renderProjectsTable();
@@ -628,13 +693,7 @@ function initAdminTabs() {
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetTab = btn.getAttribute('data-adm-tab');
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.adm-tab-pane').forEach(pane => pane.style.display = 'none');
-      const activePane = document.getElementById(`adm-tab-${targetTab}`);
-      if (activePane) activePane.style.display = 'block';
-
+      window.switchAdminTab(targetTab);
       renderManagedWorkspace();
     });
   });
@@ -1214,21 +1273,7 @@ function initAdminForms() {
               completed: false
             }]);
 
-            const checklistInserts = [];
-            newPrj.checklistPhases.forEach(ph => {
-              ph.items.forEach(i => {
-                checklistInserts.push({
-                  project_id: newProjId,
-                  phase_name: ph.phaseName,
-                  title: i.title,
-                  owner: i.owner,
-                  status: i.status
-                });
-              });
-            });
-            if (checklistInserts.length > 0) {
-              await supabase.from('project_checklist_items').insert(checklistInserts);
-            }
+
 
             console.log(`Successfully synced new workspace '${name}' to Supabase!`);
           } catch (err) {
