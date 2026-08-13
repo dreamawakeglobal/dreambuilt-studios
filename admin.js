@@ -234,9 +234,14 @@ function renderProjectsTable() {
         <span class="status-badge ${p.status.toLowerCase().replace(/ /g, '-')}">${p.status}</span>
       </td>
       <td style="padding: 1rem;">
-        <button class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="openProjectManageView('${p.id}')">
-          MANAGE &rarr;
-        </button>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="openProjectManageView('${p.id}')">
+            MANAGE &rarr;
+          </button>
+          <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.15); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.45rem 0.65rem; font-size: 0.8rem;" onclick="deleteClientAccount('${p.id}')" title="Delete Client Account">
+            🗑️ DELETE
+          </button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -858,4 +863,29 @@ window.generateRandomPassword = function() {
   pass += '!';
   document.getElementById('edit-cred-password').value = pass;
   window.showAdminToast(`✓ Generated new password: ${pass}`);
+};
+
+window.deleteClientAccount = function(projectId) {
+  const project = adminState.projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const confirmDelete = confirm(`Are you sure you want to permanently delete the client account for ${project.client} (${project.contact})?\n\nThis action will remove all project workspace data, checklist items, and client portal access.`);
+
+  if (confirmDelete) {
+    const idx = adminState.projects.findIndex(p => p.id === projectId);
+    if (idx !== -1) {
+      adminState.projects.splice(idx, 1);
+    }
+
+    window.closeModal('modal-edit-credentials');
+
+    document.getElementById('admin-project-manage-view').style.display = 'none';
+    document.getElementById('admin-main-dashboard').style.display = 'block';
+
+    const countEl = document.getElementById('adm-count-projects');
+    if (countEl) countEl.textContent = adminState.projects.length;
+
+    renderProjectsTable();
+    window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
+  }
 };

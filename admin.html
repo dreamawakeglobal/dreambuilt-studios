@@ -566,9 +566,14 @@
             <input type="text" id="edit-cred-password" class="portal-input" value="demo1234" required />
           </div>
 
-          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
-            <button type="button" class="portal-badge" onclick="closeModal('modal-edit-credentials')">CANCEL</button>
-            <button type="submit" class="attention-cta-btn">SAVE UPDATED CREDENTIALS</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.75rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem;">
+            <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.4); color: #ff6666;" onclick="deleteClientAccount(activeManagedProjectId)">
+              🗑️ DELETE CLIENT ACCOUNT
+            </button>
+            <div style="display: flex; gap: 1rem;">
+              <button type="button" class="portal-badge" onclick="closeModal('modal-edit-credentials')">CANCEL</button>
+              <button type="submit" class="attention-cta-btn">SAVE UPDATED CREDENTIALS</button>
+            </div>
           </div>
         </form>
       </div>
