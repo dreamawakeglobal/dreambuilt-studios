@@ -92,9 +92,14 @@
 
           <!-- ACTIVE PROJECTS COMMAND LIST -->
           <div class="portal-glass" style="padding: 1.75rem; margin-bottom: 2.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
               <h2 style="margin: 0; font-size: 1.35rem;">ACTIVE CLIENT PROJECTS</h2>
-              <span style="font-size: 0.85rem; color: var(--text-secondary);">Click MANAGE to enter client workspace with full admin controls</span>
+              <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="openEditCredentialsModal()">
+                  🔑 MANAGE EMAILS &amp; PASSWORDS
+                </button>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Click MANAGE for full workspace</span>
+              </div>
             </div>
 
             <div style="overflow-x: auto;">

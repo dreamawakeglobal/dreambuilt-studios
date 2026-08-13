@@ -234,9 +234,12 @@ function renderProjectsTable() {
         <span class="status-badge ${p.status.toLowerCase().replace(/ /g, '-')}">${p.status}</span>
       </td>
       <td style="padding: 1rem;">
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="attention-cta-btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="openProjectManageView('${p.id}')">
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="attention-cta-btn" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" onclick="openProjectManageView('${p.id}')">
             MANAGE &rarr;
+          </button>
+          <button class="portal-badge" style="cursor: pointer; background: rgba(0, 240, 255, 0.15); border-color: rgba(0, 240, 255, 0.4); color: var(--color-cyan-glow); padding: 0.45rem 0.65rem; font-size: 0.8rem;" onclick="openEditCredentialsModal('${p.id}')" title="Edit Login Email & Password">
+            🔑 EDIT LOGIN
           </button>
           <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.15); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.45rem 0.65rem; font-size: 0.8rem;" onclick="deleteClientAccount('${p.id}')" title="Delete Client Account">
             🗑️ DELETE
@@ -844,9 +847,11 @@ function initAdminForms() {
 }
 
 // EDIT CREDENTIALS HELPERS
-window.openEditCredentialsModal = function() {
-  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+window.openEditCredentialsModal = function(projectId) {
+  const targetId = projectId || activeManagedProjectId || (adminState.projects[0] && adminState.projects[0].id);
+  const project = adminState.projects.find(p => p.id === targetId);
   if (project) {
+    activeManagedProjectId = targetId;
     document.getElementById('edit-cred-client').value = `${project.client} (${project.contact})`;
     document.getElementById('edit-cred-email').value = project.clientEmail || 'alba@psycortex.com';
     document.getElementById('edit-cred-password').value = project.clientPassword || 'demo1234';
