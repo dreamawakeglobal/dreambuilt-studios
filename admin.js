@@ -942,8 +942,13 @@ function initAdminForms() {
       const phase = document.getElementById('p-phase').value;
       const launch = document.getElementById('p-launch').value.trim();
 
-      const newProjId = `prj-${Date.now()}`;
-      const newClientId = `cli-${Date.now()}`;
+      const generateUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+
+      const newProjId = generateUUID();
+      const newClientId = generateUUID();
 
       const newPrj = {
         id: newProjId,
@@ -1028,8 +1033,15 @@ function initAdminForms() {
       window.saveAdminState();
 
       if (supabase) {
-        supabase.from('clients').upsert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(() => {});
-        supabase.from('projects').upsert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 0, status: 'Active' }]).then(() => {
+        supabase.from('clients').upsert([{ id: newClientId, business_name: clientName, contact_name: contactName, email: clientEmail, password_hash: clientPassword }]).then(({ error }) => {
+          if (error) console.error('Clients insert error:', error);
+        });
+
+        supabase.from('projects').upsert([{ id: newProjId, client_id: newClientId, project_name: name, current_phase: phase, target_launch_date: launch, progress_pct: 0, status: 'Active' }]).then(({ error }) => {
+          if (error) {
+            console.error('Projects insert error:', error);
+            return;
+          }
           const checklistInserts = [];
           newPrj.checklistPhases.forEach(ph => {
             ph.items.forEach(i => {
@@ -1043,7 +1055,9 @@ function initAdminForms() {
             });
           });
           if (checklistInserts.length > 0) {
-            supabase.from('project_checklist_items').insert(checklistInserts).then(() => {});
+            supabase.from('project_checklist_items').insert(checklistInserts).then(({ error: chkErr }) => {
+              if (chkErr) console.error('Checklist insert error:', chkErr);
+            });
           }
         });
       }
