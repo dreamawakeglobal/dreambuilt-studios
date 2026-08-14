@@ -671,7 +671,12 @@ function renderManagedWorkspace() {
   const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : project.progress;
   project.progress = pct;
 
-  // Update Overview Health
+  // Update Overview Heading & Health
+  const headingEl = document.getElementById('adm-workspace-heading');
+  if (headingEl) {
+    headingEl.textContent = `ADMIN MANAGING: ${(project.client || 'PSYCORTEX').toUpperCase()} WORKSPACE`;
+  }
+
   const valEl = document.getElementById('adm-manage-progress-val');
   const fillEl = document.getElementById('adm-manage-progress-fill');
   if (valEl) valEl.textContent = `${pct}%`;
