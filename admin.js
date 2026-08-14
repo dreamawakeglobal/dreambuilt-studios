@@ -1,5 +1,15 @@
 import { supabase } from './lib/supabase.js';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let adminSession = null;
 let activeManagedProjectId = null;
 
@@ -201,9 +211,10 @@ async function fetchSupabaseAdminData() {
             existingPrj.pages = prjPages.map(pg => ({
               id: pg.id,
               title: pg.title,
-              image: pg.screenshot_url,
-              version: pg.version,
-              status: pg.status
+              image: pg.image || pg.screenshot_url || '/images/card-01-custom-design.jpg',
+              version: pg.version || 'v1.0',
+              status: pg.status || 'Ready for Review',
+              notes: pg.notes || `Version ${pg.version || 'v1.0'}`
             }));
           }
         }
@@ -421,11 +432,11 @@ function initAdminAuth() {
       if (authContainer) authContainer.style.display = 'none';
       if (wsContainer) wsContainer.style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'none';
-
+      updateAdminHeaderUIState(true);
       window.restoreAdminView();
     } catch (e) {}
+  } else {
+    updateAdminHeaderUIState(false);
   }
 
   if (loginForm) {
@@ -439,13 +450,120 @@ function initAdminAuth() {
       document.getElementById('admin-auth-container').style.display = 'none';
       document.getElementById('admin-workspace-container').style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'none';
-
+      updateAdminHeaderUIState(true);
       renderAdminDashboard();
       window.showAdminToast('✓ Logged into Dream Built Admin Command Center');
     });
   }
+
+  const notifBtn = document.getElementById('btn-admin-notifications-toggle');
+  if (notifBtn) {
+    notifBtn.style.cursor = 'pointer';
+    notifBtn.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleAdminNotificationsPopover();
+    };
+  }
+
+  const chatFab = document.getElementById('floating-chat-button');
+  if (chatFab) {
+    chatFab.style.cursor = 'pointer';
+    chatFab.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleFloatingChatWidget();
+    };
+  }
+
+  document.addEventListener('click', (e) => {
+    const popover = document.getElementById('admin-notifications-popover');
+    const toggleBtn = document.getElementById('btn-admin-notifications-toggle');
+    if (popover && popover.style.display === 'block') {
+      if (!popover.contains(e.target) && !toggleBtn.contains(e.target)) {
+        popover.style.display = 'none';
+      }
+    }
+  });
+
+  initAdminChatListeners();
+
+window.handleAdminSendMessage = function() {
+  const chatInput = document.getElementById('admin-chat-input');
+  if (!chatInput) return;
+  const txt = (chatInput.value || '').trim();
+  if (!txt) return;
+
+  const activeProj = adminState.projects.find(p => p.id === activeManagedProjectId) || adminState.projects[0];
+  if (!activeProj) return;
+
+  if (!activeProj.messages) activeProj.messages = [];
+  const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const newMsgId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `m-${Date.now()}`;
+  
+  const newMsg = {
+    id: newMsgId,
+    sender: 'Dream Built Studios',
+    text: txt,
+    time: timeNow
+  };
+
+  activeProj.messages.push(newMsg);
+  window.saveAdminState();
+
+  try {
+    const portalDataRaw = localStorage.getItem('dreambuilt_portal_state_v1');
+    let portalData = portalDataRaw ? JSON.parse(portalDataRaw) : {};
+    portalData.messages = activeProj.messages;
+    localStorage.setItem('dreambuilt_portal_state_v1', JSON.stringify(portalData));
+  } catch (e) {
+    console.warn('Error saving chat to portal state:', e);
+  }
+
+  chatInput.value = '';
+  renderAdminFloatingChat();
+
+  if (supabase && activeProj.id) {
+    supabase.from('messages').insert([{
+      id: newMsgId,
+      project_id: activeProj.id,
+      sender_name: 'Dream Built Studios',
+      message_text: txt,
+      time_formatted: timeNow,
+      created_at: new Date().toISOString()
+    }]).then(({ error }) => {
+      if (error) console.error('Admin chat insert error:', error);
+    });
+  }
+};
+
+function initAdminChatListeners() {
+  const btnSendChat = document.getElementById('btn-admin-chat-send');
+  if (btnSendChat) {
+    btnSendChat.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.handleAdminSendMessage();
+    };
+  }
+
+  const chatInput = document.getElementById('admin-chat-input');
+  if (chatInput) {
+    chatInput.onkeydown = function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        window.handleAdminSendMessage();
+      }
+    };
+  }
+}
 
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
@@ -454,9 +572,210 @@ function initAdminAuth() {
       document.getElementById('admin-workspace-container').style.display = 'none';
       document.getElementById('admin-auth-container').style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'block';
+      updateAdminHeaderUIState(false);
     });
+  }
+}
+
+window.toggleAdminNotificationsPopover = function() {
+  const popover = document.getElementById('admin-notifications-popover');
+  if (!popover) return;
+  const isHidden = popover.style.display === 'none' || !popover.style.display;
+  if (isHidden) {
+    renderAdminNotifications();
+    popover.style.display = 'block';
+  } else {
+    popover.style.display = 'none';
+  }
+};
+
+let dismissedAdminNotifIds = new Set(JSON.parse(localStorage.getItem('dreambuilt_admin_dismissed_notifs') || '[]'));
+
+window.dismissAdminNotification = function(notifId, actionType) {
+  dismissedAdminNotifIds.add(notifId);
+  localStorage.setItem('dreambuilt_admin_dismissed_notifs', JSON.stringify(Array.from(dismissedAdminNotifIds)));
+  const popover = document.getElementById('admin-notifications-popover');
+  if (popover) popover.style.display = 'none';
+
+  if (actionType === 'chat' && typeof window.toggleFloatingChatWidget === 'function') {
+    window.toggleFloatingChatWidget();
+  } else if (actionType === 'feedback') {
+    window.switchAdminTab('feedback');
+  } else if (actionType === 'files') {
+    window.switchAdminTab('files');
+  }
+
+  renderAdminNotifications();
+};
+
+window.clearAdminNotifications = function() {
+  const currentNotifs = getActiveAdminNotifications();
+  currentNotifs.forEach(n => dismissedAdminNotifIds.add(n.id));
+  localStorage.setItem('dreambuilt_admin_dismissed_notifs', JSON.stringify(Array.from(dismissedAdminNotifIds)));
+  renderAdminNotifications();
+};
+
+function getActiveAdminNotifications() {
+  const allNotifs = [
+    { id: 'adm-n1', actionType: 'feedback', icon: '📝', title: 'New Revision Request Submitted', time: '15m ago', desc: 'Psycortex submitted feedback for Home Page. Click to view.' },
+    { id: 'adm-n2', actionType: 'chat', icon: '💬', title: 'New Client Live Message', time: '30m ago', desc: 'Alba Cortez sent a message in live project chat. Click to respond.' },
+    { id: 'adm-n3', actionType: 'files', icon: '📁', title: 'Brand Asset Uploaded', time: '1h ago', desc: 'Client uploaded new company logo assets. Click to inspect.' }
+  ];
+  return allNotifs.filter(n => !dismissedAdminNotifIds.has(n.id));
+}
+
+function renderAdminNotifications() {
+  const listEl = document.getElementById('admin-notifications-list');
+  const badgeEl = document.getElementById('admin-notifications-badge-count');
+  if (!listEl) return;
+
+  const activeNotifs = getActiveAdminNotifications();
+
+  if (badgeEl) {
+    if (activeNotifs.length > 0) {
+      badgeEl.style.display = 'block';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+  }
+
+  if (activeNotifs.length === 0) {
+    listEl.innerHTML = `
+      <div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0.5rem; font-size: 0.825rem;">
+        <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">🎉</div>
+        <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.2rem;">All Client Alerts Resolved!</div>
+        <div>No unread notifications at this time.</div>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = activeNotifs.map(n => `
+    <div onclick="dismissAdminNotification('${n.id}', '${n.actionType}')" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 0.75rem 0.85rem; border-radius: 8px; font-size: 0.825rem; cursor: pointer; transition: all 0.2s ease;" title="Click to open & dismiss">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
+        <span style="font-weight: 700; color: #ffffff;">${n.icon} ${escapeHtml(n.title)}</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.75rem;">${escapeHtml(n.time)}</span>
+          <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; opacity: 0.7;">&times;</span>
+        </div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.35;">${escapeHtml(n.desc)}</div>
+    </div>
+  `).join('');
+}
+
+window.toggleFloatingChatWidget = function() {
+  const widget = document.getElementById('floating-chat-widget');
+  const fab = document.getElementById('floating-chat-button');
+  if (!widget) return;
+  const isHidden = widget.style.display === 'none' || !widget.style.display;
+  if (isHidden) {
+    widget.style.display = 'flex';
+    if (fab) fab.classList.remove('chat-shake-alert');
+    renderAdminFloatingChat();
+    const input = document.getElementById('admin-chat-input');
+    if (input) input.focus();
+  } else {
+    widget.style.display = 'none';
+  }
+};
+
+const DEFAULT_SHARED_CHAT_MESSAGES = [];
+
+function syncAdminChatMessages(activeProj) {
+  if (!activeProj) return [];
+
+  // Check portal localStorage state first for any live messages sent by client
+  try {
+    const portalDataRaw = localStorage.getItem('dreambuilt_portal_state_v1');
+    if (portalDataRaw) {
+      const portalData = JSON.parse(portalDataRaw);
+      if (portalData && Array.isArray(portalData.messages) && portalData.messages.length > 0) {
+        activeProj.messages = portalData.messages;
+        return activeProj.messages;
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading portal chat state:', e);
+  }
+
+  if (!activeProj.messages || activeProj.messages.length === 0) {
+    activeProj.messages = JSON.parse(JSON.stringify(DEFAULT_SHARED_CHAT_MESSAGES));
+  }
+
+  return activeProj.messages;
+}
+
+function renderAdminFloatingChat() {
+  const container = document.getElementById('admin-chat-messages-list');
+  if (!container) return;
+
+  const activeProj = adminState.projects.find(p => p.id === activeManagedProjectId) || adminState.projects[0];
+  const messages = syncAdminChatMessages(activeProj);
+
+  if (messages.length === 0) {
+    container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; padding: 2rem;">No messages yet. Send a message to start the conversation!</div>`;
+    return;
+  }
+
+  container.innerHTML = messages.map(m => `
+    <div style="display: flex; flex-direction: column; align-items: ${m.sender === 'Dream Built Studios' || m.sender === 'Admin' ? 'flex-end' : 'flex-start'}; margin-bottom: 0.5rem;">
+      <div style="font-size: 0.725rem; color: var(--text-secondary); margin-bottom: 0.2rem;">${escapeHtml(m.sender)} • ${escapeHtml(m.time || 'Just now')}</div>
+      <div style="background: ${m.sender === 'Dream Built Studios' || m.sender === 'Admin' ? 'linear-gradient(135deg, #00f0ff, #0066ff)' : 'rgba(255,255,255,0.08)'}; color: ${m.sender === 'Dream Built Studios' || m.sender === 'Admin' ? '#000000' : '#ffffff'}; font-weight: ${m.sender === 'Dream Built Studios' || m.sender === 'Admin' ? '700' : '400'}; padding: 0.65rem 0.95rem; border-radius: 14px; max-width: 82%; font-size: 0.85rem; line-height: 1.4; word-break: break-word;">
+        ${escapeHtml(m.text)}
+      </div>
+    </div>
+  `).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+function updateAdminHeaderUIState(isLoggedIn) {
+  const btnCreate = document.getElementById('btn-create-project');
+  const btnLogout = document.getElementById('btn-admin-logout');
+  const loggedOutBadge = document.getElementById('admin-header-loggedout-badge');
+
+  const chatFab = document.getElementById('floating-chat-button');
+  const chatWidget = document.getElementById('floating-chat-widget');
+  const notifBtn = document.getElementById('btn-admin-notifications-toggle');
+  const notifPopover = document.getElementById('admin-notifications-popover');
+
+  const activeView = localStorage.getItem('dreambuilt_admin_active_view') || 'dashboard';
+
+  if (isLoggedIn) {
+    if (btnCreate) btnCreate.style.display = activeView === 'manage' ? 'none' : 'inline-flex';
+    if (btnLogout) btnLogout.style.display = 'inline-block';
+    if (loggedOutBadge) loggedOutBadge.style.display = 'none';
+    if (chatFab) {
+      if (activeView === 'manage') {
+        chatFab.style.display = 'block';
+        chatFab.classList.add('chat-shake-alert');
+      } else {
+        chatFab.style.display = 'none';
+        chatFab.classList.remove('chat-shake-alert');
+        if (chatWidget) chatWidget.style.display = 'none';
+      }
+    }
+    if (notifBtn) {
+      if (activeView === 'manage') {
+        notifBtn.style.display = 'block';
+        renderAdminNotifications();
+      } else {
+        notifBtn.style.display = 'none';
+        if (notifPopover) notifPopover.style.display = 'none';
+      }
+    }
+  } else {
+    if (btnCreate) btnCreate.style.display = 'none';
+    if (btnLogout) btnLogout.style.display = 'none';
+    if (loggedOutBadge) loggedOutBadge.style.display = 'inline-block';
+    if (chatFab) {
+      chatFab.style.display = 'none';
+      chatFab.classList.remove('chat-shake-alert');
+    }
+    if (chatWidget) chatWidget.style.display = 'none';
+    if (notifBtn) notifBtn.style.display = 'none';
+    if (notifPopover) notifPopover.style.display = 'none';
   }
 }
 
@@ -563,6 +882,12 @@ window.restoreAdminView = function() {
 
   renderAdminDashboard();
 
+  const btnCreate = document.getElementById('btn-create-project');
+  const chatFab = document.getElementById('floating-chat-button');
+  const chatWidget = document.getElementById('floating-chat-widget');
+  const notifBtn = document.getElementById('btn-admin-notifications-toggle');
+  const notifPopover = document.getElementById('admin-notifications-popover');
+
   if (activeView === 'manage' && savedProjectId) {
     const project = adminState.projects.find(p => p.id === savedProjectId);
     if (project) {
@@ -571,6 +896,15 @@ window.restoreAdminView = function() {
       const manageView = document.getElementById('admin-project-manage-view');
       if (mainDash) mainDash.style.display = 'none';
       if (manageView) manageView.style.display = 'block';
+      if (btnCreate) btnCreate.style.display = 'none';
+      if (chatFab) {
+        chatFab.style.display = 'block';
+        chatFab.classList.add('chat-shake-alert');
+      }
+      if (notifBtn) {
+        notifBtn.style.display = 'block';
+        renderAdminNotifications();
+      }
 
       const titleEl = document.getElementById('adm-manage-title');
       const subEl = document.getElementById('adm-manage-client-sub');
@@ -592,6 +926,14 @@ window.restoreAdminView = function() {
   const manageView = document.getElementById('admin-project-manage-view');
   if (mainDash) mainDash.style.display = 'block';
   if (manageView) manageView.style.display = 'none';
+  if (btnCreate) btnCreate.style.display = 'inline-flex';
+  if (chatFab) {
+    chatFab.style.display = 'none';
+    chatFab.classList.remove('chat-shake-alert');
+  }
+  if (chatWidget) chatWidget.style.display = 'none';
+  if (notifBtn) notifBtn.style.display = 'none';
+  if (notifPopover) notifPopover.style.display = 'none';
 };
 
 // SWITCH TO PROJECT MANAGEMENT VIEW
@@ -602,6 +944,21 @@ window.openProjectManageView = function(projectId, tabName) {
   
   const project = adminState.projects.find(p => p.id === projectId);
   if (!project) return;
+
+  const btnCreate = document.getElementById('btn-create-project');
+  if (btnCreate) btnCreate.style.display = 'none';
+
+  const chatFab = document.getElementById('floating-chat-button');
+  if (chatFab) {
+    chatFab.style.display = 'block';
+    chatFab.classList.add('chat-shake-alert');
+  }
+
+  const notifBtn = document.getElementById('btn-admin-notifications-toggle');
+  if (notifBtn) {
+    notifBtn.style.display = 'block';
+    renderAdminNotifications();
+  }
 
   document.getElementById('admin-main-dashboard').style.display = 'none';
   document.getElementById('admin-project-manage-view').style.display = 'block';
@@ -627,6 +984,22 @@ function initAdminTabs() {
       localStorage.setItem('dreambuilt_admin_active_view', 'dashboard');
       document.getElementById('admin-project-manage-view').style.display = 'none';
       document.getElementById('admin-main-dashboard').style.display = 'block';
+      const btnCreate = document.getElementById('btn-create-project');
+      if (btnCreate) btnCreate.style.display = 'inline-flex';
+      
+      const chatFab = document.getElementById('floating-chat-button');
+      const chatWidget = document.getElementById('floating-chat-widget');
+      if (chatFab) {
+        chatFab.style.display = 'none';
+        chatFab.classList.remove('chat-shake-alert');
+      }
+      if (chatWidget) chatWidget.style.display = 'none';
+
+      const notifBtn = document.getElementById('btn-admin-notifications-toggle');
+      const notifPopover = document.getElementById('admin-notifications-popover');
+      if (notifBtn) notifBtn.style.display = 'none';
+      if (notifPopover) notifPopover.style.display = 'none';
+
       renderProjectsTable();
     });
   }
@@ -1087,6 +1460,57 @@ function initAdminForms() {
   const btnAddTask = document.getElementById('btn-adm-add-task');
   if (btnAddTask) {
     btnAddTask.addEventListener('click', () => window.openModal('modal-add-checklist-task'));
+  }
+
+  const formAddFeedback = document.getElementById('form-admin-add-feedback');
+  if (formAddFeedback) {
+    formAddFeedback.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const page = document.getElementById('adm-fb-page').value;
+      const title = document.getElementById('adm-fb-title').value.trim();
+      const section = document.getElementById('adm-fb-section').value.trim() || 'Design Section';
+      const desc = document.getElementById('adm-fb-desc').value.trim();
+      const priority = document.getElementById('adm-fb-priority').value;
+      const status = document.getElementById('adm-fb-status').value;
+
+      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      if (!project) return;
+
+      const newFbId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `f-${Date.now()}`;
+      const newFbItem = {
+        id: newFbId,
+        title: title,
+        page: page,
+        section: section,
+        comment: desc,
+        desc: desc,
+        priority: priority,
+        status: status
+      };
+
+      if (!project.feedback) project.feedback = [];
+      project.feedback.unshift(newFbItem);
+
+      window.saveAdminState();
+      renderManagedWorkspace();
+      window.closeModal('modal-admin-add-feedback');
+      formAddFeedback.reset();
+      window.showAdminToast(`✓ Submitted feedback item '${title}'`);
+
+      if (supabase && project.id) {
+        supabase.from('feedback_items').insert([{
+          id: newFbId,
+          project_id: project.id,
+          page_title: page,
+          title: title,
+          comment: desc,
+          priority: priority,
+          status: status
+        }]).then(({ error }) => {
+          if (error) console.error('Admin feedback insert error:', error);
+        });
+      }
+    });
   }
 
   const formCreateProject = document.getElementById('form-create-project');

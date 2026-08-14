@@ -116,7 +116,8 @@ let mockClientState = {
         { id: 'c21', title: 'Post-launch monitoring and client hand-off', owner: 'Dream Built', status: 'Upcoming' }
       ]
     }
-  ]
+  ],
+  messages: []
 };
 
 const STORAGE_KEY = 'dreambuilt_app_state_v1';
@@ -323,35 +324,34 @@ async function fetchSupabaseData() {
           completed: a.completed
         }));
 
-        if (dbPages && dbPages.length > 0) {
-          const prjPages = dbPages.filter(pg => pg.project_id === p.id);
-          if (prjPages.length > 0) {
-            mockClientState.pages = prjPages.map(pg => ({
+        const prjPages = dbPages ? dbPages.filter(pg => pg.project_id === p.id) : [];
+        if (prjPages.length > 0) {
+          mockClientState.pages = prjPages.map(pg => {
+            const imgUrl = pg.image || pg.screenshot_url || '/images/card-01-custom-design.jpg';
+            return {
               id: pg.id,
               name: pg.title,
               slug: `/${pg.title.toLowerCase().replace(/ /g, '-')}`,
-              status: pg.status,
-              version: pg.version,
-              screenshotUrl: pg.screenshot_url,
-              notes: `Version ${pg.version}`
-            }));
-          }
+              status: pg.status || 'Ready for Review',
+              version: pg.version || 'v1.0',
+              screenshotUrl: imgUrl,
+              notes: pg.notes || `Version ${pg.version || 'v1.0'}`
+            };
+          });
         }
 
-        if (dbFeedback && dbFeedback.length > 0) {
-          const prjFb = dbFeedback.filter(f => f.project_id === p.id);
-          if (prjFb.length > 0) {
-            mockClientState.feedbackItems = prjFb.map(f => ({
-              id: f.id,
-              title: f.title,
-              page: f.page_title,
-              section: 'Revision Request',
-              desc: f.comment,
-              priority: f.priority,
-              status: f.status
-            }));
-          }
-        }
+        const prjFb = dbFeedback ? dbFeedback.filter(f => f.project_id === p.id) : [];
+        mockClientState.feedbackItems = prjFb.map(f => ({
+          id: f.id,
+          title: f.title || 'Revision Request',
+          page: f.page_title,
+          page_title: f.page_title,
+          section: f.section || 'Design Screenshot',
+          desc: f.comment,
+          comment: f.comment,
+          priority: f.priority || 'Normal',
+          status: f.status || 'Submitted'
+        }));
 
         if (dbMessages && dbMessages.length > 0) {
           const prjMsgs = dbMessages.filter(m => m.project_id === p.id);
@@ -528,11 +528,11 @@ function initAuthAndPortal() {
       if (authContainer) authContainer.style.display = 'none';
       if (wsContainer) wsContainer.style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'none';
-
+      updateHeaderUIState(true);
       renderAllViews();
     } catch (e) {}
+  } else {
+    updateHeaderUIState(false);
   }
 
   if (loginForm) {
@@ -585,9 +585,7 @@ function initAuthAndPortal() {
       document.getElementById('auth-container').style.display = 'none';
       document.getElementById('workspace-container').style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'none';
-
+      updateHeaderUIState(true);
       await fetchSupabaseData();
       renderAllViews();
     });
@@ -600,10 +598,166 @@ function initAuthAndPortal() {
       document.getElementById('workspace-container').style.display = 'none';
       document.getElementById('auth-container').style.display = 'block';
 
-      const appHeader = document.querySelector('app-header');
-      if (appHeader) appHeader.style.display = 'block';
+      updateHeaderUIState(false);
     });
   }
+}
+
+window.toggleFloatingChatWidget = function() {
+  const widget = document.getElementById('floating-chat-widget');
+  const fab = document.getElementById('floating-chat-button');
+  if (!widget) return;
+  const isHidden = widget.style.display === 'none' || !widget.style.display;
+  if (isHidden) {
+    widget.style.display = 'flex';
+    if (fab) fab.classList.remove('chat-shake-alert');
+    renderMessages();
+    const input = document.getElementById('msg-input');
+    if (input) input.focus();
+  } else {
+    widget.style.display = 'none';
+  }
+};
+
+window.triggerChatShakeAlert = function() {
+  const fab = document.getElementById('floating-chat-button');
+  const widget = document.getElementById('floating-chat-widget');
+  if (fab && (!widget || widget.style.display === 'none' || !widget.style.display)) {
+    fab.classList.add('chat-shake-alert');
+  }
+};
+
+function updateHeaderUIState(isLoggedIn) {
+  const bizNameEl = document.getElementById('client-business-name');
+  const userInfoEl = document.getElementById('portal-header-user-info');
+  const signOutBtn = document.getElementById('btn-sign-out');
+  const loggedOutBadge = document.getElementById('portal-header-loggedout-badge');
+
+  const chatFab = document.getElementById('floating-chat-button');
+  const chatWidget = document.getElementById('floating-chat-widget');
+  const notifBtn = document.getElementById('btn-notifications-toggle');
+  const notifPopover = document.getElementById('user-notifications-popover');
+
+  if (isLoggedIn) {
+    if (bizNameEl) {
+      bizNameEl.textContent = `${mockClientState.client.businessName || 'Psycortex'} Workspace`;
+      bizNameEl.style.display = 'inline-block';
+    }
+    if (userInfoEl) userInfoEl.style.display = 'flex';
+    if (signOutBtn) signOutBtn.style.display = 'none';
+    if (loggedOutBadge) loggedOutBadge.style.display = 'none';
+    if (chatFab) {
+      chatFab.style.display = 'block';
+      chatFab.classList.add('chat-shake-alert');
+    }
+    if (notifBtn) notifBtn.style.display = 'block';
+    renderNotifications();
+  } else {
+    if (bizNameEl) bizNameEl.style.display = 'none';
+    if (userInfoEl) userInfoEl.style.display = 'none';
+    if (signOutBtn) signOutBtn.style.display = 'none';
+    if (loggedOutBadge) loggedOutBadge.style.display = 'inline-block';
+    if (chatFab) {
+      chatFab.style.display = 'none';
+      chatFab.classList.remove('chat-shake-alert');
+    }
+    if (chatWidget) chatWidget.style.display = 'none';
+    if (notifBtn) notifBtn.style.display = 'none';
+    if (notifPopover) notifPopover.style.display = 'none';
+  }
+}
+
+window.toggleNotificationsPopover = function() {
+  const popover = document.getElementById('user-notifications-popover');
+  const userPopover = document.getElementById('user-profile-popover');
+  if (!popover) return;
+  const isHidden = popover.style.display === 'none' || !popover.style.display;
+  if (isHidden) {
+    if (userPopover) userPopover.style.display = 'none';
+    renderNotifications();
+    popover.style.display = 'block';
+  } else {
+    popover.style.display = 'none';
+  }
+};
+
+let dismissedNotificationIds = new Set(JSON.parse(localStorage.getItem('dreambuilt_dismissed_notifs') || '[]'));
+
+window.dismissNotification = function(notifId, actionType) {
+  dismissedNotificationIds.add(notifId);
+  localStorage.setItem('dreambuilt_dismissed_notifs', JSON.stringify(Array.from(dismissedNotificationIds)));
+  
+  const popover = document.getElementById('user-notifications-popover');
+  if (popover) popover.style.display = 'none';
+
+  if (actionType === 'chat' && typeof window.toggleFloatingChatWidget === 'function') {
+    window.toggleFloatingChatWidget();
+  } else if (actionType === 'pages') {
+    const pagesBtn = document.querySelector('.portal-tab-btn[data-tab="pages"]');
+    if (pagesBtn) pagesBtn.click();
+  } else if (actionType === 'checklist') {
+    const chkBtn = document.querySelector('.portal-tab-btn[data-tab="checklist"]');
+    if (chkBtn) chkBtn.click();
+  }
+
+  renderNotifications();
+};
+
+window.clearNotifications = function() {
+  const currentNotifs = getActiveNotifications();
+  currentNotifs.forEach(n => dismissedNotificationIds.add(n.id));
+  localStorage.setItem('dreambuilt_dismissed_notifs', JSON.stringify(Array.from(dismissedNotificationIds)));
+  renderNotifications();
+};
+
+function getActiveNotifications() {
+  const allNotifs = [
+    { id: 'notif-1', actionType: 'chat', icon: '💬', title: 'New Message from Dream Built', time: '10m ago', desc: 'Welcome! Your project workspace is live. Click to view live chat.' },
+    { id: 'notif-2', actionType: 'pages', icon: '🖼️', title: 'Website Screenshot Uploaded', time: '1h ago', desc: 'Home Page v1.0 mockup is ready for inspection. Click to view.' },
+    { id: 'notif-3', actionType: 'checklist', icon: '✅', title: 'Milestone Completed', time: '2h ago', desc: 'Phase 1 Intake & Discovery requirements aligned. Click to view roadmap.' }
+  ];
+
+  return allNotifs.filter(n => !dismissedNotificationIds.has(n.id));
+}
+
+function renderNotifications() {
+  const listEl = document.getElementById('notifications-list');
+  const badgeEl = document.getElementById('notifications-badge-count');
+  if (!listEl) return;
+
+  const activeNotifs = getActiveNotifications();
+
+  if (badgeEl) {
+    if (activeNotifs.length > 0) {
+      badgeEl.style.display = 'block';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+  }
+
+  if (activeNotifs.length === 0) {
+    listEl.innerHTML = `
+      <div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0.5rem; font-size: 0.825rem;">
+        <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">🎉</div>
+        <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.2rem;">All Notifications Caught Up!</div>
+        <div>No unread notifications at this time.</div>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = activeNotifs.map(n => `
+    <div onclick="dismissNotification('${n.id}', '${n.actionType}')" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 0.75rem 0.85rem; border-radius: 8px; font-size: 0.825rem; cursor: pointer; transition: all 0.2s ease; position: relative;" title="Click to open & dismiss">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
+        <span style="font-weight: 700; color: #ffffff;">${n.icon} ${escapeHtml(n.title)}</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.75rem;">${escapeHtml(n.time)}</span>
+          <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; opacity: 0.7;">&times;</span>
+        </div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.35;">${escapeHtml(n.desc)}</div>
+    </div>
+  `).join('');
 }
 
 function initTabNavigation() {
@@ -690,6 +844,7 @@ function renderMessages() {
 
 // 3. RENDER ALL VIEWS
 function renderAllViews() {
+  renderUserAvatarUI();
   if (typeof renderOverview === 'function') renderOverview();
   if (typeof renderPages === 'function') renderPages();
   if (typeof renderFeedback === 'function') renderFeedback();
@@ -697,6 +852,47 @@ function renderAllViews() {
   if (typeof renderMessages === 'function') renderMessages();
   if (typeof renderChecklist === 'function') renderChecklist();
   if (typeof window.savePortalState === 'function') window.savePortalState();
+}
+
+function renderUserAvatarUI() {
+  const avatarEl = document.getElementById('user-avatar-initials');
+  const nameEl = document.getElementById('user-display-name');
+  const bizNameEl = document.getElementById('client-business-name');
+
+  const popoverAvatar = document.getElementById('popover-avatar-circle');
+  const popoverName = document.getElementById('popover-user-name');
+  const popoverEmail = document.getElementById('popover-user-email');
+  const popoverCompany = document.getElementById('popover-user-company');
+
+  const contactName = mockClientState.client.contactName || 'Alba Cortez';
+  const bizName = mockClientState.client.businessName || 'Psycortex';
+  const email = mockClientState.client.email || 'psycortex@portal.dbstudios.com';
+  const avatarUrl = mockClientState.client.avatarUrl;
+
+  if (nameEl) nameEl.textContent = contactName;
+  if (bizNameEl) bizNameEl.textContent = `${bizName} Workspace`;
+
+  if (popoverName) popoverName.textContent = contactName;
+  if (popoverEmail) popoverEmail.textContent = email;
+  if (popoverCompany) popoverCompany.textContent = `${bizName} Workspace`;
+
+  const initials = contactName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AC';
+
+  if (avatarEl) {
+    if (avatarUrl) {
+      avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+    } else {
+      avatarEl.textContent = initials;
+    }
+  }
+
+  if (popoverAvatar) {
+    if (avatarUrl) {
+      popoverAvatar.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    } else {
+      popoverAvatar.textContent = initials;
+    }
+  }
 }
 
 // HELPER: CALCULATE DYNAMIC PROGRESS FROM CHECKLIST
@@ -861,22 +1057,41 @@ function renderLightboxNotes(page) {
   if (!container) return;
 
   const pageNotes = [];
+
   if (page && page.notes) {
-    pageNotes.push({
-      sender: 'Page Overview Note',
-      time: page.version || 'v1.0',
-      text: page.notes
+    const lines = page.notes.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    lines.forEach(l => {
+      let sender = 'Page Note';
+      let text = l;
+      if (l.includes(':')) {
+        const parts = l.split(':');
+        sender = parts[0].replace('[', '').replace(']', '').trim();
+        text = parts.slice(1).join(':').trim();
+      }
+      pageNotes.push({
+        sender: sender,
+        time: page.version || 'v1.0',
+        text: text
+      });
     });
   }
 
   if (mockClientState.feedbackItems && page) {
-    const fbItems = mockClientState.feedbackItems.filter(f => f.page === page.name || f.page_title === page.name);
+    const targetName = (page.name || '').toLowerCase().trim();
+    const fbItems = mockClientState.feedbackItems.filter(f => {
+      const fPage = (f.page || f.page_title || '').toLowerCase().trim();
+      return fPage === targetName || fPage.includes(targetName) || targetName.includes(fPage);
+    });
+
     fbItems.forEach(f => {
-      pageNotes.push({
-        sender: f.title || 'Revision Note',
-        time: f.status || 'Submitted',
-        text: f.desc || f.comment
-      });
+      const text = f.desc || f.comment;
+      if (text && !pageNotes.some(n => n.text === text)) {
+        pageNotes.push({
+          sender: f.title || 'Revision Note',
+          time: f.status || 'Submitted',
+          text: text
+        });
+      }
     });
   }
 
@@ -949,7 +1164,164 @@ window.openPageWorkspace = function(pageId) {
 };
 
 // MODALS AND FORMS
+window.openProfileSettingsModal = function() {
+  const contactName = mockClientState.client.contactName || 'Alba Cortez';
+  const bizName = mockClientState.client.businessName || 'Psycortex';
+  const email = mockClientState.client.email || 'psycortex@portal.dbstudios.com';
+  const avatarUrl = mockClientState.client.avatarUrl;
+
+  const modalNameEl = document.getElementById('profile-modal-user-name');
+  const modalEmailEl = document.getElementById('profile-modal-user-email');
+  const contactInput = document.getElementById('profile-contact-name');
+  const bizInput = document.getElementById('profile-business-name');
+  const avatarPreview = document.getElementById('profile-modal-avatar-preview');
+
+  if (modalNameEl) modalNameEl.textContent = contactName;
+  if (modalEmailEl) modalEmailEl.textContent = email;
+  if (contactInput) contactInput.value = contactName;
+  if (bizInput) bizInput.value = bizName;
+
+  if (avatarPreview) {
+    if (avatarUrl) {
+      avatarPreview.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    } else {
+      const initials = contactName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AC';
+      avatarPreview.textContent = initials;
+    }
+  }
+
+  const passNew = document.getElementById('profile-new-password');
+  const passConfirm = document.getElementById('profile-confirm-password');
+  if (passNew) passNew.value = '';
+  if (passConfirm) passConfirm.value = '';
+
+  openModal('modal-profile-settings');
+};
+
+window.toggleUserProfilePopover = function() {
+  const popover = document.getElementById('user-profile-popover');
+  if (!popover) return;
+  const isHidden = popover.style.display === 'none' || !popover.style.display;
+  if (isHidden) {
+    renderUserAvatarUI();
+    popover.style.display = 'block';
+  } else {
+    popover.style.display = 'none';
+  }
+};
+
 function initFormsAndModals() {
+  const userHeaderEl = document.getElementById('portal-header-user-info');
+  const userAvatarEl = document.getElementById('user-avatar-initials');
+  const userNameEl = document.getElementById('user-display-name');
+
+  [userHeaderEl, userAvatarEl, userNameEl].forEach(el => {
+    if (el) {
+      el.style.cursor = 'pointer';
+      el.onclick = function(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        window.toggleUserProfilePopover();
+      };
+    }
+  });
+
+  const chatFab = document.getElementById('floating-chat-button');
+  if (chatFab) {
+    chatFab.style.cursor = 'pointer';
+    chatFab.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleFloatingChatWidget();
+    };
+  }
+
+  initMessageFormListeners();
+
+  document.addEventListener('click', (e) => {
+    const popover = document.getElementById('user-profile-popover');
+    const headerInfo = document.getElementById('portal-header-user-info');
+    if (popover && popover.style.display === 'block') {
+      if (!popover.contains(e.target) && !headerInfo.contains(e.target)) {
+        popover.style.display = 'none';
+      }
+    }
+  });
+
+  const popoverAvatarInput = document.getElementById('popover-avatar-file-input');
+  if (popoverAvatarInput) {
+    popoverAvatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const dataUrl = evt.target.result;
+          mockClientState.client.avatarUrl = dataUrl;
+          renderUserAvatarUI();
+          window.savePortalState();
+
+          if (supabase && mockClientState.client.email) {
+            supabase.from('clients').update({ avatar_url: dataUrl }).eq('email', mockClientState.client.email).then(() => {});
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  const btnPopoverChangePass = document.getElementById('btn-popover-change-pass');
+  const passBox = document.getElementById('popover-password-box');
+  if (btnPopoverChangePass && passBox) {
+    btnPopoverChangePass.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isBoxHidden = passBox.style.display === 'none' || !passBox.style.display;
+      passBox.style.display = isBoxHidden ? 'block' : 'none';
+    });
+  }
+
+  const btnSavePopoverPass = document.getElementById('btn-save-popover-pass');
+  if (btnSavePopoverPass) {
+    btnSavePopoverPass.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newPass = (document.getElementById('popover-new-pass').value || '').trim();
+      const confirmPass = (document.getElementById('popover-confirm-pass').value || '').trim();
+
+      if (!newPass || !confirmPass) {
+        alert('Please fill out both password fields.');
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        alert('❌ Passwords do not match!');
+        return;
+      }
+
+      mockClientState.client.password = newPass;
+      window.savePortalState();
+      document.getElementById('popover-new-pass').value = '';
+      document.getElementById('popover-confirm-pass').value = '';
+      if (passBox) passBox.style.display = 'none';
+      alert('✓ Password updated successfully!');
+
+      if (supabase && mockClientState.client.email) {
+        supabase.from('clients').update({ password_hash: newPass }).eq('email', mockClientState.client.email).then(() => {});
+      }
+    });
+  }
+
+  const btnPopoverSignOut = document.getElementById('btn-popover-signout');
+  if (btnPopoverSignOut) {
+    btnPopoverSignOut.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btnSignOut = document.getElementById('btn-sign-out');
+      if (btnSignOut) btnSignOut.click();
+    });
+  }
+
   const formRequestChange = document.getElementById('form-request-change');
   if (formRequestChange) {
     formRequestChange.addEventListener('submit', (e) => {
@@ -1064,61 +1436,138 @@ function initFormsAndModals() {
     });
   }
 
+window.handlePortalSendMessage = function() {
+  const input = document.getElementById('msg-input');
+  if (!input) return;
+  const text = (input.value || '').trim();
+  if (!text) return;
+
+  const sender = mockClientState.client.contactName || 'Client';
+  const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const newMsgId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `m-${Date.now()}`;
+  const newMsg = {
+    id: newMsgId,
+    sender: sender,
+    text: text,
+    time: timeNow
+  };
+
+  if (!mockClientState.messages) mockClientState.messages = [];
+  mockClientState.messages.push(newMsg);
+
+  input.value = '';
+  renderMessages();
+  window.savePortalState();
+
+  const projectId = (mockClientState.project && mockClientState.project.id) ? mockClientState.project.id : 'prj-psycortex';
+
+  if (supabase && projectId) {
+    supabase.from('messages').insert([{
+      id: newMsgId,
+      project_id: projectId,
+      sender_name: sender,
+      message_text: text,
+      time_formatted: timeNow,
+      created_at: new Date().toISOString()
+    }]).then(({ error }) => {
+      if (error) console.error('Customer chat insert error:', error);
+    });
+  }
+};
+
+function initMessageFormListeners() {
   const btnSendMsg = document.getElementById('btn-send-msg');
   if (btnSendMsg) {
-    const sendHandler = () => {
-      const input = document.getElementById('msg-input');
-      if (input && input.value.trim()) {
-        const text = input.value.trim();
-        const sender = mockClientState.client.contactName || 'Client';
-        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    btnSendMsg.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.handlePortalSendMessage();
+    };
+  }
 
-        const newMsgId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `m-${Date.now()}`;
-        const newMsg = {
-          id: newMsgId,
-          sender: sender,
-          text: text,
-          time: timeNow
-        };
-
-        if (!mockClientState.messages) mockClientState.messages = [];
-        mockClientState.messages.push(newMsg);
-
-        input.value = '';
-        renderMessages();
-        window.savePortalState();
-
-        if (supabase && mockClientState.project && mockClientState.project.id) {
-          supabase.from('messages').insert([{
-            id: newMsgId,
-            project_id: mockClientState.project.id,
-            sender_name: sender,
-            message_text: text,
-            time_formatted: timeNow,
-            created_at: new Date().toISOString()
-          }]).then(({ error }) => {
-            if (error) console.error('Customer chat insert error:', error);
-          });
-        }
+  const msgInput = document.getElementById('msg-input');
+  if (msgInput) {
+    msgInput.onkeydown = function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        window.handlePortalSendMessage();
       }
     };
-
-    btnSendMsg.addEventListener('click', sendHandler);
-
-    const msgInput = document.getElementById('msg-input');
-    if (msgInput) {
-      msgInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          sendHandler();
-        }
-      });
-    }
   }
+}
 
   const btnOpenRequest = document.getElementById('btn-open-request-change');
   if (btnOpenRequest) {
     btnOpenRequest.addEventListener('click', () => openModal('modal-request-change'));
+  }
+
+  const avatarInput = document.getElementById('profile-avatar-input');
+  if (avatarInput) {
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const dataUrl = evt.target.result;
+          mockClientState.client.avatarUrl = dataUrl;
+
+          const preview = document.getElementById('profile-modal-avatar-preview');
+          if (preview) {
+            preview.innerHTML = `<img src="${dataUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />`;
+          }
+
+          renderUserAvatarUI();
+          window.savePortalState();
+
+          if (supabase && mockClientState.client.email) {
+            supabase.from('clients').update({ avatar_url: dataUrl }).eq('email', mockClientState.client.email).then(() => {});
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  const formProfile = document.getElementById('form-profile-settings');
+  if (formProfile) {
+    formProfile.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const contactName = document.getElementById('profile-contact-name').value.trim();
+      const bizName = document.getElementById('profile-business-name').value.trim();
+      const newPass = document.getElementById('profile-new-password').value.trim();
+      const confirmPass = document.getElementById('profile-confirm-password').value.trim();
+
+      if (newPass || confirmPass) {
+        if (newPass !== confirmPass) {
+          alert('❌ Passwords do not match! Please check your new password confirmation.');
+          return;
+        }
+        mockClientState.client.password = newPass;
+      }
+
+      mockClientState.client.contactName = contactName;
+      mockClientState.client.businessName = bizName;
+
+      renderUserAvatarUI();
+      window.savePortalState();
+      closeModal('modal-profile-settings');
+      alert('✓ Profile settings and account details updated successfully!');
+
+      if (supabase && mockClientState.client.email) {
+        const updatePayload = {
+          contact_name: contactName,
+          business_name: bizName
+        };
+        if (newPass) updatePayload.password_hash = newPass;
+        supabase.from('clients').update(updatePayload).eq('email', mockClientState.client.email).then(({ error }) => {
+          if (error) console.error('Client profile update error:', error);
+        });
+      }
+    });
   }
 }
 
