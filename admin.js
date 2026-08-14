@@ -1816,7 +1816,7 @@ function renderAdminChecklist(project, total, completed, pct) {
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <input type="checkbox" ${item.status === 'Completed' ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="toggleChecklistItem('${item.id}')" />
               <div>
-                <div style="font-weight: 700; color: ${item.status === 'Completed' ? 'var(--text-secondary)' : '#ffffff'}; text-decoration: ${item.status === 'Completed' ? 'line-through' : 'none'}; font-size: 0.95rem;">
+                <div style="font-weight: 700; color: ${item.status === 'Completed' ? 'var(--text-secondary)' : '#ffffff'}; opacity: ${item.status === 'Completed' ? '0.7' : '1'}; text-decoration: none; font-size: 0.95rem;">
                   ${item.title}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary);">Owner: ${item.owner}</div>

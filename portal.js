@@ -1633,7 +1633,7 @@ function renderChecklist() {
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <span style="font-weight: 900; font-size: 1.1rem; color: ${iconColor}; width: 20px; text-align: center;">${icon}</span>
-                <div style="font-weight: 600; font-size: 0.95rem; color: ${item.status === 'Completed' ? 'var(--text-secondary)' : '#ffffff'}; text-decoration: ${item.status === 'Completed' ? 'line-through' : 'none'};">
+                <div style="font-weight: 600; font-size: 0.95rem; color: ${item.status === 'Completed' ? 'var(--text-secondary)' : '#ffffff'}; opacity: ${item.status === 'Completed' ? '0.7' : '1'}; text-decoration: none;">
                   ${escapeHtml(item.title)}
                 </div>
               </div>
