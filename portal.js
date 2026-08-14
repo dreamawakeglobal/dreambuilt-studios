@@ -797,10 +797,10 @@ function renderPages() {
         </div>
 
         <!-- Page Design Screenshot Thumbnail -->
-        <div style="aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-royal-blue); margin-bottom: 0.85rem; cursor: pointer; position: relative;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot')">
+        <div style="aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-royal-blue); margin-bottom: 0.85rem; cursor: pointer; position: relative;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot', '${escapeHtml(page.name)}')">
           <img src="${page.screenshotUrl}" alt="${escapeHtml(page.name)} Screenshot" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
           <div style="position: absolute; bottom: 0.4rem; right: 0.4rem; background: rgba(0,0,0,0.85); color: #fff; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">
-            🔍 View Screenshot
+            🔍 View & Add Notes
           </div>
         </div>
 
@@ -808,8 +808,8 @@ function renderPages() {
       </div>
 
       <div class="page-card-actions">
-        <button class="attention-cta-btn" style="flex: 1; justify-content: center; font-size: 0.8rem; padding: 0.5rem;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot')">
-          VIEW SCREENSHOT 🖼️
+        <button class="attention-cta-btn" style="flex: 1; justify-content: center; font-size: 0.8rem; padding: 0.5rem;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot', '${escapeHtml(page.name)}')">
+          VIEW & ADD NOTES 🖼️
         </button>
         <button class="attention-cta-btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);" onclick="openPageWorkspace('${page.id}')">
           INSPECT
@@ -819,13 +819,88 @@ function renderPages() {
   `).join('');
 }
 
-window.openScreenshotLightbox = function(imgUrl, caption) {
+let currentActiveLightboxPage = null;
+
+window.openScreenshotLightbox = function(imgUrl, caption, pageName) {
   const lightboxImg = document.getElementById('lightbox-img');
   const lightboxCaption = document.getElementById('lightbox-caption');
-  if (lightboxImg) lightboxImg.src = imgUrl;
+
+  if (lightboxImg) {
+    lightboxImg.src = imgUrl;
+    lightboxImg.style.transform = 'scale(1)';
+    lightboxImg.dataset.zoomed = 'false';
+  }
   if (lightboxCaption) lightboxCaption.textContent = caption || 'Page Design Screenshot';
+
+  const searchName = pageName || (caption || '').replace(' Design Screenshot', '').replace(' Full Design Screenshot', '').replace(' Design Overview', '').trim();
+  const foundPage = mockClientState.pages.find(p => p.name.toLowerCase() === searchName.toLowerCase() || p.id === searchName) || mockClientState.pages[0];
+  currentActiveLightboxPage = foundPage;
+
+  renderLightboxNotes(foundPage);
   openModal('modal-screenshot-lightbox');
 };
+
+window.toggleLightboxZoom = function() {
+  const lightboxImg = document.getElementById('lightbox-img');
+  if (!lightboxImg) return;
+
+  const isZoomed = lightboxImg.dataset.zoomed === 'true';
+  if (isZoomed) {
+    lightboxImg.style.transform = 'scale(1)';
+    lightboxImg.style.cursor = 'zoom-in';
+    lightboxImg.dataset.zoomed = 'false';
+  } else {
+    lightboxImg.style.transform = 'scale(1.5)';
+    lightboxImg.style.cursor = 'zoom-out';
+    lightboxImg.dataset.zoomed = 'true';
+  }
+};
+
+function renderLightboxNotes(page) {
+  const container = document.getElementById('lightbox-notes-list');
+  if (!container) return;
+
+  const pageNotes = [];
+  if (page && page.notes) {
+    pageNotes.push({
+      sender: 'Page Overview Note',
+      time: page.version || 'v1.0',
+      text: page.notes
+    });
+  }
+
+  if (mockClientState.feedbackItems && page) {
+    const fbItems = mockClientState.feedbackItems.filter(f => f.page === page.name || f.page_title === page.name);
+    fbItems.forEach(f => {
+      pageNotes.push({
+        sender: f.title || 'Revision Note',
+        time: f.status || 'Submitted',
+        text: f.desc || f.comment
+      });
+    });
+  }
+
+  if (pageNotes.length === 0) {
+    container.innerHTML = `
+      <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 1.5rem 0.5rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+        No notes or revision comments for this mockup yet.<br/>Type a note below to add one!
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = pageNotes.map(n => `
+    <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 0.65rem 0.85rem; border-radius: 8px;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--color-cyan-glow); margin-bottom: 0.25rem;">
+        <span>${escapeHtml(n.sender)}</span>
+        <span style="color: var(--text-secondary);">${escapeHtml(n.time)}</span>
+      </div>
+      <div style="font-size: 0.85rem; color: #ffffff; line-height: 1.35;">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
 
 window.openPageWorkspace = function(pageId) {
   const page = mockClientState.pages.find(p => p.id === pageId) || mockClientState.pages[0];
@@ -934,6 +1009,58 @@ function initFormsAndModals() {
       }
 
       alert('✓ Your revision request has been submitted to Dream Built!');
+    });
+  }
+
+  const formAddNote = document.getElementById('lightbox-add-note-form');
+  if (formAddNote) {
+    formAddNote.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('lightbox-note-input');
+      const text = input ? input.value.trim() : '';
+      if (!text || !currentActiveLightboxPage) return;
+
+      const pageName = currentActiveLightboxPage.name;
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const noteEntry = `[${timestamp}] Alba Cortez: ${text}`;
+
+      currentActiveLightboxPage.notes = currentActiveLightboxPage.notes ? `${currentActiveLightboxPage.notes}\n${noteEntry}` : noteEntry;
+
+      const newFbId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `f-${Date.now()}`;
+      const newFbItem = {
+        id: newFbId,
+        title: 'Mockup Revision Note',
+        page: pageName,
+        section: 'Design Screenshot',
+        desc: text,
+        priority: 'Normal',
+        status: 'Submitted'
+      };
+
+      if (!mockClientState.feedbackItems) mockClientState.feedbackItems = [];
+      mockClientState.feedbackItems.unshift(newFbItem);
+
+      if (supabase && mockClientState.project && mockClientState.project.id) {
+        supabase.from('feedback_items').insert([{
+          id: newFbId,
+          project_id: mockClientState.project.id,
+          page_title: pageName,
+          title: 'Mockup Revision Note',
+          comment: text,
+          priority: 'Normal',
+          status: 'Submitted'
+        }]).then(({ error }) => {
+          if (error) console.error('Note insert error:', error);
+        });
+
+        supabase.from('website_pages').update({ notes: currentActiveLightboxPage.notes }).eq('project_id', mockClientState.project.id).eq('title', pageName).then(({ error }) => {
+          if (error) console.error('Page notes update error:', error);
+        });
+      }
+
+      input.value = '';
+      renderLightboxNotes(currentActiveLightboxPage);
+      renderAllViews();
     });
   }
 
