@@ -242,6 +242,7 @@
         <!-- Admin Workspace Tabs Nav -->
         <div class="portal-tabs-nav">
           <button class="portal-tab-btn active" data-adm-tab="overview">OVERVIEW</button>
+          <button class="portal-tab-btn" data-adm-tab="messages">💬 LIVE CLIENT CHAT</button>
           <button class="portal-tab-btn" data-adm-tab="pages">WEBSITE PAGES</button>
           <button class="portal-tab-btn" data-adm-tab="feedback">FEEDBACK BOARD</button>
           <button class="portal-tab-btn" data-adm-tab="assets">ASSET LIBRARY</button>
@@ -363,6 +364,34 @@
 
             <div id="adm-manage-checklist-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
               <!-- Interactive admin checklist phases -->
+            </div>
+          </div>
+
+          <!-- ADMIN LIVE CLIENT CHAT TAB -->
+          <div id="adm-tab-messages" class="adm-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 style="margin: 0 0 0.35rem 0;">LIVE CLIENT CHAT &amp; MESSAGING</h2>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Real-time direct message channel with the client for this project workspace.</p>
+              </div>
+              <span class="portal-badge" style="background: rgba(0, 240, 255, 0.15); color: var(--color-cyan-glow); font-size: 0.8rem; border: 1px solid rgba(0,240,255,0.3);">
+                🟢 REAL-TIME SYNC ACTIVE
+              </span>
+            </div>
+
+            <div class="portal-glass" style="padding: 1.5rem; display: flex; flex-direction: column; min-height: 480px;">
+              <!-- Chat Messages Stream -->
+              <div id="adm-manage-chat-messages" style="flex: 1; min-height: 350px; max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; background: rgba(0,0,0,0.4); border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 1.25rem;">
+                <!-- Dynamically rendered project messages -->
+              </div>
+
+              <!-- Admin Chat Input Form -->
+              <form onsubmit="event.preventDefault(); window.handleAdminTabSendMessage();" style="display: flex; gap: 0.75rem; align-items: center; margin: 0;">
+                <input type="text" id="adm-tab-chat-input" class="portal-input" placeholder="Type a response to client..." style="flex: 1; font-size: 0.9rem; padding: 0.75rem 1rem; border-radius: var(--radius-sm);" />
+                <button type="submit" class="attention-cta-btn" style="padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 700;">
+                  SEND MESSAGE &rarr;
+                </button>
+              </form>
             </div>
           </div>
         </div>

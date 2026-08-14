@@ -504,8 +504,8 @@ function initAdminAuth() {
 
   initAdminChatListeners();
 
-window.handleAdminSendMessage = function() {
-  const chatInput = document.getElementById('admin-chat-input');
+window.handleAdminSendMessage = function(customInputId) {
+  const chatInput = document.getElementById(customInputId || 'admin-chat-input') || document.getElementById('admin-chat-input') || document.getElementById('adm-tab-chat-input');
   if (!chatInput) return;
   const txt = (chatInput.value || '').trim();
   if (!txt) return;
@@ -536,8 +536,13 @@ window.handleAdminSendMessage = function() {
     console.warn('Error saving chat to portal state:', e);
   }
 
-  chatInput.value = '';
+  const input1 = document.getElementById('admin-chat-input');
+  const input2 = document.getElementById('adm-tab-chat-input');
+  if (input1) input1.value = '';
+  if (input2) input2.value = '';
+
   renderAdminFloatingChat();
+  renderAdminMessages(activeProj);
 
   if (supabase && activeProj.id) {
     supabase.from('messages').insert([{
@@ -551,6 +556,10 @@ window.handleAdminSendMessage = function() {
       if (error) console.error('Admin chat insert error:', error);
     });
   }
+};
+
+window.handleAdminTabSendMessage = function() {
+  window.handleAdminSendMessage('adm-tab-chat-input');
 };
 
 function initAdminChatListeners() {
@@ -759,14 +768,8 @@ function updateAdminHeaderUIState(isLoggedIn) {
     if (btnLogout) btnLogout.style.display = 'inline-block';
     if (loggedOutBadge) loggedOutBadge.style.display = 'none';
     if (chatFab) {
-      if (activeView === 'manage') {
-        chatFab.style.display = 'block';
-        chatFab.classList.add('chat-shake-alert');
-      } else {
-        chatFab.style.display = 'none';
-        chatFab.classList.remove('chat-shake-alert');
-        if (chatWidget) chatWidget.style.display = 'none';
-      }
+      chatFab.style.display = 'block';
+      chatFab.classList.add('chat-shake-alert');
     }
     if (notifBtn) {
       if (activeView === 'manage') {
@@ -1480,10 +1483,8 @@ window.restoreAdminView = function() {
   if (manageView) manageView.style.display = 'none';
   if (btnCreate) btnCreate.style.display = 'inline-flex';
   if (chatFab) {
-    chatFab.style.display = 'none';
-    chatFab.classList.remove('chat-shake-alert');
+    chatFab.style.display = 'block';
   }
-  if (chatWidget) chatWidget.style.display = 'none';
   if (notifBtn) notifBtn.style.display = 'none';
   if (notifPopover) notifPopover.style.display = 'none';
 };
@@ -1542,10 +1543,8 @@ function initAdminTabs() {
       const chatFab = document.getElementById('floating-chat-button');
       const chatWidget = document.getElementById('floating-chat-widget');
       if (chatFab) {
-        chatFab.style.display = 'none';
-        chatFab.classList.remove('chat-shake-alert');
+        chatFab.style.display = 'block';
       }
-      if (chatWidget) chatWidget.style.display = 'none';
 
       const notifBtn = document.getElementById('btn-admin-notifications-toggle');
       const notifPopover = document.getElementById('admin-notifications-popover');
@@ -1783,17 +1782,24 @@ function renderAdminMessages(project) {
   const chatContainer = document.getElementById('adm-manage-chat-messages');
   if (!chatContainer) return;
 
-  chatContainer.innerHTML = project.messages.map(msg => {
-    const isAdmin = msg.sender === 'Dream Built';
+  const activeProj = project || adminState.projects.find(p => p.id === activeManagedProjectId) || adminState.projects[0];
+  if (!activeProj || !activeProj.messages || activeProj.messages.length === 0) {
+    chatContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; padding: 3rem;">No project messages yet. Send a message below to start chatting with the client!</div>`;
+    return;
+  }
+
+  chatContainer.innerHTML = activeProj.messages.map(msg => {
+    const isAdmin = msg.sender === 'Dream Built' || msg.sender === 'Admin' || msg.sender === 'Dream Built Studios';
     return `
       <div style="align-self: ${isAdmin ? 'flex-end' : 'flex-start'}; max-width: 75%; background: ${isAdmin ? 'rgba(0, 102, 255, 0.25)' : 'rgba(255, 255, 255, 0.08)'}; border: 1px solid ${isAdmin ? 'var(--color-royal-blue)' : 'rgba(255,255,255,0.1)'}; padding: 0.85rem 1.15rem; border-radius: var(--radius-md);">
         <div style="font-size: 0.75rem; font-weight: 700; color: ${isAdmin ? 'var(--color-cyan-glow)' : 'var(--text-secondary)'}; margin-bottom: 0.35rem;">
-          ${msg.sender} • ${msg.time}
+          ${escapeHtml(msg.sender || 'Client')} • ${escapeHtml(msg.time || '')}
         </div>
-        <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.4;">${msg.text}</div>
+        <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.4;">${escapeHtml(msg.text || '')}</div>
       </div>
     `;
   }).join('');
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function renderAdminChecklist(project, total, completed, pct) {
@@ -2413,6 +2419,8 @@ function initAdminForms() {
           title: title,
           description: desc,
           dueDate: due,
+          actionType: 'upload_file',
+          ctaText: 'ACTION REQUIRED',
           completed: false
         };
         if (!project.actionItems) project.actionItems = [];

@@ -202,24 +202,31 @@ function loadPortalState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      if (saved.includes('prj-1') || saved.includes('22222222-2222-2222-2222-222222222222') || saved.includes('alba@psycortex.com')) {
-        localStorage.removeItem(STORAGE_KEY);
-      } else {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
-          const p = parsed.projects[0];
-          if (p) {
-            mockClientState.client.businessName = p.client || 'Psycortex';
-            mockClientState.client.contactName = p.contact || 'Alba Cortez';
-            mockClientState.client.email = p.clientEmail || 'psycortex@portal.dbstudios.com';
-            mockClientState.client.password = p.clientPassword || 'Pass123!';
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+        const p = parsed.projects[0];
+        if (p) {
+          mockClientState.client.businessName = p.client || p.business_name || 'Psycortex';
+          mockClientState.client.contactName = p.contact || p.contact_name || 'Alba Cortez';
+          mockClientState.client.email = p.clientEmail || p.email || 'alba@psycortex.com';
+          mockClientState.client.password = p.clientPassword || p.password || 'demo1234';
 
-            mockClientState.project.name = p.name || 'Psycortex Corporate Website';
-            mockClientState.project.currentPhase = p.currentPhase || 'Build';
-            mockClientState.project.targetLaunchDate = p.targetLaunch || 'Sept 15, 2026';
-            mockClientState.project.status = p.status || 'Active';
+          mockClientState.project.name = p.name || p.project_name || 'Psycortex Corporate Website';
+          mockClientState.project.currentPhase = p.currentPhase || p.current_phase || 'Build';
+          mockClientState.project.targetLaunchDate = p.targetLaunch || p.target_launch_date || 'Sept 15, 2026';
+          mockClientState.project.status = p.status || 'Active';
 
-            if (p.actionItems) mockClientState.actionItems = p.actionItems;
+          if (p.actionItems && Array.isArray(p.actionItems)) {
+            mockClientState.actionItems = p.actionItems.map(item => ({
+              id: item.id || `act-${Date.now()}`,
+              title: item.title,
+              description: item.description || item.desc || '',
+              dueDate: item.dueDate || item.due_date || 'Soon',
+              actionType: item.actionType || item.action_type || 'upload_file',
+              ctaText: item.ctaText || item.cta_text || 'ACTION REQUIRED',
+              completed: !!item.completed
+            }));
+          }
             if (p.checklistPhases) mockClientState.checklistPhases = p.checklistPhases;
             if (p.pages) {
               mockClientState.pages = p.pages.map(pg => ({
@@ -257,7 +264,6 @@ function loadPortalState() {
             }
           }
         }
-      }
     } catch (e) {
       console.error('Failed loading portal state:', e);
     }
@@ -313,16 +319,17 @@ async function fetchSupabaseData() {
         mockClientState.project.status = p.status;
 
         const prjActions = dbActions ? dbActions.filter(a => a.project_id === p.id) : [];
-        mockClientState.actionItems = prjActions.map(a => ({
-          id: a.id,
-          title: a.title,
-          description: a.description,
-          dueDate: a.due_date,
-          actionType: a.action_type || 'upload_file',
-          ctaText: 'ACTION REQUIRED',
-          targetPage: 'Home Page',
-          completed: a.completed
-        }));
+        if (prjActions.length > 0) {
+          mockClientState.actionItems = prjActions.map(a => ({
+            id: a.id,
+            title: a.title,
+            description: a.description || '',
+            dueDate: a.due_date || 'Soon',
+            actionType: a.action_type || 'upload_file',
+            ctaText: 'ACTION REQUIRED',
+            completed: !!a.completed
+          }));
+        }
 
         const prjPages = dbPages ? dbPages.filter(pg => pg.project_id === p.id) : [];
         if (prjPages.length > 0) {
@@ -516,7 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // 1. AUTHENTICATION & INITIALIZATION
 function initAuthAndPortal() {
   const loginForm = document.getElementById('portal-login-form');
-  const btnSignOut = document.getElementById('btn-sign-out');
 
   // Restore session on browser refresh
   const savedSession = localStorage.getItem('dreambuilt_portal_session');
@@ -591,17 +597,34 @@ function initAuthAndPortal() {
     });
   }
 
-  if (btnSignOut) {
-    btnSignOut.addEventListener('click', () => {
-      userSession = null;
-      localStorage.removeItem('dreambuilt_portal_session');
-      document.getElementById('workspace-container').style.display = 'none';
-      document.getElementById('auth-container').style.display = 'block';
+  const btnSignOut = document.getElementById('btn-sign-out');
+  const btnPopoverSignOut = document.getElementById('btn-popover-signout');
 
-      updateHeaderUIState(false);
+  if (btnSignOut) {
+    btnSignOut.addEventListener('click', window.performPortalSignOut);
+  }
+  if (btnPopoverSignOut) {
+    btnPopoverSignOut.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.performPortalSignOut();
     });
   }
 }
+
+window.performPortalSignOut = function() {
+  userSession = null;
+  localStorage.removeItem('dreambuilt_portal_session');
+  
+  const wsContainer = document.getElementById('workspace-container');
+  const authContainer = document.getElementById('auth-container');
+  if (wsContainer) wsContainer.style.display = 'none';
+  if (authContainer) authContainer.style.display = 'block';
+
+  const userPopover = document.getElementById('user-profile-popover');
+  if (userPopover) userPopover.style.display = 'none';
+
+  updateHeaderUIState(false);
+};
 
 window.toggleFloatingChatWidget = function() {
   const widget = document.getElementById('floating-chat-widget');
@@ -664,6 +687,8 @@ function updateHeaderUIState(isLoggedIn) {
     if (chatWidget) chatWidget.style.display = 'none';
     if (notifBtn) notifBtn.style.display = 'none';
     if (notifPopover) notifPopover.style.display = 'none';
+    const userPopover = document.getElementById('user-profile-popover');
+    if (userPopover) userPopover.style.display = 'none';
   }
 }
 
@@ -966,17 +991,34 @@ function renderOverview() {
         <div class="attention-card-header">
           <div>
             <div class="attention-card-title">${escapeHtml(action.title)}</div>
-            <div class="attention-card-desc">${escapeHtml(action.description)}</div>
+            <div class="attention-card-desc">${escapeHtml(action.description || '')}</div>
           </div>
-          <span class="status-badge changes-requested">Due ${action.dueDate}</span>
+          <span class="status-badge changes-requested">Due ${escapeHtml(action.dueDate || 'Soon')}</span>
         </div>
-        <button class="attention-cta-btn" onclick="handleActionClick('${action.id}', '${action.actionType}')">
-          ${action.ctaText} &rarr;
+        <button class="attention-cta-btn" onclick="handleActionClick('${action.id}', '${action.actionType || 'upload_file'}')">
+          ${escapeHtml(action.ctaText || 'ACTION REQUIRED')} &rarr;
         </button>
       </div>
     `).join('');
   }
 }
+
+window.handleActionClick = function(actionId, actionType) {
+  const action = mockClientState.actionItems.find(a => a.id === actionId);
+  if (action) {
+    if (actionType === 'review_page') {
+      window.switchPortalTab('pages');
+    } else if (actionType === 'approve_milestone' || actionType === 'checklist') {
+      window.switchPortalTab('roadmap');
+    } else if (actionType === 'upload_file') {
+      window.switchPortalTab('vault');
+    } else {
+      action.completed = true;
+      if (typeof savePortalState === 'function') savePortalState();
+      renderOverview();
+    }
+  }
+};
 
 // RENDER PAGES
 function renderPages() {
@@ -1317,8 +1359,9 @@ function initFormsAndModals() {
   if (btnPopoverSignOut) {
     btnPopoverSignOut.addEventListener('click', (e) => {
       e.stopPropagation();
-      const btnSignOut = document.getElementById('btn-sign-out');
-      if (btnSignOut) btnSignOut.click();
+      if (typeof window.performPortalSignOut === 'function') {
+        window.performPortalSignOut();
+      }
     });
   }
 
