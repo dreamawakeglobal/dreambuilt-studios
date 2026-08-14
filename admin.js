@@ -132,7 +132,9 @@ async function fetchSupabaseAdminData() {
       { data: dbWebsitePages },
       { data: dbFeedback },
       { data: dbMessages },
-      { data: dbAssets }
+      { data: dbAssets },
+      { data: dbSubmissions },
+      { data: dbConsultations }
     ] = await Promise.all([
       supabase.from('projects').select('*'),
       supabase.from('clients').select('*'),
@@ -141,8 +143,12 @@ async function fetchSupabaseAdminData() {
       supabase.from('website_pages').select('*'),
       supabase.from('feedback_items').select('*'),
       supabase.from('messages').select('*').order('created_at', { ascending: true }),
-      supabase.from('project_assets').select('*')
+      supabase.from('project_assets').select('*'),
+      supabase.from('project_submissions').select('*').order('created_at', { ascending: false }),
+      supabase.from('consultations').select('*').order('created_at', { ascending: false })
     ]);
+
+    renderAdminSubmissions(dbSubmissions, dbConsultations);
 
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
@@ -379,12 +385,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // MODALS & TOAST NOTIFICATIONS
 window.openModal = function(id) {
   const overlay = document.getElementById(id);
-  if (overlay) overlay.classList.add('active');
+  if (overlay) {
+    overlay.classList.add('active');
+    overlay.style.display = 'flex';
+  }
 };
 
 window.closeModal = function(id) {
   const overlay = document.getElementById(id);
-  if (overlay) overlay.classList.remove('active');
+  if (overlay) {
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+  }
 };
 
 window.showAdminToast = function(msg) {
@@ -743,7 +755,7 @@ function updateAdminHeaderUIState(isLoggedIn) {
   const activeView = localStorage.getItem('dreambuilt_admin_active_view') || 'dashboard';
 
   if (isLoggedIn) {
-    if (btnCreate) btnCreate.style.display = activeView === 'manage' ? 'none' : 'inline-flex';
+    if (btnCreate) btnCreate.style.display = (activeView === 'manage' || activeView === 'crm') ? 'none' : 'inline-flex';
     if (btnLogout) btnLogout.style.display = 'inline-block';
     if (loggedOutBadge) loggedOutBadge.style.display = 'none';
     if (chatFab) {
@@ -779,7 +791,531 @@ function updateAdminHeaderUIState(isLoggedIn) {
   }
 }
 
+let cachedSubmissions = [];
+
+function renderAdminSubmissions(dbSubmissions, dbConsultations) {
+  const tbody = document.getElementById('admin-submissions-table-body');
+  const countBadge = document.getElementById('adm-count-submissions');
+  if (!tbody) return;
+
+  let allSubs = [];
+  if (dbSubmissions && Array.isArray(dbSubmissions)) {
+    dbSubmissions.forEach(s => {
+      allSubs.push({
+        id: s.id,
+        date: s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
+        clientName: `${s.first_name || ''} ${s.last_name || ''}`.trim() || 'Anonymous Lead',
+        company: s.company || 'Start Your Project Form',
+        email: s.email || 'N/A',
+        phone: s.phone || 'N/A',
+        budget: s.budget || 'Custom',
+        timeline: s.timeline || 'Flexible',
+        scope: `${s.pages || 'Multi-page'} (${s.industry || 'Web Project'})`,
+        desc: s.project_desc || s.success_criteria || 'New intake submission',
+        type: 'Questionnaire',
+        raw: s
+      });
+    });
+  }
+
+  if (dbConsultations && Array.isArray(dbConsultations)) {
+    dbConsultations.forEach(c => {
+      allSubs.push({
+        id: c.id,
+        date: c.created_at ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
+        clientName: `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Anonymous Lead',
+        company: c.company || 'Strategy Consultation',
+        email: c.email || 'N/A',
+        phone: c.phone || 'N/A',
+        budget: 'Strategy Call',
+        timeline: c.consultation_date ? `${c.consultation_date} @ ${c.consultation_time || ''}` : 'Scheduled',
+        scope: `Consultation (${c.consultation_type || 'Discovery Call'})`,
+        desc: c.notes || 'Strategy Session Booking',
+        type: 'Consultation',
+        raw: c
+      });
+    });
+  }
+
+  if (allSubs.length === 0) {
+    allSubs = [
+      {
+        id: 'sub-demo-1',
+        date: 'Just Now',
+        clientName: 'Alba Cortez',
+        company: 'Psycortex Inc',
+        email: 'alba@psycortex.com',
+        phone: '(555) 234-5678',
+        budget: '$5,000 - $10,000',
+        timeline: '4 - 6 Weeks',
+        scope: 'Home, About, Services, Packages, Contact',
+        desc: 'Custom high-converting corporate website for El Salvador tech market.',
+        type: 'Questionnaire',
+        raw: {
+          first_name: 'Alba',
+          last_name: 'Cortez',
+          email: 'alba@psycortex.com',
+          phone: '(555) 234-5678',
+          company: 'Psycortex Inc',
+          website: 'https://psycortex.com',
+          industry: 'Artificial Intelligence & Corporate SaaS',
+          target_audience: 'Enterprise Tech Leaders & Executives',
+          project_desc: 'Custom high-converting corporate website for El Salvador tech market with metallic gold accents.',
+          aesthetic_style: 'Modern & Luxury Dark Mode',
+          brand_colors: 'Deep Blue (#0a101e), Metallic Gold (#ffd700), Cyan (#00f0ff)',
+          primary_cta: 'Request Enterprise Demo',
+          inspiration_urls: 'https://apple.com, https://stripe.com',
+          pages: 'Home Page, About Page, Services Page, Packages Page, Contact Page',
+          features: 'Interactive Prototype Viewer, Live Chat Bot, Spanish Copy Proofing',
+          budget: '$5,000 - $10,000',
+          timeline: '4 - 6 Weeks',
+          success_criteria: 'Increase enterprise lead conversions by 40% within 90 days of launch.'
+        }
+      }
+    ];
+  }
+
+  cachedSubmissions = allSubs;
+
+  if (countBadge) {
+    countBadge.textContent = `${allSubs.length} Intake ${allSubs.length === 1 ? 'Submission' : 'Submissions'}`;
+  }
+
+  tbody.innerHTML = allSubs.map(s => `
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s ease;">
+      <td style="padding: 0.85rem 1rem; color: var(--text-secondary); font-size: 0.8rem; white-space: nowrap;">
+        ${escapeHtml(s.date)}
+        <div><span class="portal-badge" style="background: rgba(0, 240, 255, 0.1); color: var(--color-cyan-glow); font-size: 0.65rem; margin-top: 0.2rem; display: inline-block;">${escapeHtml(s.type)}</span></div>
+      </td>
+      <td style="padding: 0.85rem 1rem;">
+        <div style="font-weight: 700; color: #ffffff;">${escapeHtml(s.clientName)}</div>
+        <div style="font-size: 0.775rem; color: var(--color-cyan-glow);">${escapeHtml(s.company)}</div>
+      </td>
+      <td style="padding: 0.85rem 1rem; font-size: 0.825rem;">
+        <div><a href="mailto:${escapeHtml(s.email)}" style="color: #ffffff; text-decoration: underline;">${escapeHtml(s.email)}</a></div>
+        <div style="color: var(--text-secondary); font-size: 0.775rem;">${escapeHtml(s.phone)}</div>
+      </td>
+      <td style="padding: 0.85rem 1rem; font-size: 0.825rem;">
+        <div style="color: var(--color-success); font-weight: 700;">${escapeHtml(s.budget)}</div>
+        <div style="color: var(--text-secondary); font-size: 0.775rem;">⏱ ${escapeHtml(s.timeline)}</div>
+      </td>
+      <td style="padding: 0.85rem 1rem; font-size: 0.825rem; max-width: 220px;">
+        <div style="font-weight: 600; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(s.scope)}</div>
+        <div style="color: var(--text-secondary); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(s.desc)}">${escapeHtml(s.desc)}</div>
+      </td>
+      <td style="padding: 0.85rem 1rem; white-space: nowrap;">
+        <button class="attention-cta-btn" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" onclick="window.openCrmLeadScreen('${s.id}')">
+          📋 VIEW FULL DOSSIER
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+let activeCrmLeadId = null;
+
+window.openCrmLeadScreen = function(subId) {
+  const sub = cachedSubmissions.find(s => s.id === subId) || cachedSubmissions[0];
+  if (!sub) return;
+
+  activeCrmLeadId = sub.id;
+  const raw = sub.raw || {};
+
+  // Store active view state
+  localStorage.setItem('dreambuilt_admin_active_view', 'crm');
+
+  // Toggle view visibility
+  const mainDash = document.getElementById('admin-main-dashboard');
+  const manageView = document.getElementById('admin-manage-workspace');
+  const crmView = document.getElementById('admin-crm-view');
+
+  if (mainDash) mainDash.style.display = 'none';
+  if (manageView) manageView.style.display = 'none';
+  if (crmView) crmView.style.display = 'block';
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Populate Sidebar & Lead Profile Header
+  const titleEl = document.getElementById('crm-lead-header-title');
+  const badgeEl = document.getElementById('crm-lead-type-badge');
+  const avatarEl = document.getElementById('crm-lead-avatar');
+  const nameEl = document.getElementById('crm-lead-name');
+  const companyEl = document.getElementById('crm-lead-company');
+  const industryEl = document.getElementById('crm-lead-industry');
+  const emailLink = document.getElementById('crm-lead-email-link');
+  const phoneEl = document.getElementById('crm-lead-phone');
+  const websiteEl = document.getElementById('crm-lead-website');
+  const dateEl = document.getElementById('crm-lead-date');
+  const budgetEl = document.getElementById('crm-lead-budget');
+  const timelineEl = document.getElementById('crm-lead-timeline');
+  const stageSelect = document.getElementById('crm-lead-stage-select');
+  const notesInput = document.getElementById('crm-lead-notes-input');
+  const onboardBtn = document.getElementById('btn-crm-onboard-action');
+
+  if (titleEl) titleEl.textContent = `INTAKE DOSSIER: ${sub.clientName.toUpperCase()} (${sub.company})`;
+  if (badgeEl) badgeEl.textContent = `${sub.type.toUpperCase()} INTAKE • SUBMITTED ${sub.date.toUpperCase()}`;
+
+  const initials = sub.clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'DB';
+  if (avatarEl) avatarEl.textContent = initials;
+  if (nameEl) nameEl.textContent = sub.clientName;
+  if (companyEl) companyEl.textContent = sub.company;
+  if (industryEl) industryEl.textContent = raw.industry || 'Web Development Project';
+
+  if (emailLink) {
+    emailLink.textContent = sub.email;
+    emailLink.href = `mailto:${sub.email}`;
+  }
+  if (phoneEl) phoneEl.textContent = sub.phone;
+  if (websiteEl) websiteEl.textContent = raw.website || 'N/A';
+  if (dateEl) dateEl.textContent = sub.date;
+  if (budgetEl) budgetEl.textContent = sub.budget;
+  if (timelineEl) timelineEl.textContent = sub.timeline;
+
+  const savedNotes = localStorage.getItem(`dreambuilt_crm_notes_${sub.id}`) || '';
+  if (notesInput) notesInput.value = savedNotes;
+
+  if (onboardBtn) {
+    onboardBtn.onclick = function() {
+      window.convertSubmissionToClient(sub.id);
+    };
+  }
+
+  // Populate Detailed Right-Column Q&A Dossier Cards
+  const dossierContainer = document.getElementById('crm-dossier-details-container');
+  if (dossierContainer) {
+    if (sub.type === 'Consultation') {
+      dossierContainer.innerHTML = `
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">👤 STRATEGY SESSION CONTACT &amp; COMPANY</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+            <div><strong style="color: var(--text-secondary);">First Name:</strong> <span style="color: #ffffff;">${escapeHtml(raw.first_name || sub.clientName)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Last Name:</strong> <span style="color: #ffffff;">${escapeHtml(raw.last_name || '')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Email Address:</strong> <a href="mailto:${escapeHtml(sub.email)}" style="color: #ffffff; text-decoration: underline;">${escapeHtml(sub.email)}</a></div>
+            <div><strong style="color: var(--text-secondary);">Phone Number:</strong> <span style="color: #ffffff;">${escapeHtml(sub.phone)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Company / Brand:</strong> <span style="color: #ffffff;">${escapeHtml(sub.company)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Website URL:</strong> <span style="color: #ffffff;">${escapeHtml(raw.website || 'N/A')}</span></div>
+          </div>
+        </div>
+
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">📅 CONSULTATION SCHEDULE &amp; MEETING NOTES</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+            <div><strong style="color: var(--text-secondary);">Consultation Type:</strong> <span style="color: var(--color-success); font-weight: 700;">${escapeHtml(raw.consultation_type || 'Discovery Call')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Scheduled Date:</strong> <span style="color: #ffffff;">${escapeHtml(raw.consultation_date || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Scheduled Time:</strong> <span style="color: #ffffff;">${escapeHtml(raw.consultation_time || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Lead Status:</strong> <span class="status-badge active">${escapeHtml(raw.status || 'New Lead')}</span></div>
+          </div>
+          <div style="margin-top: 1.25rem; font-size: 0.9rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Client Meeting Notes / Goals:</strong>
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.15rem; border-radius: 8px; color: #ffffff; line-height: 1.5; font-size: 0.95rem;">
+              ${escapeHtml(raw.notes || sub.desc)}
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      dossierContainer.innerHTML = `
+        <!-- CARD 1: OVERVIEW & CLIENT DETAILS -->
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">👤 STEP 1 &amp; 2: CLIENT &amp; COMPANY OVERVIEW</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; font-size: 0.9rem;">
+            <div><strong style="color: var(--text-secondary);">Client Name:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.clientName)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Company Name:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.company)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Email:</strong> <a href="mailto:${escapeHtml(sub.email)}" style="color: #ffffff; text-decoration: underline;">${escapeHtml(sub.email)}</a></div>
+            <div><strong style="color: var(--text-secondary);">Phone:</strong> <span style="color: #ffffff;">${escapeHtml(sub.phone)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Current Website:</strong> <span style="color: #ffffff;">${escapeHtml(raw.website || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Industry Focus:</strong> <span style="color: #ffffff;">${escapeHtml(raw.industry || 'Web Development Project')}</span></div>
+          </div>
+          <div style="margin-top: 1.15rem; font-size: 0.9rem;">
+            <strong style="color: var(--text-secondary);">Building Type Requested:</strong>
+            <span class="portal-badge" style="background: rgba(0,240,255,0.15); color: #ffffff; margin-left: 0.6rem; font-size: 0.85rem;">${escapeHtml(raw.building || 'Custom Website')}</span>
+          </div>
+        </div>
+
+        <!-- CARD 2: BRAND VISION & AESTHETIC STYLE -->
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">🎨 STEP 3: BRAND VISION &amp; AESTHETIC STYLE</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; font-size: 0.9rem;">
+            <div><strong style="color: var(--text-secondary);">Aesthetic Style:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(raw.aesthetic_style || 'Modern & Luxury Dark Mode')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Brand Colors:</strong> <span style="color: #ffffff;">${escapeHtml(raw.brand_colors || 'Deep Blue, Gold, Cyan Glow')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Primary Call-to-Action:</strong> <span style="color: #ffffff;">${escapeHtml(raw.primary_cta || 'Start Your Project')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Target Audience:</strong> <span style="color: #ffffff;">${escapeHtml(raw.target_audience || 'Corporate Clients')}</span></div>
+          </div>
+
+          <div style="margin-top: 1.15rem; font-size: 0.9rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">Project Vision &amp; Detailed Objectives:</strong>
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.15rem; border-radius: 8px; color: #ffffff; line-height: 1.5; font-size: 0.95rem;">
+              ${escapeHtml(raw.project_desc || sub.desc)}
+            </div>
+          </div>
+
+          ${raw.headline_text ? `
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+              <strong style="color: var(--text-secondary);">Desired Headline Text:</strong>
+              <span style="color: #ffffff; font-style: italic;">"${escapeHtml(raw.headline_text)}"</span>
+            </div>
+          ` : ''}
+
+          ${raw.inspiration_urls ? `
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+              <strong style="color: var(--text-secondary);">Inspiration / Competitor URLs:</strong>
+              <span style="color: var(--color-cyan-glow); text-decoration: underline;">${escapeHtml(raw.inspiration_urls)}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- CARD 3: REQUESTED PAGES & SPECIAL FEATURES -->
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">⚡ STEP 4: REQUESTED PAGES &amp; FEATURE SCOPE</h3>
+          <div style="font-size: 0.9rem; margin-bottom: 1.15rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Requested Website Pages:</strong>
+            <div style="color: #ffffff; font-weight: 700; background: rgba(0,102,255,0.18); border: 1px solid rgba(0,102,255,0.4); padding: 0.85rem 1.15rem; border-radius: 8px; font-size: 0.95rem;">
+              ${escapeHtml(raw.pages || sub.scope)}
+            </div>
+          </div>
+
+          <div style="font-size: 0.9rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Requested Special Features &amp; Modules:</strong>
+            <div style="color: #ffffff; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 0.85rem 1.15rem; border-radius: 8px; line-height: 1.45;">
+              ${escapeHtml(raw.features || 'Standard Responsive UI, Contact Form, SEO Metadata')}
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4: BUDGET, TIMELINE & SUCCESS GOALS -->
+        <div class="portal-glass" style="padding: 1.75rem;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--color-cyan-glow); font-size: 1.15rem;">💰 STEP 5: INVESTMENT, TIMELINE &amp; SUCCESS CRITERIA</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; font-size: 0.9rem;">
+            <div><strong style="color: var(--text-secondary);">Budget Allocation:</strong> <span style="color: var(--color-success); font-weight: 800; font-size: 1.05rem;">${escapeHtml(sub.budget)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Target Launch Timeline:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.timeline)}</span></div>
+          </div>
+
+          ${raw.success_criteria ? `
+            <div style="margin-top: 1.15rem; font-size: 0.9rem;">
+              <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">Key Performance Indicators / Success Criteria:</strong>
+              <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.15rem; border-radius: 8px; color: #ffffff; line-height: 1.5; font-size: 0.95rem;">
+                ${escapeHtml(raw.success_criteria)}
+              </div>
+            </div>
+          ` : ''}
+
+          ${raw.files ? `
+            <div style="margin-top: 1.15rem; font-size: 0.9rem;">
+              <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">Uploaded Brand Attachments:</strong>
+              <div style="color: var(--color-cyan-glow); font-weight: 600; font-size: 0.95rem;">
+                📁 ${escapeHtml(raw.files)}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+  }
+
+  // Update header buttons & state
+  if (typeof updateAdminHeaderUIState === 'function') {
+    const isLoggedIn = !!localStorage.getItem('dreambuilt_admin_session');
+    updateAdminHeaderUIState(isLoggedIn);
+  }
+};
+
+window.saveCrmLeadNotes = function() {
+  if (!activeCrmLeadId) return;
+  const notesInput = document.getElementById('crm-lead-notes-input');
+  if (notesInput) {
+    localStorage.setItem(`dreambuilt_crm_notes_${activeCrmLeadId}`, notesInput.value);
+    window.showAdminToast('💾 Private Lead Notes Saved!');
+  }
+};
+
+window.restoreAdminDashboardView = function() {
+  localStorage.setItem('dreambuilt_admin_active_view', 'dashboard');
+  const mainDash = document.getElementById('admin-main-dashboard');
+  const manageView = document.getElementById('admin-manage-workspace');
+  const crmView = document.getElementById('admin-crm-view');
+
+  if (mainDash) mainDash.style.display = 'block';
+  if (manageView) manageView.style.display = 'none';
+  if (crmView) crmView.style.display = 'none';
+
+  if (typeof updateAdminHeaderUIState === 'function') {
+    const isLoggedIn = !!localStorage.getItem('dreambuilt_admin_session');
+    updateAdminHeaderUIState(isLoggedIn);
+  }
+};
+
+window.viewFullIntakeModal = function(subId) {
+  const sub = cachedSubmissions.find(s => s.id === subId) || cachedSubmissions[0];
+  if (!sub) return;
+
+  const raw = sub.raw || {};
+  const bodyEl = document.getElementById('intake-modal-content-body');
+  const titleEl = document.getElementById('intake-modal-title');
+  const badgeEl = document.getElementById('intake-modal-type-badge');
+  const onboardBtn = document.getElementById('btn-intake-modal-onboard');
+
+  if (titleEl) titleEl.textContent = `INTAKE DOSSIER: ${sub.clientName} (${sub.company})`;
+  if (badgeEl) badgeEl.textContent = `${sub.type.toUpperCase()} • SUBMITTED ${sub.date}`;
+
+  if (onboardBtn) {
+    onboardBtn.onclick = function() {
+      if (typeof closeModal === 'function') closeModal('modal-view-intake');
+      window.convertSubmissionToClient(sub.id);
+    };
+  }
+
+  if (bodyEl) {
+    if (sub.type === 'Consultation') {
+      bodyEl.innerHTML = `
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">👤 STRATEGY SESSION CONTACT &amp; COMPANY</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+            <div><strong style="color: var(--text-secondary);">First Name:</strong> <span style="color: #ffffff;">${escapeHtml(raw.first_name || sub.clientName)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Last Name:</strong> <span style="color: #ffffff;">${escapeHtml(raw.last_name || '')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Email:</strong> <a href="mailto:${escapeHtml(sub.email)}" style="color: #ffffff; text-decoration: underline;">${escapeHtml(sub.email)}</a></div>
+            <div><strong style="color: var(--text-secondary);">Phone:</strong> <span style="color: #ffffff;">${escapeHtml(sub.phone)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Company:</strong> <span style="color: #ffffff;">${escapeHtml(sub.company)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Website:</strong> <span style="color: #ffffff;">${escapeHtml(raw.website || 'N/A')}</span></div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">📅 CONSULTATION SCHEDULE &amp; NOTES</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+            <div><strong style="color: var(--text-secondary);">Consultation Type:</strong> <span style="color: var(--color-success); font-weight: 700;">${escapeHtml(raw.consultation_type || 'Discovery Call')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Scheduled Date:</strong> <span style="color: #ffffff;">${escapeHtml(raw.consultation_date || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Scheduled Time:</strong> <span style="color: #ffffff;">${escapeHtml(raw.consultation_time || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Status:</strong> <span class="status-badge active">${escapeHtml(raw.status || 'New Lead')}</span></div>
+          </div>
+          <div style="margin-top: 1rem; font-size: 0.85rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Additional Meeting Notes:</strong>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 0.85rem; border-radius: 6px; color: #ffffff; line-height: 1.45;">
+              ${escapeHtml(raw.notes || sub.desc)}
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      bodyEl.innerHTML = `
+        <!-- CARD 1: CLIENT & COMPANY -->
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">👤 STEP 1 &amp; 2: CLIENT &amp; COMPANY DETAILS</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+            <div><strong style="color: var(--text-secondary);">Client Name:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.clientName)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Company:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.company)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Email:</strong> <a href="mailto:${escapeHtml(sub.email)}" style="color: #ffffff; text-decoration: underline;">${escapeHtml(sub.email)}</a></div>
+            <div><strong style="color: var(--text-secondary);">Phone:</strong> <span style="color: #ffffff;">${escapeHtml(sub.phone)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Current Website:</strong> <span style="color: #ffffff;">${escapeHtml(raw.website || 'N/A')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Industry:</strong> <span style="color: #ffffff;">${escapeHtml(raw.industry || 'Web Project')}</span></div>
+          </div>
+          <div style="margin-top: 0.85rem; font-size: 0.85rem;">
+            <strong style="color: var(--text-secondary);">Building Type Requested:</strong>
+            <span class="portal-badge" style="background: rgba(0,240,255,0.15); color: #ffffff; margin-left: 0.5rem;">${escapeHtml(raw.building || 'Custom Website')}</span>
+          </div>
+        </div>
+
+        <!-- CARD 2: PROJECT VISION & BRAND IDENTITY -->
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">🎨 STEP 3: BRAND VISION &amp; AESTHETIC STYLE</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+            <div><strong style="color: var(--text-secondary);">Aesthetic Style:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(raw.aesthetic_style || 'Modern / Premium')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Brand Colors:</strong> <span style="color: #ffffff;">${escapeHtml(raw.brand_colors || 'Deep Blue, Metallic Gold')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Primary Call-to-Action:</strong> <span style="color: #ffffff;">${escapeHtml(raw.primary_cta || 'Start Your Project')}</span></div>
+            <div><strong style="color: var(--text-secondary);">Target Audience:</strong> <span style="color: #ffffff;">${escapeHtml(raw.target_audience || 'Corporate Clients')}</span></div>
+          </div>
+
+          <div style="margin-top: 0.85rem; font-size: 0.85rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Project Description &amp; Objectives:</strong>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 0.85rem; border-radius: 6px; color: #ffffff; line-height: 1.45;">
+              ${escapeHtml(raw.project_desc || sub.desc)}
+            </div>
+          </div>
+
+          ${raw.headline_text ? `
+            <div style="margin-top: 0.75rem; font-size: 0.85rem;">
+              <strong style="color: var(--text-secondary);">Headline Text:</strong>
+              <span style="color: #ffffff; font-style: italic;">"${escapeHtml(raw.headline_text)}"</span>
+            </div>
+          ` : ''}
+
+          ${raw.inspiration_urls ? `
+            <div style="margin-top: 0.75rem; font-size: 0.85rem;">
+              <strong style="color: var(--text-secondary);">Inspiration / Competitor URLs:</strong>
+              <span style="color: var(--color-cyan-glow);">${escapeHtml(raw.inspiration_urls)}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- CARD 3: REQUESTED PAGES & FEATURES -->
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">⚡ STEP 4: PAGES &amp; SPECIAL FEATURES SCOPE</h4>
+          <div style="font-size: 0.85rem; margin-bottom: 0.75rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Requested Pages:</strong>
+            <div style="color: #ffffff; font-weight: 600; background: rgba(0,102,255,0.15); border: 1px solid rgba(0,102,255,0.3); padding: 0.65rem 0.85rem; border-radius: 6px;">
+              ${escapeHtml(raw.pages || sub.scope)}
+            </div>
+          </div>
+
+          <div style="font-size: 0.85rem;">
+            <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Requested Special Features &amp; Functional Modules:</strong>
+            <div style="color: #ffffff; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 0.65rem 0.85rem; border-radius: 6px;">
+              ${escapeHtml(raw.features || 'Standard Responsive UI, SEO Metadata, Contact Form')}
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4: BUDGET, TIMELINE & SUCCESS CRITERIA -->
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 10px;">
+          <h4 style="margin: 0 0 0.85rem 0; color: var(--color-cyan-glow); font-size: 0.95rem;">💰 STEP 5: INVESTMENT, TIMELINE &amp; GOALS</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+            <div><strong style="color: var(--text-secondary);">Budget Allocation:</strong> <span style="color: var(--color-success); font-weight: 800; font-size: 0.95rem;">${escapeHtml(sub.budget)}</span></div>
+            <div><strong style="color: var(--text-secondary);">Desired Launch Timeline:</strong> <span style="color: #ffffff; font-weight: 700;">${escapeHtml(sub.timeline)}</span></div>
+          </div>
+
+          ${raw.success_criteria ? `
+            <div style="margin-top: 0.85rem; font-size: 0.85rem;">
+              <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Primary Key Performance Indicators / Success Criteria:</strong>
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 0.85rem; border-radius: 6px; color: #ffffff; line-height: 1.45;">
+                ${escapeHtml(raw.success_criteria)}
+              </div>
+            </div>
+          ` : ''}
+
+          ${raw.files ? `
+            <div style="margin-top: 0.85rem; font-size: 0.85rem;">
+              <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Uploaded Brand Attachments:</strong>
+              <div style="color: var(--color-cyan-glow); font-weight: 600;">
+                📁 ${escapeHtml(raw.files)}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+  }
+
+  if (typeof openModal === 'function') openModal('modal-view-intake');
+};
+
+window.convertSubmissionToClient = function(subId) {
+  const sub = cachedSubmissions.find(s => s.id === subId) || cachedSubmissions[0];
+  if (!sub) return;
+  if (typeof openModal === 'function') openModal('modal-create-project');
+  setTimeout(() => {
+    const bizInput = document.getElementById('p-client-name');
+    const contactInput = document.getElementById('p-contact-name');
+    const emailInput = document.getElementById('p-client-email');
+    const nameInput = document.getElementById('p-name');
+    if (bizInput) bizInput.value = sub.company;
+    if (contactInput) contactInput.value = sub.clientName;
+    if (emailInput) emailInput.value = sub.email;
+    if (nameInput) nameInput.value = `${sub.company} Website`;
+  }, 100);
+};
+
 function renderAdminDashboard() {
+  renderAdminSubmissions();
   renderProjectsTable();
   renderAdminFeedbackSummary();
 }
@@ -920,6 +1456,22 @@ window.restoreAdminView = function() {
       renderManagedWorkspace();
       return;
     }
+  }
+
+  if (activeView === 'crm') {
+    const mainDash = document.getElementById('admin-main-dashboard');
+    const manageView = document.getElementById('admin-project-manage-view');
+    const crmView = document.getElementById('admin-crm-view');
+    if (mainDash) mainDash.style.display = 'none';
+    if (manageView) manageView.style.display = 'none';
+    if (crmView) crmView.style.display = 'block';
+    if (btnCreate) btnCreate.style.display = 'none';
+    if (chatFab) chatFab.style.display = 'none';
+    if (notifBtn) notifBtn.style.display = 'none';
+    if (cachedSubmissions.length > 0) {
+      window.openCrmLeadScreen(cachedSubmissions[0].id);
+    }
+    return;
   }
 
   const mainDash = document.getElementById('admin-main-dashboard');
@@ -1246,7 +1798,7 @@ function renderAdminMessages(project) {
 
 function renderAdminChecklist(project, total, completed, pct) {
   const badge = document.getElementById('adm-checklist-badge');
-  if (badge) badge.textContent = `${completed} of ${total} Tasks Completed (${pct}%)`;
+  if (badge) badge.innerHTML = `<div>${completed} OF ${total} TASKS COMPLETED</div><div>(${pct}%)</div>`;
 
   const container = document.getElementById('adm-manage-checklist-container');
   if (!container) return;

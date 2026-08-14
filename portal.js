@@ -1106,7 +1106,7 @@ function renderLightboxNotes(page) {
 
   container.innerHTML = pageNotes.map(n => `
     <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 0.65rem 0.85rem; border-radius: 8px;">
-      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--color-cyan-glow); margin-bottom: 0.25rem;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 800; color: #0088ff; margin-bottom: 0.25rem;">
         <span>${escapeHtml(n.sender)}</span>
         <span style="color: var(--text-secondary);">${escapeHtml(n.time)}</span>
       </div>
@@ -1603,7 +1603,7 @@ function renderChecklist() {
   });
 
   const pct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-  if (badge) badge.textContent = `${completedItems} of ${totalItems} Tasks Completed (${pct}%)`;
+  if (badge) badge.innerHTML = `<div>${completedItems} OF ${totalItems} TASKS COMPLETED</div><div>(${pct}%)</div>`;
 
   container.innerHTML = mockClientState.checklistPhases.map(phase => `
     <div class="portal-glass" style="padding: 1.5rem;">
