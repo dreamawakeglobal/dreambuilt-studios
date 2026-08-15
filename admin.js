@@ -2043,6 +2043,17 @@ window.updateFeedbackStatus = function(id, status) {
 };
 
 function initAdminForms() {
+  const btnManualLead = document.getElementById('btn-open-manual-lead-modal');
+  if (btnManualLead) {
+    btnManualLead.addEventListener('click', (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.openModal('modal-add-manual-lead');
+    });
+  }
+
   const btnCreateProject = document.getElementById('btn-create-project');
   if (btnCreateProject) {
     btnCreateProject.addEventListener('click', () => window.openModal('modal-create-project'));

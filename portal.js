@@ -204,75 +204,90 @@ function loadPortalState() {
     try {
       const parsed = JSON.parse(saved);
       if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
-        const p = parsed.projects[0];
-        if (p) {
-          mockClientState.client.businessName = p.client || p.business_name || 'Psycortex';
-          mockClientState.client.contactName = p.contact || p.contact_name || 'Alba Cortez';
-          mockClientState.client.email = p.clientEmail || p.email || 'alba@psycortex.com';
-          mockClientState.client.password = p.clientPassword || p.password || 'demo1234';
+        let p = null;
+        const savedSession = localStorage.getItem('dreambuilt_portal_session');
+        if (savedSession) {
+          try {
+            const sess = JSON.parse(savedSession);
+            if (sess && sess.email) {
+              p = parsed.projects.find(x => 
+                (x.clientEmail && x.clientEmail.toLowerCase() === sess.email.toLowerCase()) || 
+                (x.email && x.email.toLowerCase() === sess.email.toLowerCase())
+              );
+            }
+          } catch(e) {}
+        }
+        
+        if (!p) {
+          p = parsed.projects[0];
+        }
 
-          mockClientState.project.name = p.name || p.project_name || 'Psycortex Corporate Website';
+        if (p) {
+          mockClientState.client.businessName = p.client || p.business_name || 'Client Business';
+          mockClientState.client.contactName = p.contact || p.contact_name || 'Client Contact';
+          mockClientState.client.email = p.clientEmail || p.email || '';
+          mockClientState.client.password = p.clientPassword || p.password || '';
+
+          mockClientState.project.id = p.id || `prj-${Date.now()}`;
+          mockClientState.project.name = p.name || p.project_name || 'Client Website';
           mockClientState.project.currentPhase = p.currentPhase || p.current_phase || 'Build';
-          mockClientState.project.targetLaunchDate = p.targetLaunch || p.target_launch_date || 'Sept 15, 2026';
+          mockClientState.project.progress = p.progress || p.progress_pct || 0;
+          mockClientState.project.targetLaunchDate = p.targetLaunch || p.target_launch_date || 'Upcoming';
           mockClientState.project.status = p.status || 'Active';
 
-          if (p.actionItems && Array.isArray(p.actionItems)) {
-            mockClientState.actionItems = p.actionItems.map(item => ({
-              id: item.id || `act-${Date.now()}`,
-              title: item.title,
-              description: item.description || item.desc || '',
-              dueDate: item.dueDate || item.due_date || 'Soon',
-              actionType: item.actionType || item.action_type || 'upload_file',
-              ctaText: item.ctaText || item.cta_text || 'ACTION REQUIRED',
-              completed: !!item.completed
-            }));
+          mockClientState.actionItems = Array.isArray(p.actionItems) ? p.actionItems.map(item => ({
+            id: item.id || `act-${Date.now()}`,
+            title: item.title,
+            description: item.description || item.desc || '',
+            dueDate: item.dueDate || item.due_date || 'Soon',
+            actionType: item.actionType || item.action_type || 'upload_file',
+            ctaText: item.ctaText || item.cta_text || 'ACTION REQUIRED',
+            completed: !!item.completed
+          })) : [];
+
+          if (p.checklistPhases && Array.isArray(p.checklistPhases) && p.checklistPhases.length > 0) {
+            mockClientState.checklistPhases = p.checklistPhases;
+          } else {
+            ensureProjectChecklist(mockClientState);
           }
-            if (p.checklistPhases) mockClientState.checklistPhases = p.checklistPhases;
-            if (p.pages) {
-              mockClientState.pages = p.pages.map(pg => ({
-                id: pg.id,
-                name: pg.title || pg.name,
-                slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
-                status: pg.status,
-                version: pg.version,
-                screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
-                notes: pg.notes || `Version ${pg.version}`
-              }));
-            }
-            if (p.feedback) {
-              mockClientState.feedbackItems = p.feedback.map(f => ({
-                id: f.id,
-                title: f.title,
-                page: f.page,
-                section: 'Revision Request',
-                desc: f.comment,
-                priority: f.priority,
-                status: f.status
-              }));
-            }
-            if (p.messages && Array.isArray(p.messages)) {
-              mockClientState.messages = p.messages;
-            }
-            if (p.assets) {
-              mockClientState.files = p.assets.map(a => ({
-                id: a.id,
-                name: a.name,
-                category: a.type,
-                size: a.size,
-                uploadDate: a.date
-              }));
-            }
-          }
+
+          mockClientState.pages = Array.isArray(p.pages) ? p.pages.map(pg => ({
+            id: pg.id,
+            name: pg.title || pg.name,
+            slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
+            status: pg.status,
+            version: pg.version,
+            screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
+            notes: pg.notes || `Version ${pg.version}`
+          })) : [];
+
+          mockClientState.feedbackItems = Array.isArray(p.feedback) ? p.feedback.map(f => ({
+            id: f.id,
+            title: f.title,
+            page: f.page,
+            section: f.section || 'Revision Request',
+            desc: f.desc || f.comment || '',
+            priority: f.priority,
+            status: f.status
+          })) : [];
+
+          mockClientState.messages = Array.isArray(p.messages) ? p.messages : [];
+
+          mockClientState.files = Array.isArray(p.assets) ? p.assets.map(a => ({
+            id: a.id,
+            name: a.name,
+            category: a.type || a.category,
+            size: a.size,
+            uploadDate: a.date || a.uploadDate
+          })) : [];
         }
+      }
     } catch (e) {
       console.error('Failed loading portal state:', e);
     }
   }
 
   ensureProjectChecklist(mockClientState);
-  window.savePortalState();
-
-  fetchSupabaseData();
 }
 
 async function fetchSupabaseData() {
@@ -484,16 +499,22 @@ window.savePortalState = function() {
     } catch (e) {}
   }
 
-  let p = projects.find(x => x.id === 'prj-1' || x.client === 'Psycortex');
+  let pIndex = projects.findIndex(x => 
+    (mockClientState.project.id && x.id === mockClientState.project.id) ||
+    (mockClientState.client.email && x.clientEmail && x.clientEmail.toLowerCase() === mockClientState.client.email.toLowerCase())
+  );
+
+  let p = pIndex >= 0 ? projects[pIndex] : null;
+
   if (!p) {
-    p = { id: 'prj-1', client: 'Psycortex', contact: 'Alba Cortez' };
-    projects.unshift(p);
+    p = { id: mockClientState.project.id || `prj-${Date.now()}` };
+    projects.push(p);
   }
 
   p.client = mockClientState.client.businessName;
   p.contact = mockClientState.client.contactName;
   p.clientEmail = mockClientState.client.email;
-  p.clientPassword = mockClientState.client.password || 'demo1234';
+  p.clientPassword = mockClientState.client.password;
   p.name = mockClientState.project.name;
   p.currentPhase = mockClientState.project.currentPhase;
   p.progress = mockClientState.project.progress;
@@ -502,6 +523,9 @@ window.savePortalState = function() {
   p.actionItems = mockClientState.actionItems;
   p.checklistPhases = mockClientState.checklistPhases;
   p.messages = mockClientState.messages;
+  p.pages = mockClientState.pages;
+  p.feedback = mockClientState.feedbackItems;
+  p.assets = mockClientState.files;
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: projects }));
 };
