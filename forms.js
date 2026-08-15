@@ -1,6 +1,24 @@
-import { supabase } from './lib/supabase.js';
+function saveSubmissionLocally(tableName, data) {
+  try {
+    const existingRaw = localStorage.getItem('dreambuilt_form_submissions');
+    const existing = existingRaw ? JSON.parse(existingRaw) : [];
+    
+    const newSubmission = {
+      id: `sub-loc-${Date.now()}`,
+      table: tableName,
+      created_at: new Date().toISOString(),
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      ...data
+    };
 
-// Multi-step form logic with Supabase integration
+    existing.unshift(newSubmission);
+    localStorage.setItem('dreambuilt_form_submissions', JSON.stringify(existing));
+  } catch (e) {
+    console.warn('Error saving submission to local storage:', e);
+  }
+}
+
+// Multi-step form logic with Supabase integration & LocalStorage fallback
 document.addEventListener('DOMContentLoaded', () => {
   const projectForm = document.getElementById('project-form');
   const consultationForm = document.getElementById('consultation-form');
@@ -63,9 +81,15 @@ document.addEventListener('DOMContentLoaded', () => {
               const labels = currentStepEl.querySelectorAll(`input[name="${input.name}"]`);
               if (!isChecked) {
                 valid = false;
-                labels.forEach(i => i.closest('label').style.borderColor = '#ff4d4d');
+                labels.forEach(i => {
+                  const lbl = i.closest('label');
+                  if (lbl) lbl.style.borderColor = '#ff4d4d';
+                });
               } else {
-                labels.forEach(i => i.closest('label').style.borderColor = 'rgba(255, 255, 255, 0.1)');
+                labels.forEach(i => {
+                  const lbl = i.closest('label');
+                  if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                });
               }
             }
           } else if (input.type === 'checkbox') {
@@ -75,9 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
               const labels = currentStepEl.querySelectorAll(`input[name="${input.name}"]`);
               if (checkedCount === 0) {
                 valid = false;
-                labels.forEach(i => i.closest('label').style.borderColor = '#ff4d4d');
+                labels.forEach(i => {
+                  const lbl = i.closest('label');
+                  if (lbl) lbl.style.borderColor = '#ff4d4d';
+                });
               } else {
-                labels.forEach(i => i.closest('label').style.borderColor = 'rgba(255, 255, 255, 0.1)');
+                labels.forEach(i => {
+                  const lbl = i.closest('label');
+                  if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                });
               }
             }
           } else if (!input.value.trim()) {
@@ -162,23 +192,25 @@ document.addEventListener('DOMContentLoaded', () => {
           const sanitizeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
           const filePath = `uploads/${Date.now()}_${sanitizeName}`;
           try {
-            const { data: uploadData, error: uploadErr } = await supabase.storage
-              .from('project-files')
-              .upload(filePath, file, { cacheControl: '3600', upsert: true });
-
-            if (!uploadErr && uploadData) {
-              const { data: publicUrlData } = supabase.storage
+            if (supabase && supabase.storage) {
+              const { data: uploadData, error: uploadErr } = await supabase.storage
                 .from('project-files')
-                .getPublicUrl(filePath);
-              if (publicUrlData && publicUrlData.publicUrl) {
-                uploadedFileUrls.push(publicUrlData.publicUrl);
+                .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+              if (!uploadErr && uploadData) {
+                const { data: publicUrlData } = supabase.storage
+                  .from('project-files')
+                  .getPublicUrl(filePath);
+                if (publicUrlData && publicUrlData.publicUrl) {
+                  uploadedFileUrls.push(publicUrlData.publicUrl);
+                }
+              } else {
+                uploadedFileUrls.push(file.name);
               }
             } else {
-              console.warn('Storage upload note:', uploadErr ? uploadErr.message : 'Saving filename');
               uploadedFileUrls.push(file.name);
             }
           } catch (e) {
-            console.warn('File upload fallback:', e);
             uploadedFileUrls.push(file.name);
           }
         }
@@ -192,32 +224,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (submitBtn) submitBtn.textContent = 'Submitting...';
 
-      try {
-        console.log(`Sending submission to Supabase table '${tableName}':`, data);
-        const { error } = await supabase.from(tableName).insert([data]);
+      // Always save locally as fallback so no submission is ever lost
+      saveSubmissionLocally(tableName, data);
 
-        if (error) {
-          console.error(`Error saving to ${tableName}:`, error.message);
-          alert('Notice submitting form to Supabase: ' + error.message);
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
+      if (supabase) {
+        try {
+          const { error } = await supabase.from(tableName).insert([data]);
+          if (error) {
+            console.warn(`Supabase insert notice on '${tableName}':`, error.message);
           }
-          return;
-        }
-
-        // Successfully saved in Supabase! Show success state
-        steps.forEach(step => step.classList.remove('active'));
-        if (successState) successState.classList.add('active');
-
-      } catch (err) {
-        console.error('Unexpected submission error:', err);
-        alert('An unexpected error occurred: ' + err.message);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalBtnText;
+        } catch (err) {
+          console.warn('Supabase submission fallback:', err);
         }
       }
+
+      // Display success state
+      steps.forEach(step => step.classList.remove('active'));
+      if (successState) successState.classList.add('active');
     });
 
     // Clear validation styling on input

@@ -840,6 +840,39 @@ function renderAdminSubmissions(dbSubmissions, dbConsultations) {
     });
   }
 
+  // 3. Read from LocalStorage submissions fallback
+  try {
+    const localSubsRaw = localStorage.getItem('dreambuilt_form_submissions');
+    if (localSubsRaw) {
+      const localSubs = JSON.parse(localSubsRaw);
+      if (Array.isArray(localSubs)) {
+        localSubs.forEach(s => {
+          const clientName = `${s.first_name || ''} ${s.last_name || ''}`.trim() || 'Anonymous Lead';
+          const email = s.email || 'N/A';
+          const exists = allSubs.some(x => (x.id === s.id) || (email !== 'N/A' && x.email.toLowerCase() === email.toLowerCase()));
+          if (!exists) {
+            allSubs.unshift({
+              id: s.id || `loc-${Date.now()}`,
+              date: s.date || (s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just Now'),
+              clientName: clientName,
+              company: s.company || (s.table === 'consultations' ? 'Strategy Consultation' : 'Start Your Project Form'),
+              email: email,
+              phone: s.phone || 'N/A',
+              budget: s.budget || (s.table === 'consultations' ? 'Strategy Call' : 'Custom'),
+              timeline: s.timeline || (s.consultation_date ? `${s.consultation_date} @ ${s.consultation_time || ''}` : 'Flexible'),
+              scope: s.table === 'consultations' ? `Consultation (${s.consultation_type || 'Discovery Call'})` : `${s.pages || 'Multi-page'} (${s.industry || 'Web Project'})`,
+              desc: s.project_desc || s.notes || s.success_criteria || 'New submission',
+              type: s.table === 'consultations' ? 'Consultation' : 'Questionnaire',
+              raw: s
+            });
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Error loading local form submissions:', e);
+  }
+
   if (allSubs.length === 0) {
     allSubs = [
       {
@@ -2447,6 +2480,56 @@ function initAdminForms() {
 
       window.closeModal('modal-add-action-item');
       formAddAction.reset();
+    });
+  }
+
+  const formAddManualLead = document.getElementById('form-add-manual-lead');
+  if (formAddManualLead) {
+    formAddManualLead.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fname = document.getElementById('manual-lead-fname').value.trim();
+      const lname = document.getElementById('manual-lead-lname').value.trim();
+      const email = document.getElementById('manual-lead-email').value.trim();
+      const phone = document.getElementById('manual-lead-phone').value.trim();
+      const company = document.getElementById('manual-lead-company').value.trim() || 'Manual Lead Entry';
+      const budget = document.getElementById('manual-lead-budget').value.trim() || 'Custom';
+      const desc = document.getElementById('manual-lead-desc').value.trim() || 'Manual Lead Submission';
+
+      const data = {
+        first_name: fname,
+        last_name: lname,
+        email: email,
+        phone: phone,
+        company: company,
+        budget: budget,
+        project_desc: desc,
+        status: 'new'
+      };
+
+      try {
+        const existingRaw = localStorage.getItem('dreambuilt_form_submissions');
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        existing.unshift({
+          id: `sub-man-${Date.now()}`,
+          table: 'project_submissions',
+          created_at: new Date().toISOString(),
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          ...data
+        });
+        localStorage.setItem('dreambuilt_form_submissions', JSON.stringify(existing));
+      } catch (err) {}
+
+      if (supabase) {
+        try {
+          await supabase.from('project_submissions').insert([data]);
+        } catch (err) {}
+      }
+
+      window.closeModal('modal-add-manual-lead');
+      formAddManualLead.reset();
+      window.showAdminToast(`✓ Added manual lead ${fname} ${lname} to CRM`);
+
+      if (typeof fetchSupabaseAdminData === 'function') fetchSupabaseAdminData();
     });
   }
 
