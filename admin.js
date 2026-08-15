@@ -100,7 +100,29 @@ function ensureProjectChecklist(project) {
 
 const defaultProjectsSeed = [];
 
+function purgeLegacyPsycortex() {
+  const hasPurged = localStorage.getItem('dreambuilt_psycortex_v2_purged');
+  if (!hasPurged) {
+    let saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.projects)) {
+          parsed.projects = parsed.projects.filter(p => {
+            const email = (p.clientEmail || p.email || '').toLowerCase();
+            const name = (p.client || p.business_name || '').toLowerCase();
+            return !email.includes('alba@psycortex') && !name.includes('alba cortez');
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    }
+    localStorage.setItem('dreambuilt_psycortex_v2_purged', 'true');
+  }
+}
+
 function loadAdminState() {
+  purgeLegacyPsycortex();
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
@@ -108,8 +130,7 @@ function loadAdminState() {
       if (parsed && Array.isArray(parsed.projects)) {
         adminState.projects = parsed.projects.filter(p => 
           p.id !== '22222222-2222-2222-2222-222222222222' && 
-          p.id !== '11111111-1111-1111-1111-111111111111' &&
-          p.clientEmail !== 'alba@psycortex.com'
+          p.id !== '11111111-1111-1111-1111-111111111111'
         );
       }
     } catch (e) {
