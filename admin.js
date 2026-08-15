@@ -109,10 +109,7 @@ function loadAdminState() {
         adminState.projects = parsed.projects.filter(p => 
           p.id !== '22222222-2222-2222-2222-222222222222' && 
           p.id !== '11111111-1111-1111-1111-111111111111' &&
-          p.client !== 'Psycortex' &&
-          p.client !== 'Decipher' &&
-          p.contact !== 'Alba Cortez' &&
-          p.contact !== 'Dontae Jeffery'
+          p.clientEmail !== 'alba@psycortex.com'
         );
       }
     } catch (e) {
@@ -162,12 +159,11 @@ async function fetchSupabaseAdminData() {
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
     if (!prjErr && dbProjects) {
-      // Clear out legacy dummy projects from db list
+      // Clear out legacy dummy seed projects from db list
       const cleanDbProjects = dbProjects.filter(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
-        const contactName = matchingClient ? matchingClient.contact_name : '';
-        const clientName = matchingClient ? matchingClient.business_name : '';
-        return contactName !== 'Alba Cortez' && contactName !== 'Dontae Jeffery' && clientName !== 'Psycortex';
+        const clientEmail = matchingClient ? matchingClient.email : '';
+        return clientEmail !== 'alba@psycortex.com' && dp.id !== '11111111-1111-1111-1111-111111111111' && dp.id !== '22222222-2222-2222-2222-222222222222';
       });
 
       cleanDbProjects.forEach(dp => {
