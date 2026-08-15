@@ -12,58 +12,18 @@ let mockClientState = {
   },
   project: {
     name: '',
-    currentPhase: 'Build',
+    currentPhase: 'Intake',
     progress: 0,
     targetLaunchDate: 'Upcoming',
     nextMilestone: 'Initial Review',
     status: 'Active',
-    previewUrl: 'https://dreambuiltstudios.com'
+    previewUrl: ''
   },
-  actionItems: [
-    {
-      id: 'act-1',
-      title: 'Upload founder headshot',
-      description: 'Please upload a high-resolution studio photo of Alba for the About page.',
-      actionType: 'upload_file',
-      dueDate: 'Aug 15, 2026',
-      ctaText: 'UPLOAD FILE',
-      completed: false
-    },
-    {
-      id: 'act-2',
-      title: 'Review Homepage build',
-      description: 'Inspect the live staging preview of the homepage and submit revision notes.',
-      actionType: 'review_page',
-      targetPage: 'Home Page',
-      dueDate: 'Aug 17, 2026',
-      ctaText: 'REVIEW PAGE',
-      completed: false
-    },
-    {
-      id: 'act-3',
-      title: 'Approve Services Page',
-      description: 'Formally approve the finalized Services page build.',
-      actionType: 'approve_milestone',
-      targetPage: 'Services Page',
-      dueDate: 'Aug 20, 2026',
-      ctaText: 'APPROVE PAGE',
-      completed: false
-    }
-  ],
-  pages: [
-    { id: 'p1', name: 'Home Page', slug: '/', status: 'Ready for Review', version: '1.2', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Responsive homepage design screenshot uploaded for client review.' },
-    { id: 'p2', name: 'About Page', slug: '/about', status: 'Building', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Bio & team section layout in progress.' },
-    { id: 'p3', name: 'Services Page', slug: '/services', status: 'Approved', version: '1.1', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Approved by Alba Cortez on Aug 12, 2026.' },
-    { id: 'p4', name: 'Contact Page', slug: '/contact', status: 'Planned', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Scheduled for build phase 2.' }
-  ],
-  feedbackItems: [
-    { id: 'f1', title: 'Replace Founder Photo', page: 'About Page', section: 'Founder Bio Section', desc: 'Can we update the founder photo to the new high-resolution studio shot?', priority: 'Normal', status: 'In Progress' },
-    { id: 'f2', title: 'Update Headline Copy', page: 'Services Page', section: 'Hero Banner', desc: 'Tweak main headline text to emphasize rapid growth solutions.', priority: 'Important', status: 'Ready for Review' }
-  ],
-  files: [
-    { id: 'fl1', name: 'brand-logo-icon.svg', category: 'Logo', size: '24 KB', uploadDate: 'Aug 10, 2026' },
-    { id: 'fl2', name: 'psycortex-brand-guide.pdf', category: 'Brand Assets', size: '2.4 MB', uploadDate: 'Aug 08, 2026' }
-  ],
+  actionItems: [],
+  pages: [],
+  feedbackItems: [],
+  files: [],
+  messages: [],
   checklistPhases: [
     {
       phaseName: '1. INTAKE & DISCOVERY',
@@ -199,34 +159,44 @@ function ensureProjectChecklist(state) {
 }
 
 function loadPortalState() {
+  const savedSession = localStorage.getItem('dreambuilt_portal_session');
+  if (savedSession) {
+    try {
+      const sess = JSON.parse(savedSession);
+      if (sess && sess.email) {
+        userSession = sess;
+        mockClientState.client.businessName = sess.company || 'Client Workspace';
+        mockClientState.client.contactName = sess.name || 'Client Contact';
+        mockClientState.client.email = sess.email;
+      }
+    } catch(e) {}
+  }
+
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
         let p = null;
-        const savedSession = localStorage.getItem('dreambuilt_portal_session');
-        if (savedSession) {
-          try {
-            const sess = JSON.parse(savedSession);
-            if (sess && sess.email) {
-              p = parsed.projects.find(x => 
-                (x.clientEmail && x.clientEmail.toLowerCase() === sess.email.toLowerCase()) || 
-                (x.email && x.email.toLowerCase() === sess.email.toLowerCase())
-              );
-            }
-          } catch(e) {}
+        if (userSession && userSession.email) {
+          p = parsed.projects.find(x => 
+            (x.clientEmail && x.clientEmail.toLowerCase() === userSession.email.toLowerCase()) || 
+            (x.email && x.email.toLowerCase() === userSession.email.toLowerCase()) ||
+            (x.client && x.client.toLowerCase() === userSession.company.toLowerCase())
+          );
         }
         
-        if (!p) {
-          p = parsed.projects[0];
+        if (!p && !userSession) {
+          p = null;
         }
 
         if (p) {
-          mockClientState.client.businessName = p.client || p.business_name || 'Client Business';
-          mockClientState.client.contactName = p.contact || p.contact_name || 'Client Contact';
-          mockClientState.client.email = p.clientEmail || p.email || '';
-          mockClientState.client.password = p.clientPassword || p.password || '';
+          if (!userSession) {
+            mockClientState.client.businessName = p.client || p.business_name || 'Client Business';
+            mockClientState.client.contactName = p.contact || p.contact_name || 'Client Contact';
+            mockClientState.client.email = p.clientEmail || p.email || '';
+            mockClientState.client.password = p.clientPassword || p.password || '';
+          }
 
           mockClientState.project.id = p.id || `prj-${Date.now()}`;
           mockClientState.project.name = p.name || p.project_name || 'Client Website';
@@ -251,15 +221,20 @@ function loadPortalState() {
             ensureProjectChecklist(mockClientState);
           }
 
-          mockClientState.pages = Array.isArray(p.pages) ? p.pages.map(pg => ({
-            id: pg.id,
-            name: pg.title || pg.name,
-            slug: `/${(pg.title || pg.name || '').toLowerCase().replace(/ /g, '-')}`,
-            status: pg.status,
-            version: pg.version,
-            screenshotUrl: pg.image || pg.screenshotUrl || '/images/card-01-custom-design.jpg',
-            notes: pg.notes || `Version ${pg.version}`
-          })) : [];
+          mockClientState.pages = Array.isArray(p.pages) ? p.pages.map(pg => {
+            const imgUrl = pg.image || pg.screenshotUrl || pg.screenshot_url || '/images/card-01-custom-design.jpg';
+            const isVid = pg.isVideo || window.isVideoUrl(imgUrl);
+            return {
+              id: pg.id || `pg-${Date.now()}`,
+              name: pg.title || pg.name || 'Website Page',
+              slug: `/${(pg.title || pg.name || 'page').toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+              status: pg.status || 'Ready for Review',
+              version: pg.version || 'v1.0',
+              screenshotUrl: imgUrl,
+              isVideo: isVid,
+              notes: pg.notes || (isVid ? 'Video walkthrough ready for review.' : `Version ${pg.version || 'v1.0'}`)
+            };
+          }) : [];
 
           mockClientState.feedbackItems = Array.isArray(p.feedback) ? p.feedback.map(f => ({
             id: f.id,
@@ -285,6 +260,12 @@ function loadPortalState() {
     } catch (e) {
       console.error('Failed loading portal state:', e);
     }
+  }
+
+  if (userSession) {
+    if (userSession.company) mockClientState.client.businessName = userSession.company;
+    if (userSession.name) mockClientState.client.contactName = userSession.name;
+    if (userSession.email) mockClientState.client.email = userSession.email;
   }
 
   ensureProjectChecklist(mockClientState);
@@ -313,25 +294,40 @@ async function fetchSupabaseData() {
       supabase.from('project_assets').select('*')
     ]);
 
-    if (!error && projects && projects.length > 0) {
+    if (userSession && userSession.email) {
+      mockClientState.client.email = userSession.email;
+      mockClientState.client.contactName = userSession.name;
+      mockClientState.client.businessName = userSession.company;
+
+      const matchingClient = dbClients ? dbClients.find(c => c.email.toLowerCase() === userSession.email.toLowerCase()) : null;
+      if (matchingClient) {
+        mockClientState.client.businessName = matchingClient.business_name || userSession.company;
+        mockClientState.client.contactName = matchingClient.contact_name || userSession.name;
+        mockClientState.client.email = matchingClient.email || userSession.email;
+        userSession.name = mockClientState.client.contactName;
+        userSession.company = mockClientState.client.businessName;
+        localStorage.setItem('dreambuilt_portal_session', JSON.stringify(userSession));
+      }
+
       let p = null;
-      if (userSession && userSession.email) {
-        const matchingClient = dbClients ? dbClients.find(c => c.email.toLowerCase() === userSession.email.toLowerCase()) : null;
+      if (!error && projects && projects.length > 0) {
         if (matchingClient) {
           p = projects.find(x => x.client_id === matchingClient.id);
         }
-      }
-      if (!p) {
-        p = projects.find(x => x.project_name.toLowerCase().includes('psycortex') || x.id === '22222222-2222-2222-2222-222222222222') || projects[0];
+        if (!p) {
+          p = projects.find(x => 
+            x.client_email && x.client_email.toLowerCase() === userSession.email.toLowerCase()
+          );
+        }
       }
 
       if (p) {
         mockClientState.project.id = p.id;
         mockClientState.project.name = p.project_name;
-        mockClientState.project.currentPhase = p.current_phase;
-        mockClientState.project.progress = p.progress_pct;
-        mockClientState.project.targetLaunchDate = p.target_launch_date;
-        mockClientState.project.status = p.status;
+        mockClientState.project.currentPhase = p.current_phase || 'Build';
+        mockClientState.project.progress = p.progress_pct || 50;
+        mockClientState.project.targetLaunchDate = p.target_launch_date || 'Upcoming';
+        mockClientState.project.status = p.status || 'Active';
 
         const prjActions = dbActions ? dbActions.filter(a => a.project_id === p.id) : [];
         if (prjActions.length > 0) {
@@ -584,9 +580,9 @@ function initAuthAndPortal() {
 
       if (supabase) {
         try {
-          const { data: clients } = await supabase.from('clients').select('*').eq('email', email);
+          const { data: clients } = await supabase.from('clients').select('*');
           if (clients && clients.length > 0) {
-            matchedClient = clients[0];
+            matchedClient = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
           }
         } catch (err) {
           console.error('Portal client authentication error:', err);
@@ -601,7 +597,8 @@ function initAuthAndPortal() {
             if (parsedApp && Array.isArray(parsedApp.projects)) {
               matchedLocalProject = parsedApp.projects.find(p => 
                 (p.clientEmail && p.clientEmail.toLowerCase() === email.toLowerCase()) || 
-                (p.email && p.email.toLowerCase() === email.toLowerCase())
+                (p.email && p.email.toLowerCase() === email.toLowerCase()) ||
+                (p.client && p.client.toLowerCase() === email.toLowerCase().split('@')[0])
               );
             }
           }
@@ -617,7 +614,7 @@ function initAuthAndPortal() {
       // Verify password
       const expectedPassword = matchedClient 
         ? matchedClient.password_hash 
-        : (matchedLocalProject ? (matchedLocalProject.clientPassword || matchedLocalProject.password || 'demo1234') : null);
+        : (matchedLocalProject ? (matchedLocalProject.clientPassword || matchedLocalProject.password || 'demo1234') : 'demo1234');
 
       if (expectedPassword && expectedPassword !== password) {
         alert(`❌ Incorrect password for ${email}. Please use the login password configured in the Admin Command Center.`);
@@ -626,12 +623,16 @@ function initAuthAndPortal() {
 
       userSession = {
         email: email,
-        name: matchedClient ? matchedClient.contact_name : (matchedLocalProject ? (matchedLocalProject.contact || matchedLocalProject.client) : 'Client'),
-        company: matchedClient ? matchedClient.business_name : (matchedLocalProject ? (matchedLocalProject.client || matchedLocalProject.name) : 'Company'),
+        name: matchedClient ? (matchedClient.contact_name || matchedClient.business_name) : (matchedLocalProject ? (matchedLocalProject.contact || matchedLocalProject.client) : 'Decipher Client'),
+        company: matchedClient ? matchedClient.business_name : (matchedLocalProject ? (matchedLocalProject.client || matchedLocalProject.name) : 'Decipher Workspace'),
         clientId: matchedClient ? matchedClient.id : (matchedLocalProject ? matchedLocalProject.id : null)
       };
 
       localStorage.setItem('dreambuilt_portal_session', JSON.stringify(userSession));
+
+      mockClientState.client.contactName = userSession.name;
+      mockClientState.client.businessName = userSession.company;
+      mockClientState.client.email = userSession.email;
 
       document.getElementById('auth-container').style.display = 'none';
       document.getElementById('workspace-container').style.display = 'block';
@@ -660,6 +661,14 @@ window.performPortalSignOut = function() {
   userSession = null;
   localStorage.removeItem('dreambuilt_portal_session');
   
+  mockClientState.client = { businessName: '', contactName: '', email: '' };
+  mockClientState.project = { name: '', currentPhase: 'Intake', progress: 0, targetLaunchDate: 'Upcoming', nextMilestone: 'Initial Review', status: 'Active', previewUrl: '' };
+  mockClientState.actionItems = [];
+  mockClientState.pages = [];
+  mockClientState.feedbackItems = [];
+  mockClientState.files = [];
+  mockClientState.messages = [];
+
   const wsContainer = document.getElementById('workspace-container');
   const authContainer = document.getElementById('auth-container');
   if (wsContainer) wsContainer.style.display = 'none';
@@ -707,8 +716,14 @@ function updateHeaderUIState(isLoggedIn) {
   const notifPopover = document.getElementById('user-notifications-popover');
 
   if (isLoggedIn) {
+    const bizName = (userSession && userSession.company) || mockClientState.client.businessName || '';
+    const prjName = (mockClientState.project && mockClientState.project.name) ? mockClientState.project.name : '';
+    const badgeTitle = bizName 
+      ? (bizName.toLowerCase().includes('workspace') ? bizName : `${bizName} Workspace`) 
+      : (prjName ? (prjName.toLowerCase().includes('workspace') ? prjName : `${prjName} Workspace`) : 'Client Workspace');
+
     if (bizNameEl) {
-      bizNameEl.textContent = `${mockClientState.client.businessName || 'Psycortex'} Workspace`;
+      bizNameEl.textContent = badgeTitle;
       bizNameEl.style.display = 'inline-block';
     }
     if (userInfoEl) userInfoEl.style.display = 'flex';
@@ -890,7 +905,6 @@ function renderMessages() {
 
   container.innerHTML = mockClientState.messages.map(msg => {
     const isMe = msg.sender.toLowerCase().includes('client') ||
-                 msg.sender.toLowerCase().includes('alba') ||
                  (currentUser && msg.sender.toLowerCase() === currentUser);
 
     return `
@@ -934,19 +948,31 @@ function renderUserAvatarUI() {
   const popoverEmail = document.getElementById('popover-user-email');
   const popoverCompany = document.getElementById('popover-user-company');
 
-  const contactName = mockClientState.client.contactName || 'Alba Cortez';
-  const bizName = mockClientState.client.businessName || 'Psycortex';
-  const email = mockClientState.client.email || 'psycortex@portal.dbstudios.com';
+  const contactName = (userSession && userSession.name) || mockClientState.client.contactName || 'Client Contact';
+  const bizName = (userSession && userSession.company) || mockClientState.client.businessName || '';
+  const email = (userSession && userSession.email) || mockClientState.client.email || '';
   const avatarUrl = mockClientState.client.avatarUrl;
 
+  const prjName = (mockClientState.project && mockClientState.project.name) ? mockClientState.project.name : '';
+  const badgeTitle = bizName 
+    ? (bizName.toLowerCase().includes('workspace') ? bizName : `${bizName} Workspace`) 
+    : (prjName ? (prjName.toLowerCase().includes('workspace') ? prjName : `${prjName} Workspace`) : 'Client Workspace');
+
   if (nameEl) nameEl.textContent = contactName;
-  if (bizNameEl) bizNameEl.textContent = `${bizName} Workspace`;
+  if (bizNameEl) bizNameEl.textContent = badgeTitle;
 
   if (popoverName) popoverName.textContent = contactName;
   if (popoverEmail) popoverEmail.textContent = email;
-  if (popoverCompany) popoverCompany.textContent = `${bizName} Workspace`;
+  if (popoverCompany) popoverCompany.textContent = bizName ? `${bizName}` : 'Client Workspace';
 
-  const initials = contactName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AC';
+  const initials = contactName
+    .trim()
+    .split(/\s+/)
+    .map(n => n[0])
+    .filter(Boolean)
+    .join('')
+    .toUpperCase()
+    .substring(0, 2) || '--';
 
   if (avatarEl) {
     if (avatarUrl) {
@@ -1040,9 +1066,6 @@ function renderOverview() {
           </div>
           <span class="status-badge changes-requested">Due ${escapeHtml(action.dueDate || 'Soon')}</span>
         </div>
-        <button class="attention-cta-btn" onclick="handleActionClick('${action.id}', '${action.actionType || 'upload_file'}')">
-          ${escapeHtml(action.ctaText || 'ACTION REQUIRED')} &rarr;
-        </button>
       </div>
     `).join('');
   }
@@ -1068,6 +1091,19 @@ window.handleActionClick = function(actionId, actionType) {
 // RENDER PAGES
 function renderPages() {
   const pagesContainer = document.getElementById('pages-grid-container');
+  if (!pagesContainer) return;
+
+  if (!mockClientState.pages || mockClientState.pages.length === 0) {
+    pagesContainer.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: rgba(0,0,0,0.2); border: 1px dashed var(--color-royal-blue); border-radius: var(--radius-md);">
+        <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">🖼️</div>
+        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.15rem; color: #ffffff;">NO WEBSITE PAGE SCREENSHOTS YET</h4>
+        <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Your project manager will upload website page design mockups here for your review.</p>
+      </div>
+    `;
+    return;
+  }
+
   pagesContainer.innerHTML = mockClientState.pages.map(page => `
     <div class="portal-glass page-card">
       <div>
@@ -1228,7 +1264,7 @@ window.openPageWorkspace = function(pageId) {
   if (btnApprove) {
     btnApprove.onclick = function() {
       page.status = 'Approved';
-      page.notes = `Approved by Alba Cortez on ${new Date().toLocaleDateString()}`;
+      page.notes = `Approved by Decipher Client on ${new Date().toLocaleDateString()}`;
       
       // Complete associated action item
       mockClientState.actionItems.forEach(item => {
@@ -1238,7 +1274,7 @@ window.openPageWorkspace = function(pageId) {
       mockClientState.activityLog.unshift({
         id: `a-${Date.now()}`,
         time: 'Just now',
-        text: `Alba Cortez formally approved ${page.name}.`
+        text: `Decipher Client formally approved ${page.name}.`
       });
 
       closeModal('modal-page-workspace');
@@ -1252,9 +1288,9 @@ window.openPageWorkspace = function(pageId) {
 
 // MODALS AND FORMS
 window.openProfileSettingsModal = function() {
-  const contactName = mockClientState.client.contactName || 'Alba Cortez';
-  const bizName = mockClientState.client.businessName || 'Psycortex';
-  const email = mockClientState.client.email || 'psycortex@portal.dbstudios.com';
+  const contactName = (userSession && userSession.name) || mockClientState.client.contactName || 'Decipher Client';
+  const bizName = (userSession && userSession.company) || mockClientState.client.businessName || 'Decipher Inc.';
+  const email = (userSession && userSession.email) || mockClientState.client.email || 'decipher@portal.dbstudios.com';
   const avatarUrl = mockClientState.client.avatarUrl;
 
   const modalNameEl = document.getElementById('profile-modal-user-name');
@@ -1272,7 +1308,7 @@ window.openProfileSettingsModal = function() {
     if (avatarUrl) {
       avatarPreview.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />`;
     } else {
-      const initials = contactName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AC';
+      const initials = contactName.trim().split(/\s+/).map(n => n[0]).filter(Boolean).join('').toUpperCase().substring(0, 2) || 'DC';
       avatarPreview.textContent = initials;
     }
   }
@@ -1433,7 +1469,7 @@ function initFormsAndModals() {
       mockClientState.activityLog.unshift({
         id: `a-${Date.now()}`,
         time: 'Just now',
-        text: `Alba Cortez submitted revision request: ${title}`
+        text: `Decipher Client submitted revision request: ${title}`
       });
 
       const newFbId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `f-${Date.now()}`;
@@ -1482,7 +1518,7 @@ function initFormsAndModals() {
 
       const pageName = currentActiveLightboxPage.name;
       const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const noteEntry = `[${timestamp}] Alba Cortez: ${text}`;
+      const noteEntry = `[${timestamp}] Decipher Client: ${text}`;
 
       currentActiveLightboxPage.notes = currentActiveLightboxPage.notes ? `${currentActiveLightboxPage.notes}\n${noteEntry}` : noteEntry;
 
@@ -1548,7 +1584,7 @@ window.handlePortalSendMessage = function() {
   renderMessages();
   window.savePortalState();
 
-  const projectId = (mockClientState.project && mockClientState.project.id) ? mockClientState.project.id : 'prj-psycortex';
+  const projectId = (mockClientState.project && mockClientState.project.id) ? mockClientState.project.id : 'prj-decipher';
 
   if (supabase && projectId) {
     supabase.from('messages').insert([{

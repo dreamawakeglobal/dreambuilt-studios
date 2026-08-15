@@ -33,7 +33,7 @@ CREATE TABLE public.projects (
   current_phase TEXT DEFAULT 'Build' NOT NULL,
   progress_pct INT DEFAULT 69 NOT NULL,
   target_launch_date TEXT DEFAULT 'Sept 15, 2026' NOT NULL,
-  staging_url TEXT DEFAULT 'https://staging.dreambuiltstudios.com/psycortex',
+  staging_url TEXT DEFAULT 'https://staging.dreambuiltstudios.com',
   status TEXT DEFAULT 'Active' NOT NULL
 );
 

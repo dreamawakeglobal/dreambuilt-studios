@@ -100,19 +100,19 @@
           <div class="health-grid" style="margin-bottom: 2rem;">
             <div class="portal-glass health-card">
               <div class="health-card-label">Active Client Projects</div>
-              <div class="health-card-value" id="adm-count-projects">2</div>
+              <div class="health-card-value" id="adm-count-projects">0</div>
             </div>
             <div class="portal-glass health-card">
               <div class="health-card-label">Pending Feedback Requests</div>
-              <div class="health-card-value" style="color: var(--color-warning);" id="adm-count-feedback">2</div>
+              <div class="health-card-value" style="color: var(--color-warning);" id="adm-count-feedback">0</div>
             </div>
             <div class="portal-glass health-card">
               <div class="health-card-label">Pending Client Action Items</div>
-              <div class="health-card-value" style="color: var(--color-cyan-glow);" id="adm-count-actions">3</div>
+              <div class="health-card-value" style="color: var(--color-cyan-glow);" id="adm-count-actions">0</div>
             </div>
             <div class="portal-glass health-card">
               <div class="health-card-label">Approvals Requested</div>
-              <div class="health-card-value" style="color: var(--color-success);" id="adm-count-approvals">1</div>
+              <div class="health-card-value" style="color: var(--color-success);" id="adm-count-approvals">0</div>
             </div>
           </div>
 
@@ -198,7 +198,7 @@
                 <div class="portal-form-group">
                   <label class="portal-label">TARGET CLIENT PROJECT</label>
                   <select id="adm-target-project" class="portal-select">
-                    <option value="Psycortex Corporate Website">Psycortex Corporate Website</option>
+                    <option value="">No Active Projects (Create New Project)</option>
                   </select>
                 </div>
 
@@ -283,10 +283,10 @@
               <div class="portal-glass health-card">
                 <div class="health-card-label">Client Portal Credentials</div>
                 <div style="font-size: 0.85rem; color: #ffffff; margin-top: 0.35rem;">
-                  Email: <strong id="adm-manage-client-email" style="color: var(--color-cyan-glow);">alba@psycortex.com</strong>
+                  Email: <strong id="adm-manage-client-email" style="color: var(--color-cyan-glow);">--</strong>
                 </div>
                 <div style="font-size: 0.85rem; color: #ffffff; margin-top: 0.2rem;">
-                  Password: <strong id="adm-manage-client-pass" style="color: var(--text-secondary);">demo1234</strong>
+                  Password: <strong id="adm-manage-client-pass" style="color: var(--text-secondary);">--</strong>
                 </div>
                 <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #fff; margin-top: 0.65rem; width: 100%; justify-content: center; font-size: 0.75rem;" onclick="openEditCredentialsModal()">
                   🔑 EDIT EMAIL &amp; PASSWORD
@@ -426,33 +426,31 @@
           <div style="display: grid; grid-template-columns: 340px 1fr; gap: 2rem; align-items: start;">
             
             <!-- LEFT COLUMN: LEAD PROFILE & QUICK ACTIONS -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-              
               <!-- LEAD IDENTITY CARD -->
               <div class="portal-glass" style="padding: 1.75rem; text-align: center;">
                 <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--color-royal-blue), var(--color-cyan-glow)); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #ffffff; margin: 0 auto 1rem auto; box-shadow: 0 10px 25px rgba(0, 240, 255, 0.4);" id="crm-lead-avatar">
-                  AC
+                  --
                 </div>
-                <h2 style="margin: 0; font-size: 1.35rem; color: #ffffff;" id="crm-lead-name">Alba Cortez</h2>
-                <div style="font-size: 0.9rem; color: var(--color-cyan-glow); font-weight: 600; margin-top: 0.25rem;" id="crm-lead-company">Psycortex Inc</div>
-                <span class="portal-badge" style="background: rgba(0, 240, 255, 0.15); color: var(--color-cyan-glow); margin-top: 0.75rem; display: inline-block;" id="crm-lead-industry">Tech &amp; AI Enterprise</span>
+                <h2 style="margin: 0; font-size: 1.35rem; color: #ffffff;" id="crm-lead-name">No Form Submissions Yet</h2>
+                <div style="font-size: 0.9rem; color: var(--color-cyan-glow); font-weight: 600; margin-top: 0.25rem;" id="crm-lead-company">Client Submissions Hub</div>
+                <span class="portal-badge" style="background: rgba(0, 240, 255, 0.15); color: var(--color-cyan-glow); margin-top: 0.75rem; display: inline-block;" id="crm-lead-industry">General Inquiry</span>
 
                 <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1.25rem; padding-top: 1.25rem; text-align: left; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
                   <div>
                     <strong style="color: var(--text-secondary); display: block; font-size: 0.75rem; text-transform: uppercase;">EMAIL ADDRESS</strong>
-                    <a href="#" id="crm-lead-email-link" style="color: #ffffff; text-decoration: underline; font-weight: 600;">alba@psycortex.com</a>
+                    <a href="#" id="crm-lead-email-link" style="color: #ffffff; text-decoration: underline; font-weight: 600;">--</a>
                   </div>
                   <div>
                     <strong style="color: var(--text-secondary); display: block; font-size: 0.75rem; text-transform: uppercase;">PHONE NUMBER</strong>
-                    <span style="color: #ffffff;" id="crm-lead-phone">(555) 234-5678</span>
+                    <span style="color: #ffffff;" id="crm-lead-phone">--</span>
                   </div>
                   <div>
                     <strong style="color: var(--text-secondary); display: block; font-size: 0.75rem; text-transform: uppercase;">CURRENT WEBSITE</strong>
-                    <span style="color: #ffffff;" id="crm-lead-website">https://psycortex.com</span>
+                    <span style="color: #ffffff;" id="crm-lead-website">--</span>
                   </div>
                   <div>
                     <strong style="color: var(--text-secondary); display: block; font-size: 0.75rem; text-transform: uppercase;">SUBMISSION DATE</strong>
-                    <span style="color: #ffffff;" id="crm-lead-date">Just Now</span>
+                    <span style="color: #ffffff;" id="crm-lead-date">--</span>
                   </div>
                 </div>
 
@@ -629,12 +627,12 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="portal-form-group">
               <label class="portal-label">CLIENT / BUSINESS NAME</label>
-              <input type="text" id="p-client-name" class="portal-input" placeholder="e.g. Psycortex" required />
+              <input type="text" id="p-client-name" class="portal-input" placeholder="e.g. Decipher Inc" required />
             </div>
 
             <div class="portal-form-group">
               <label class="portal-label">PRIMARY CONTACT NAME</label>
-              <input type="text" id="p-contact-name" class="portal-input" placeholder="e.g. Alba Cortez" required />
+              <input type="text" id="p-contact-name" class="portal-input" placeholder="e.g. Decipher Client" required />
             </div>
           </div>
 
@@ -649,7 +647,7 @@
                 <label class="portal-label" style="margin-bottom: 0;">PASSWORD</label>
                 <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15); font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="generateNewClientPassword()">🎲 AUTO</button>
               </div>
-              <input type="text" id="p-client-password" class="portal-input" placeholder="e.g. demo1234" required />
+              <input type="text" id="p-client-password" class="portal-input" placeholder="e.g. Pass1234!" required />
             </div>
           </div>
 
@@ -766,7 +764,7 @@
 
           <div class="portal-form-group">
             <label class="portal-label">DELIVERABLE ASSET TITLE</label>
-            <input type="text" id="d-title" class="portal-input" placeholder="e.g. psycortex-brand-guide.pdf" required />
+            <input type="text" id="d-title" class="portal-input" placeholder="e.g. brand-guidelines.pdf" required />
           </div>
 
           <div class="portal-form-group">
@@ -935,12 +933,12 @@
         <form id="form-edit-credentials">
           <div class="portal-form-group">
             <label class="portal-label">TARGET CLIENT ACCOUNT</label>
-            <input type="text" id="edit-cred-client" class="portal-input" value="Psycortex (Alba Cortez)" readonly style="opacity: 0.7; cursor: not-allowed;" />
+            <input type="text" id="edit-cred-client" class="portal-input" value="Select Client" readonly style="opacity: 0.7; cursor: not-allowed;" />
           </div>
 
           <div class="portal-form-group">
             <label class="portal-label">LOGIN EMAIL ADDRESS</label>
-            <input type="email" id="edit-cred-email" class="portal-input" value="alba@psycortex.com" required />
+            <input type="email" id="edit-cred-email" class="portal-input" placeholder="client@company.com" required />
           </div>
 
           <div class="portal-form-group">
@@ -948,7 +946,7 @@
               <label class="portal-label" style="margin-bottom: 0;">CLIENT PASSWORD</label>
               <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15);" onclick="generateRandomPassword()">🎲 GENERATE PASSWORD</button>
             </div>
-            <input type="text" id="edit-cred-password" class="portal-input" value="demo1234" required />
+            <input type="text" id="edit-cred-password" class="portal-input" placeholder="Password" required />
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.75rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem;">
@@ -1066,7 +1064,7 @@
           <span style="font-size: 1.35rem;">💬</span>
           <div>
             <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">LIVE CLIENT CHAT</div>
-            <div style="font-size: 0.725rem; color: var(--color-cyan-glow);">Psycortex Workspace</div>
+            <div style="font-size: 0.725rem; color: var(--color-cyan-glow);">Decipher Workspace</div>
           </div>
         </div>
         <button onclick="toggleFloatingChatWidget()" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.6rem; cursor: pointer; line-height: 1;">&times;</button>

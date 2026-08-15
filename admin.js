@@ -43,33 +43,33 @@ function ensureProjectChecklist(project) {
     project.checklistPhases = [
       {
         phaseName: '1. INTAKE & DISCOVERY',
-        status: 'Completed',
+        status: 'In Progress',
         items: [
-          { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Completed' }
+          { id: 'c1', title: 'Initial client consultation and requirements gathering', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c2', title: 'Target audience and market research (El Salvador corporate focus)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c3', title: 'Defining brand identity (Premium, Deep Blue, Gold)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c4', title: 'Outlining site architecture (Home, About, Services, Packages, Contact)', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
         phaseName: '2. DESIGN PHASE',
-        status: 'Completed',
+        status: 'Upcoming',
         items: [
-          { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Completed' }
+          { id: 'c5', title: 'UI/UX layout planning', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c6', title: 'Selecting modern typography and visual elements', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c7', title: 'Designing custom UI components (metallic gold gradients, glow effects)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c8', title: 'Drafting localized copy and service structures', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
         phaseName: '3. BUILD PHASE',
-        status: 'Current Phase',
+        status: 'Upcoming',
         items: [
-          { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Completed' },
-          { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'In Progress' },
-          { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'In Progress' }
+          { id: 'c9', title: 'Developing HTML structure and semantic markup', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c10', title: 'Implementing CSS styling and responsive mobile layouts', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c11', title: 'Refining package features, monthly structures, and pricing models', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c12', title: 'Adding social media links (LinkedIn, Instagram, TikTok)', owner: 'Dream Built', status: 'Upcoming' },
+          { id: 'c13', title: 'Finalizing interactive elements and form functionality', owner: 'Dream Built', status: 'Upcoming' }
         ]
       },
       {
@@ -94,59 +94,34 @@ function ensureProjectChecklist(project) {
       }
     ];
 
-    project.progress = 52;
+    project.progress = project.progress || 0;
   }
 }
 
-const defaultProjectsSeed = [
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    clientId: '11111111-1111-1111-1111-111111111111',
-    client: 'Psycortex',
-    contact: 'Alba Cortez',
-    clientEmail: 'alba@psycortex.com',
-    clientPassword: 'demo1234',
-    name: 'Psycortex Corporate Website',
-    currentPhase: 'Build',
-    progress: 52,
-    targetLaunch: 'Sept 15, 2026',
-    status: 'Active',
-    actionItems: [
-      { id: 'act-1', title: 'Upload founder headshot', description: 'Please upload a high-resolution studio photo of Alba for the About page.', actionType: 'upload_file', dueDate: 'Aug 15, 2026', ctaText: 'UPLOAD FILE', completed: false }
-    ],
-    pages: [
-      { id: 'p1', name: 'Home Page', slug: '/', status: 'Ready for Review', version: '1.2', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Responsive homepage design screenshot uploaded for client review.' },
-      { id: 'p2', name: 'About Page', slug: '/about', status: 'Building', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Bio & team section layout in progress.' },
-      { id: 'p3', name: 'Services Page', slug: '/services', status: 'Approved', version: '1.1', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Approved by Alba Cortez on Aug 12, 2026.' },
-      { id: 'p4', name: 'Contact Page', slug: '/contact', status: 'Planned', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Scheduled for build phase 2.' }
-    ],
-    feedback: [
-      { id: 'f1', title: 'Replace Founder Photo', page: 'About Page', section: 'Founder Bio Section', desc: 'Can we update the founder photo to the new high-resolution studio shot?', priority: 'Normal', status: 'In Progress' }
-    ],
-    assets: [
-      { id: 'fl1', name: 'brand-logo-icon.svg', category: 'Logo', size: '24 KB', uploadDate: 'Aug 10, 2026' }
-    ],
-    messages: [
-      { sender: 'Dream Built', text: 'Welcome Alba! Your project workspace for Psycortex Corporate Website is live.', time: 'Just now' }
-    ]
-  }
-];
+const defaultProjectsSeed = [];
 
 function loadAdminState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
-        adminState.projects = parsed.projects;
+      if (parsed && Array.isArray(parsed.projects)) {
+        adminState.projects = parsed.projects.filter(p => 
+          p.id !== '22222222-2222-2222-2222-222222222222' && 
+          p.id !== '11111111-1111-1111-1111-111111111111' &&
+          p.client !== 'Psycortex' &&
+          p.client !== 'Decipher' &&
+          p.contact !== 'Alba Cortez' &&
+          p.contact !== 'Dontae Jeffery'
+        );
       }
     } catch (e) {
       console.error('Failed loading admin state:', e);
     }
   }
 
-  if (!adminState.projects || adminState.projects.length === 0) {
-    adminState.projects = JSON.parse(JSON.stringify(defaultProjectsSeed));
+  if (!adminState.projects) {
+    adminState.projects = [];
   }
 
   adminState.projects.forEach(p => ensureProjectChecklist(p));
@@ -187,7 +162,15 @@ async function fetchSupabaseAdminData() {
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
     if (!prjErr && dbProjects) {
-      dbProjects.forEach(dp => {
+      // Clear out legacy dummy projects from db list
+      const cleanDbProjects = dbProjects.filter(dp => {
+        const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
+        const contactName = matchingClient ? matchingClient.contact_name : '';
+        const clientName = matchingClient ? matchingClient.business_name : '';
+        return contactName !== 'Alba Cortez' && contactName !== 'Dontae Jeffery' && clientName !== 'Psycortex';
+      });
+
+      cleanDbProjects.forEach(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
         let existingPrj = adminState.projects.find(p => p.id === dp.id);
         
@@ -392,7 +375,20 @@ window.saveAdminState = function() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
   } catch (e) {
-    console.error('Failed saving admin state:', e);
+    console.warn('LocalStorage quota limit reached, saving lightweight state:', e);
+    try {
+      const lightweight = JSON.parse(JSON.stringify({ projects: adminState.projects }));
+      lightweight.projects.forEach(p => {
+        if (p.pages) {
+          p.pages.forEach(pg => {
+            if (pg.image && pg.image.length > 200000) {
+              pg.image = pg.image.slice(0, 100);
+            }
+          });
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lightweight));
+    } catch (err) {}
   }
 };
 
@@ -669,11 +665,7 @@ window.clearAdminNotifications = function() {
 };
 
 function getActiveAdminNotifications() {
-  const allNotifs = [
-    { id: 'adm-n1', actionType: 'feedback', icon: '📝', title: 'New Revision Request Submitted', time: '15m ago', desc: 'Psycortex submitted feedback for Home Page. Click to view.' },
-    { id: 'adm-n2', actionType: 'chat', icon: '💬', title: 'New Client Live Message', time: '30m ago', desc: 'Alba Cortez sent a message in live project chat. Click to respond.' },
-    { id: 'adm-n3', actionType: 'files', icon: '📁', title: 'Brand Asset Uploaded', time: '1h ago', desc: 'Client uploaded new company logo assets. Click to inspect.' }
-  ];
+  const allNotifs = [];
   return allNotifs.filter(n => !dismissedAdminNotifIds.has(n.id));
 }
 
@@ -911,41 +903,7 @@ function renderAdminSubmissions(dbSubmissions, dbConsultations) {
   }
 
   if (allSubs.length === 0) {
-    allSubs = [
-      {
-        id: 'sub-demo-1',
-        date: 'Just Now',
-        clientName: 'Alba Cortez',
-        company: 'Psycortex Inc',
-        email: 'alba@psycortex.com',
-        phone: '(555) 234-5678',
-        budget: '$5,000 - $10,000',
-        timeline: '4 - 6 Weeks',
-        scope: 'Home, About, Services, Packages, Contact',
-        desc: 'Custom high-converting corporate website for El Salvador tech market.',
-        type: 'Questionnaire',
-        raw: {
-          first_name: 'Alba',
-          last_name: 'Cortez',
-          email: 'alba@psycortex.com',
-          phone: '(555) 234-5678',
-          company: 'Psycortex Inc',
-          website: 'https://psycortex.com',
-          industry: 'Artificial Intelligence & Corporate SaaS',
-          target_audience: 'Enterprise Tech Leaders & Executives',
-          project_desc: 'Custom high-converting corporate website for El Salvador tech market with metallic gold accents.',
-          aesthetic_style: 'Modern & Luxury Dark Mode',
-          brand_colors: 'Deep Blue (#0a101e), Metallic Gold (#ffd700), Cyan (#00f0ff)',
-          primary_cta: 'Request Enterprise Demo',
-          inspiration_urls: 'https://apple.com, https://stripe.com',
-          pages: 'Home Page, About Page, Services Page, Packages Page, Contact Page',
-          features: 'Interactive Prototype Viewer, Live Chat Bot, Spanish Copy Proofing',
-          budget: '$5,000 - $10,000',
-          timeline: '4 - 6 Weeks',
-          success_criteria: 'Increase enterprise lead conversions by 40% within 90 days of launch.'
-        }
-      }
-    ];
+    allSubs = [];
   }
 
   cachedSubmissions = allSubs;
@@ -2269,15 +2227,11 @@ function initAdminForms() {
         progress: 0,
         targetLaunch: launch,
         status: 'Active',
-        actionItems: [
-          { id: `act-${Date.now()}`, title: 'Upload Brand Assets & Guidelines', description: 'Please upload transparent SVG logos and brand color guidelines.', dueDate: 'Upcoming', completed: false }
-        ],
+        actionItems: [],
         pages: [],
         feedback: [],
         assets: [],
-        messages: [
-          { sender: 'Dream Built', text: `Welcome ${contactName}! Your project workspace for ${name} is live.`, time: 'Just now' }
-        ],
+        messages: [],
         checklistPhases: [
           {
             phaseName: '1. INTAKE & DISCOVERY',
@@ -2376,15 +2330,6 @@ function initAdminForms() {
             }
 
 
-
-            await supabase.from('action_items').insert([{
-              project_id: newProjId,
-              title: 'Upload Brand Assets & Guidelines',
-              description: 'Please upload transparent SVG logos and brand color guidelines.',
-              due_date: 'Upcoming',
-              action_type: 'upload_file',
-              completed: false
-            }]);
 
 
 
@@ -2875,14 +2820,41 @@ window.deleteClientAccount = function(projectId) {
     const countEl = document.getElementById('adm-count-projects');
     if (countEl) countEl.textContent = adminState.projects.length;
 
-    if (adminState.projects.length === 0) {
-      adminState.projects = JSON.parse(JSON.stringify(defaultProjectsSeed));
+    if (!adminState.projects) {
+      adminState.projects = [];
     }
 
     window.saveAdminState();
     renderProjectsTable();
     window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
   }
+};
+
+window.purgeAllClientAccounts = function() {
+  const confirmWipe = confirm("⚠️ Are you sure you want to PERMANENTLY DELETE ALL client accounts and projects?\n\nThis will clear all workspaces and reset to 0 active client accounts.");
+  if (!confirmWipe) return;
+
+  adminState.projects = [];
+  localStorage.removeItem('dreambuilt_app_state_v1');
+  localStorage.removeItem('dreambuilt_portal_session');
+  localStorage.removeItem('dreambuilt_client_portal_state');
+
+  if (supabase) {
+    supabase.from('project_checklist_items').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('action_items').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('website_pages').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('feedback_items').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('messages').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('project_assets').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('projects').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+    supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000').then(() => {});
+  }
+
+  window.saveAdminState();
+  renderProjectsTable();
+  const countEl = document.getElementById('adm-count-projects');
+  if (countEl) countEl.textContent = '0';
+  window.showAdminToast('✓ Purged all client accounts. Active client projects reset to 0.');
 };
 
 window.toggleNewPageInput = function(val) {
