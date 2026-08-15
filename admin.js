@@ -98,21 +98,55 @@ function ensureProjectChecklist(project) {
   }
 }
 
+const defaultProjectsSeed = [
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    clientId: '11111111-1111-1111-1111-111111111111',
+    client: 'Psycortex',
+    contact: 'Alba Cortez',
+    clientEmail: 'alba@psycortex.com',
+    clientPassword: 'demo1234',
+    name: 'Psycortex Corporate Website',
+    currentPhase: 'Build',
+    progress: 52,
+    targetLaunch: 'Sept 15, 2026',
+    status: 'Active',
+    actionItems: [
+      { id: 'act-1', title: 'Upload founder headshot', description: 'Please upload a high-resolution studio photo of Alba for the About page.', actionType: 'upload_file', dueDate: 'Aug 15, 2026', ctaText: 'UPLOAD FILE', completed: false }
+    ],
+    pages: [
+      { id: 'p1', name: 'Home Page', slug: '/', status: 'Ready for Review', version: '1.2', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Responsive homepage design screenshot uploaded for client review.' },
+      { id: 'p2', name: 'About Page', slug: '/about', status: 'Building', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Bio & team section layout in progress.' },
+      { id: 'p3', name: 'Services Page', slug: '/services', status: 'Approved', version: '1.1', screenshotUrl: '/images/card-01-custom-design.jpg', notes: 'Approved by Alba Cortez on Aug 12, 2026.' },
+      { id: 'p4', name: 'Contact Page', slug: '/contact', status: 'Planned', version: '1.0', screenshotUrl: '/images/card-02-website-development.jpg', notes: 'Scheduled for build phase 2.' }
+    ],
+    feedback: [
+      { id: 'f1', title: 'Replace Founder Photo', page: 'About Page', section: 'Founder Bio Section', desc: 'Can we update the founder photo to the new high-resolution studio shot?', priority: 'Normal', status: 'In Progress' }
+    ],
+    assets: [
+      { id: 'fl1', name: 'brand-logo-icon.svg', category: 'Logo', size: '24 KB', uploadDate: 'Aug 10, 2026' }
+    ],
+    messages: [
+      { sender: 'Dream Built', text: 'Welcome Alba! Your project workspace for Psycortex Corporate Website is live.', time: 'Just now' }
+    ]
+  }
+];
+
 function loadAdminState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      if (saved.includes('prj-1') || saved.includes('22222222-2222-2222-2222-222222222222') || saved.includes('alba@psycortex.com')) {
-        localStorage.removeItem(STORAGE_KEY);
-      } else {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.projects)) {
-          adminState.projects = parsed.projects;
-        }
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+        adminState.projects = parsed.projects;
       }
     } catch (e) {
       console.error('Failed loading admin state:', e);
     }
+  }
+
+  if (!adminState.projects || adminState.projects.length === 0) {
+    adminState.projects = JSON.parse(JSON.stringify(defaultProjectsSeed));
   }
 
   adminState.projects.forEach(p => ensureProjectChecklist(p));
@@ -153,9 +187,6 @@ async function fetchSupabaseAdminData() {
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
     if (!prjErr && dbProjects) {
-      const activeIds = dbProjects.map(dp => dp.id);
-      adminState.projects = adminState.projects.filter(p => activeIds.includes(p.id));
-
       dbProjects.forEach(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
         let existingPrj = adminState.projects.find(p => p.id === dp.id);
@@ -370,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminAuth();
   initAdminTabs();
   initAdminForms();
+  renderAdminDashboard();
 
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY) {
@@ -795,15 +827,20 @@ function updateAdminHeaderUIState(isLoggedIn) {
 }
 
 let cachedSubmissions = [];
+let cachedDbSubmissions = [];
+let cachedDbConsultations = [];
 
 function renderAdminSubmissions(dbSubmissions, dbConsultations) {
+  if (dbSubmissions !== undefined) cachedDbSubmissions = dbSubmissions;
+  if (dbConsultations !== undefined) cachedDbConsultations = dbConsultations;
+
   const tbody = document.getElementById('admin-submissions-table-body');
   const countBadge = document.getElementById('adm-count-submissions');
   if (!tbody) return;
 
   let allSubs = [];
-  if (dbSubmissions && Array.isArray(dbSubmissions)) {
-    dbSubmissions.forEach(s => {
+  if (cachedDbSubmissions && Array.isArray(cachedDbSubmissions)) {
+    cachedDbSubmissions.forEach(s => {
       allSubs.push({
         id: s.id,
         date: s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
@@ -821,8 +858,8 @@ function renderAdminSubmissions(dbSubmissions, dbConsultations) {
     });
   }
 
-  if (dbConsultations && Array.isArray(dbConsultations)) {
-    dbConsultations.forEach(c => {
+  if (cachedDbConsultations && Array.isArray(cachedDbConsultations)) {
+    cachedDbConsultations.forEach(c => {
       allSubs.push({
         id: c.id,
         date: c.created_at ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
@@ -1011,11 +1048,14 @@ window.openCrmLeadScreen = function(subId) {
   const savedNotes = localStorage.getItem(`dreambuilt_crm_notes_${sub.id}`) || '';
   if (notesInput) notesInput.value = savedNotes;
 
-  if (onboardBtn) {
-    onboardBtn.onclick = function() {
-      window.convertSubmissionToClient(sub.id);
-    };
-  }
+  const onboardTopBtn = document.getElementById('btn-crm-onboard-lead-top');
+  const onboardSideBtn = document.getElementById('btn-crm-onboard-lead-side');
+  const handleOnboard = function() {
+    window.convertSubmissionToClient(sub.id);
+  };
+  if (onboardTopBtn) onboardTopBtn.onclick = handleOnboard;
+  if (onboardSideBtn) onboardSideBtn.onclick = handleOnboard;
+  if (onboardBtn) onboardBtn.onclick = handleOnboard;
 
   // Populate Detailed Right-Column Q&A Dossier Cards
   const dossierContainer = document.getElementById('crm-dossier-details-container');
@@ -1165,15 +1205,32 @@ window.saveCrmLeadNotes = function() {
   }
 };
 
+window.showManualLeadView = function() {
+  localStorage.setItem('dreambuilt_admin_active_view', 'manual_lead');
+  const mainDash = document.getElementById('admin-main-dashboard');
+  const manageView = document.getElementById('admin-manage-workspace');
+  const crmView = document.getElementById('admin-crm-view');
+  const manualLeadView = document.getElementById('admin-manual-lead-view');
+
+  if (mainDash) mainDash.style.display = 'none';
+  if (manageView) manageView.style.display = 'none';
+  if (crmView) crmView.style.display = 'none';
+  if (manualLeadView) manualLeadView.style.display = 'block';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 window.restoreAdminDashboardView = function() {
   localStorage.setItem('dreambuilt_admin_active_view', 'dashboard');
   const mainDash = document.getElementById('admin-main-dashboard');
   const manageView = document.getElementById('admin-manage-workspace');
   const crmView = document.getElementById('admin-crm-view');
+  const manualLeadView = document.getElementById('admin-manual-lead-view');
 
   if (mainDash) mainDash.style.display = 'block';
   if (manageView) manageView.style.display = 'none';
   if (crmView) crmView.style.display = 'none';
+  if (manualLeadView) manualLeadView.style.display = 'none';
 
   if (typeof updateAdminHeaderUIState === 'function') {
     const isLoggedIn = !!localStorage.getItem('dreambuilt_admin_session');
@@ -1334,6 +1391,16 @@ window.viewFullIntakeModal = function(subId) {
   if (typeof openModal === 'function') openModal('modal-view-intake');
 };
 
+function formatDbStudiosEmail(email, fallbackName) {
+  if (!email || !email.includes('@')) {
+    const rawVal = email || fallbackName || 'client';
+    const username = rawVal.toLowerCase().replace(/[^a-z0-9._-]/g, '');
+    return `${username || 'client'}@dbstudios.com`;
+  }
+  const prefix = email.split('@')[0].trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+  return `${prefix || 'client'}@dbstudios.com`;
+}
+
 window.convertSubmissionToClient = function(subId) {
   const sub = cachedSubmissions.find(s => s.id === subId) || cachedSubmissions[0];
   if (!sub) return;
@@ -1345,7 +1412,7 @@ window.convertSubmissionToClient = function(subId) {
     const nameInput = document.getElementById('p-name');
     if (bizInput) bizInput.value = sub.company;
     if (contactInput) contactInput.value = sub.clientName;
-    if (emailInput) emailInput.value = sub.email;
+    if (emailInput) emailInput.value = formatDbStudiosEmail(sub.email, sub.company || sub.clientName);
     if (nameInput) nameInput.value = `${sub.company} Website`;
   }, 100);
 };
@@ -1631,7 +1698,7 @@ function renderManagedWorkspace() {
   // Update Overview Heading & Health
   const headingEl = document.getElementById('adm-workspace-heading');
   if (headingEl) {
-    headingEl.textContent = `ADMIN MANAGING: ${(project.client || 'PSYCORTEX').toUpperCase()} WORKSPACE`;
+    headingEl.textContent = `ADMIN MANAGING: ${(project.client || 'CLIENT').toUpperCase()} WORKSPACE`;
   }
 
   const valEl = document.getElementById('adm-manage-progress-val');
@@ -1644,8 +1711,8 @@ function renderManagedWorkspace() {
 
   const emailEl = document.getElementById('adm-manage-client-email');
   const passEl = document.getElementById('adm-manage-client-pass');
-  if (emailEl) emailEl.textContent = project.clientEmail || 'alba@psycortex.com';
-  if (passEl) passEl.textContent = project.clientPassword || 'demo1234';
+  if (emailEl) emailEl.textContent = project.clientEmail || '';
+  if (passEl) passEl.textContent = project.clientPassword || '';
 
   // Render Action Items
   renderAdminActionItems(project);
@@ -1870,6 +1937,10 @@ function renderAdminChecklist(project, total, completed, pct) {
                 <option value="Upcoming" ${item.status === 'Upcoming' ? 'selected' : ''}>Upcoming</option>
               </select>
 
+              <button class="portal-badge" style="cursor: pointer; background: rgba(0, 240, 255, 0.15); border-color: rgba(0, 240, 255, 0.4); color: var(--color-cyan-glow); padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="openEditChecklistModal('${item.id}')" title="Edit Task Title &amp; Details">
+                ✏️ EDIT
+              </button>
+
               <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteChecklistItem('${item.id}')" title="Delete Task">
                 &times; DELETE
               </button>
@@ -1882,6 +1953,42 @@ function renderAdminChecklist(project, total, completed, pct) {
 }
 
 // CHECKLIST CONTROLS
+window.openEditChecklistModal = function(taskId) {
+  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  if (!project) return;
+
+  let targetItem = null;
+  let targetPhase = null;
+
+  if (project.checklistPhases) {
+    project.checklistPhases.forEach(ph => {
+      if (ph.items) {
+        const item = ph.items.find(i => (i.id && String(i.id) === String(taskId)) || (i.title && i.title === taskId));
+        if (item) {
+          targetItem = item;
+          targetPhase = ph;
+        }
+      }
+    });
+  }
+
+  if (!targetItem) return;
+
+  const idEl = document.getElementById('edit-t-id');
+  const titleEl = document.getElementById('edit-t-title');
+  const ownerEl = document.getElementById('edit-t-owner');
+  const statusEl = document.getElementById('edit-t-status');
+  const phaseEl = document.getElementById('edit-t-phase');
+
+  if (idEl) idEl.value = targetItem.id || targetItem.title;
+  if (titleEl) titleEl.value = targetItem.title || '';
+  if (ownerEl) ownerEl.value = targetItem.owner || 'Dream Built';
+  if (statusEl) statusEl.value = targetItem.status || 'In Progress';
+  if (phaseEl && targetPhase) phaseEl.value = targetPhase.phaseName;
+
+  window.openModal('modal-edit-checklist-task');
+};
+
 window.deleteChecklistItem = function(taskId) {
   const project = adminState.projects.find(p => p.id === activeManagedProjectId);
   if (!project) return;
@@ -2056,7 +2163,11 @@ function initAdminForms() {
 
   const btnCreateProject = document.getElementById('btn-create-project');
   if (btnCreateProject) {
-    btnCreateProject.addEventListener('click', () => window.openModal('modal-create-project'));
+    btnCreateProject.addEventListener('click', () => {
+      const form = document.getElementById('form-create-project');
+      if (form) form.reset();
+      window.openModal('modal-create-project');
+    });
   }
 
   const btnAddTask = document.getElementById('btn-adm-add-task');
@@ -2115,13 +2226,23 @@ function initAdminForms() {
     });
   }
 
+  const clientEmailInput = document.getElementById('p-client-email');
+  if (clientEmailInput) {
+    clientEmailInput.addEventListener('blur', () => {
+      if (clientEmailInput.value.trim()) {
+        clientEmailInput.value = formatDbStudiosEmail(clientEmailInput.value);
+      }
+    });
+  }
+
   const formCreateProject = document.getElementById('form-create-project');
   if (formCreateProject) {
     formCreateProject.addEventListener('submit', (e) => {
       e.preventDefault();
       const clientName = document.getElementById('p-client-name').value.trim();
       const contactName = document.getElementById('p-contact-name').value.trim();
-      const clientEmail = document.getElementById('p-client-email').value.trim();
+      let clientEmail = document.getElementById('p-client-email').value.trim();
+      clientEmail = formatDbStudiosEmail(clientEmail, clientName || contactName);
       const clientPassword = document.getElementById('p-client-password').value.trim();
 
       const name = document.getElementById('p-name').value.trim();
@@ -2447,6 +2568,65 @@ function initAdminForms() {
     });
   }
 
+  const formEditChecklist = document.getElementById('form-edit-checklist-task');
+  if (formEditChecklist) {
+    formEditChecklist.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const taskId = document.getElementById('edit-t-id').value;
+      const newTitle = document.getElementById('edit-t-title').value.trim();
+      const newOwner = document.getElementById('edit-t-owner').value;
+      const newStatus = document.getElementById('edit-t-status').value;
+      const newPhaseName = document.getElementById('edit-t-phase').value;
+
+      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      if (project) {
+        let foundItem = null;
+
+        project.checklistPhases.forEach(ph => {
+          const idx = ph.items.findIndex(i => i.id === taskId);
+          if (idx !== -1) {
+            foundItem = ph.items.splice(idx, 1)[0];
+          }
+        });
+
+        if (foundItem) {
+          foundItem.title = newTitle;
+          foundItem.owner = newOwner;
+          foundItem.status = newStatus;
+
+          let targetPhase = project.checklistPhases.find(ph => ph.phaseName === newPhaseName);
+          if (!targetPhase) {
+            targetPhase = { phaseName: newPhaseName, status: 'In Progress', items: [] };
+            project.checklistPhases.push(targetPhase);
+          }
+
+          targetPhase.items.push(foundItem);
+
+          window.saveAdminState();
+          renderManagedWorkspace();
+
+          if (supabase) {
+            supabase.from('project_checklist_items')
+              .update({
+                title: newTitle,
+                owner: newOwner,
+                status: newStatus
+              })
+              .eq('id', taskId)
+              .then(({ error }) => {
+                if (error) console.error('Checklist task update error:', error);
+              });
+          }
+
+          window.showAdminToast(`✓ Updated checklist task '${newTitle}'`);
+        }
+      }
+
+      window.closeModal('modal-edit-checklist-task');
+      formEditChecklist.reset();
+    });
+  }
+
   const formAddAction = document.getElementById('form-add-action-item');
   if (formAddAction) {
     formAddAction.addEventListener('submit', (e) => {
@@ -2494,17 +2674,22 @@ function initAdminForms() {
     });
   }
 
-  const formAddManualLead = document.getElementById('form-add-manual-lead');
-  if (formAddManualLead) {
-    formAddManualLead.addEventListener('submit', async (e) => {
+  const formManualLeadPg = document.getElementById('form-manual-lead-page');
+  if (formManualLeadPg) {
+    formManualLeadPg.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fname = document.getElementById('manual-lead-fname').value.trim();
-      const lname = document.getElementById('manual-lead-lname').value.trim();
-      const email = document.getElementById('manual-lead-email').value.trim();
-      const phone = document.getElementById('manual-lead-phone').value.trim();
-      const company = document.getElementById('manual-lead-company').value.trim() || 'Manual Lead Entry';
-      const budget = document.getElementById('manual-lead-budget').value.trim() || 'Custom';
-      const desc = document.getElementById('manual-lead-desc').value.trim() || 'Manual Lead Submission';
+      const fname = document.getElementById('pg-lead-fname').value.trim();
+      const lname = document.getElementById('pg-lead-lname').value.trim();
+      const email = document.getElementById('pg-lead-email').value.trim();
+      const phone = document.getElementById('pg-lead-phone').value.trim();
+      const company = document.getElementById('pg-lead-company').value.trim() || 'Manual Lead Entry';
+      const website = document.getElementById('pg-lead-website').value.trim();
+      const industry = document.getElementById('pg-lead-industry').value.trim() || 'Web Project';
+      const audience = document.getElementById('pg-lead-audience').value.trim();
+      const desc = document.getElementById('pg-lead-desc').value.trim() || 'Manual Lead Submission';
+      const budget = document.getElementById('pg-lead-budget').value.trim() || 'Custom';
+      const timeline = document.getElementById('pg-lead-timeline').value.trim() || 'Flexible';
+      const success = document.getElementById('pg-lead-success').value.trim();
 
       const data = {
         first_name: fname,
@@ -2512,8 +2697,13 @@ function initAdminForms() {
         email: email,
         phone: phone,
         company: company,
-        budget: budget,
+        website: website,
+        industry: industry,
+        target_audience: audience,
         project_desc: desc,
+        budget: budget,
+        timeline: timeline,
+        success_criteria: success,
         status: 'new'
       };
 
@@ -2536,9 +2726,10 @@ function initAdminForms() {
         } catch (err) {}
       }
 
-      window.closeModal('modal-add-manual-lead');
-      formAddManualLead.reset();
-      window.showAdminToast(`✓ Added manual lead ${fname} ${lname} to CRM`);
+      formManualLeadPg.reset();
+      window.showAdminToast(`✓ Saved manual lead ${fname} ${lname} to CRM`);
+
+      window.restoreAdminDashboardView();
 
       if (typeof fetchSupabaseAdminData === 'function') fetchSupabaseAdminData();
     });
@@ -2684,6 +2875,11 @@ window.deleteClientAccount = function(projectId) {
     const countEl = document.getElementById('adm-count-projects');
     if (countEl) countEl.textContent = adminState.projects.length;
 
+    if (adminState.projects.length === 0) {
+      adminState.projects = JSON.parse(JSON.stringify(defaultProjectsSeed));
+    }
+
+    window.saveAdminState();
     renderProjectsTable();
     window.showAdminToast(`✓ Permanently deleted client account for ${project.client}`);
   }

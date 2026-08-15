@@ -6,17 +6,17 @@ let userSession = null;
 
 let mockClientState = {
   client: {
-    businessName: 'Psycortex',
-    contactName: 'Alba Cortez',
-    email: 'alba@psycortex.com'
+    businessName: '',
+    contactName: '',
+    email: ''
   },
   project: {
-    name: 'Psycortex Corporate Website',
+    name: '',
     currentPhase: 'Build',
-    progress: 65,
-    targetLaunchDate: 'Sept 15, 2026',
-    nextMilestone: 'Homepage Review',
-    status: 'On Track',
+    progress: 0,
+    targetLaunchDate: 'Upcoming',
+    nextMilestone: 'Initial Review',
+    status: 'Active',
     previewUrl: 'https://dreambuiltstudios.com'
   },
   actionItems: [
@@ -580,34 +580,55 @@ function initAuthAndPortal() {
       }
 
       let matchedClient = null;
+      let matchedLocalProject = null;
+
       if (supabase) {
         try {
           const { data: clients } = await supabase.from('clients').select('*').eq('email', email);
           if (clients && clients.length > 0) {
             matchedClient = clients[0];
-            if (matchedClient.password_hash && matchedClient.password_hash !== password) {
-              alert(`❌ Incorrect password for ${email}. Please use the login password configured in the Admin Command Center.`);
-              return;
-            }
           }
         } catch (err) {
           console.error('Portal client authentication error:', err);
         }
       }
 
-      // Local fallback password check if offline
-      if (!matchedClient && mockClientState.client.email.toLowerCase() === email.toLowerCase()) {
-        if (mockClientState.client.password && mockClientState.client.password !== password) {
-          alert('❌ Incorrect password for this client account.');
-          return;
-        }
+      if (!matchedClient) {
+        try {
+          const savedApp = localStorage.getItem('dreambuilt_app_state_v1');
+          if (savedApp) {
+            const parsedApp = JSON.parse(savedApp);
+            if (parsedApp && Array.isArray(parsedApp.projects)) {
+              matchedLocalProject = parsedApp.projects.find(p => 
+                (p.clientEmail && p.clientEmail.toLowerCase() === email.toLowerCase()) || 
+                (p.email && p.email.toLowerCase() === email.toLowerCase())
+              );
+            }
+          }
+        } catch (err) {}
+      }
+
+      // Reject if account was deleted or does not exist
+      if (!matchedClient && !matchedLocalProject) {
+        alert(`❌ Account Not Found: No active client workspace exists for '${email}'. Please contact Dream Built Studios or verify your login credentials.`);
+        return;
+      }
+
+      // Verify password
+      const expectedPassword = matchedClient 
+        ? matchedClient.password_hash 
+        : (matchedLocalProject ? (matchedLocalProject.clientPassword || matchedLocalProject.password || 'demo1234') : null);
+
+      if (expectedPassword && expectedPassword !== password) {
+        alert(`❌ Incorrect password for ${email}. Please use the login password configured in the Admin Command Center.`);
+        return;
       }
 
       userSession = {
         email: email,
-        name: matchedClient ? matchedClient.contact_name : mockClientState.client.contactName,
-        company: matchedClient ? matchedClient.business_name : mockClientState.client.businessName,
-        clientId: matchedClient ? matchedClient.id : null
+        name: matchedClient ? matchedClient.contact_name : (matchedLocalProject ? (matchedLocalProject.contact || matchedLocalProject.client) : 'Client'),
+        company: matchedClient ? matchedClient.business_name : (matchedLocalProject ? (matchedLocalProject.client || matchedLocalProject.name) : 'Company'),
+        clientId: matchedClient ? matchedClient.id : (matchedLocalProject ? matchedLocalProject.id : null)
       };
 
       localStorage.setItem('dreambuilt_portal_session', JSON.stringify(userSession));

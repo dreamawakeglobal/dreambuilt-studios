@@ -124,7 +124,7 @@
                 <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">Real-time submissions from "Start Your Project" questionnaire & Strategy Call forms.</p>
               </div>
               <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <button id="btn-open-manual-lead-modal" class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="window.openModal('modal-add-manual-lead')">
+                <button id="btn-open-manual-lead-modal" class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="openManualLeadView()">
                   + MANUAL LEAD ENTRY
                 </button>
                 <span id="adm-count-submissions" class="portal-badge" style="background: rgba(0, 240, 255, 0.15); color: var(--color-cyan-glow); font-weight: 700;">0 Submissions</span>
@@ -226,8 +226,8 @@
           <div style="display: flex; align-items: center; gap: 1rem;">
             <button id="btn-back-to-dashboard" class="portal-badge" style="cursor: pointer; background: rgba(255,255,255,0.1); color: #ffffff;">&larr; BACK TO ALL PROJECTS</button>
             <div>
-              <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;" id="adm-manage-title">Psycortex Corporate Website</h3>
-              <span style="font-size: 0.8rem; color: var(--color-cyan-glow);" id="adm-manage-client-sub">Client: Alba Cortez (Psycortex)</span>
+              <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;" id="adm-manage-title">Client Project Workspace</h3>
+              <span style="font-size: 0.8rem; color: var(--color-cyan-glow);" id="adm-manage-client-sub">Client Workspace</span>
             </div>
           </div>
 
@@ -258,7 +258,7 @@
           <!-- ADMIN OVERVIEW TAB -->
           <div id="adm-tab-overview" class="adm-tab-pane">
             <div class="welcome-card">
-              <h2 id="adm-workspace-heading">ADMIN MANAGING: PSYCORTEX WORKSPACE</h2>
+              <h2 id="adm-workspace-heading">ADMIN MANAGING: CLIENT WORKSPACE</h2>
               <p style="margin: 0; color: var(--text-secondary); line-height: 1.5;">
                 Full operational control over client deliverables, page screenshots, checklist tasks, and real-time chat.
               </p>
@@ -405,15 +405,20 @@
       <div id="admin-crm-view" style="display: none;">
         <div class="portal-container">
           <!-- TOP CRM NAVIGATION BAR -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; width: 100%;">
             <div style="display: flex; align-items: center; gap: 1rem;">
               <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="window.restoreAdminDashboardView()">
                 &larr; BACK TO DASHBOARD
               </button>
               <div>
                 <div style="font-size: 0.75rem; color: var(--color-cyan-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;" id="crm-lead-type-badge">QUESTIONNAIRE INTAKE DOSSIER</div>
-                <h1 style="margin: 0.2rem 0 0 0; font-size: 1.6rem; color: #ffffff;" id="crm-lead-header-title">CLIENT INTAKE DOSSIER</h1>
+                <h1 style="margin: 0.2rem 0 0 0; font-size: 1.12rem; color: #ffffff;" id="crm-lead-header-title">CLIENT INTAKE DOSSIER</h1>
               </div>
+            </div>
+            <div style="margin-left: auto;">
+              <button type="button" id="btn-crm-onboard-lead-top" class="attention-cta-btn" style="padding: 0.7rem 1.5rem; font-size: 0.9rem; font-weight: 700;">
+                🚀 ONBOARD THIS LEAD TO CLIENT PORTAL &rarr;
+              </button>
             </div>
           </div>
 
@@ -450,6 +455,10 @@
                     <span style="color: #ffffff;" id="crm-lead-date">Just Now</span>
                   </div>
                 </div>
+
+                <button type="button" id="btn-crm-onboard-lead-side" class="attention-cta-btn" style="width: 100%; justify-content: center; padding: 0.7rem 1rem; font-size: 0.85rem; font-weight: 700; margin-top: 1.25rem;">
+                  🚀 ONBOARD &amp; CREATE CLIENT WORKSPACE &rarr;
+                </button>
               </div>
 
               <!-- PIPELINE STATUS & BUDGET CARD -->
@@ -500,6 +509,110 @@
         </div>
       </div>
 
+      <!-- VIEW 4: DEDICATED MANUAL LEAD INTAKE ENTRY PAGE -->
+      <div id="admin-manual-lead-view" style="display: none;">
+        <div class="portal-container" style="max-width: 960px;">
+          <!-- TOP NAVIGATION BAR -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="window.restoreAdminDashboardView()">
+                &larr; BACK TO DASHBOARD
+              </button>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-cyan-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">CRM LEAD CREATION PAGE</div>
+                <h1 style="margin: 0.2rem 0 0 0; font-size: 1.6rem; color: #ffffff;">➕ ADD MANUAL CLIENT LEAD / INTAKE FORM</h1>
+              </div>
+            </div>
+          </div>
+
+          <!-- FULL FORM CARD -->
+          <div class="portal-glass" style="padding: 2.5rem; border-radius: var(--radius-lg);">
+            <form id="form-manual-lead-page">
+              <!-- SECTION 1: CLIENT & CONTACT INFO -->
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-cyan-glow); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                👤 <span>1. Contact &amp; Brand Identification</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label class="form-label">First Name <span style="color: #ff4d4d;">*</span></label>
+                  <input type="text" id="pg-lead-fname" class="portal-input" placeholder="e.g. Breyon" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" id="pg-lead-lname" class="portal-input" placeholder="e.g. Smith" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email Address <span style="color: #ff4d4d;">*</span></label>
+                  <input type="email" id="pg-lead-email" class="portal-input" placeholder="breyon@company.com" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone Number</label>
+                  <input type="tel" id="pg-lead-phone" class="portal-input" placeholder="(555) 000-0000" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Company / Brand Name</label>
+                  <input type="text" id="pg-lead-company" class="portal-input" placeholder="e.g. Breyon Apparel" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Current Website URL (optional)</label>
+                  <input type="url" id="pg-lead-website" class="portal-input" placeholder="https://yourbrand.com" />
+                </div>
+              </div>
+
+              <!-- SECTION 2: PROJECT VISION & SCOPE -->
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-cyan-glow); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🚀 <span>2. Project Vision &amp; Requirements</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label class="form-label">Industry / Field</label>
+                  <input type="text" id="pg-lead-industry" class="portal-input" placeholder="e.g. Technology, E-Commerce, Apparel" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Target Audience</label>
+                  <input type="text" id="pg-lead-audience" class="portal-input" placeholder="e.g. Online Buyers, Luxury Consumers" />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label">Project Description &amp; Overview</label>
+                <textarea id="pg-lead-desc" class="portal-input" rows="4" placeholder="Describe the client's business, project goals, layout requirements, or custom notes..."></textarea>
+              </div>
+
+              <!-- SECTION 3: INVESTMENT, TIMELINE & GOALS -->
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-cyan-glow); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                💰 <span>3. Investment, Timeline &amp; Deliverables</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label class="form-label">Budget Allocation</label>
+                  <input type="text" id="pg-lead-budget" class="portal-input" placeholder="e.g. $5,000 - $10,000" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Desired Launch Timeline</label>
+                  <input type="text" id="pg-lead-timeline" class="portal-input" placeholder="e.g. 4 - 6 Weeks" />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 2rem;">
+                <label class="form-label">Primary Success Criteria / Key Goals</label>
+                <textarea id="pg-lead-success" class="portal-input" rows="2" placeholder="e.g. Increase lead conversions by 40%, launch mobile store with online payments..."></textarea>
+              </div>
+
+              <!-- SUBMIT BUTTON BAR -->
+              <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                <button type="button" class="portal-badge" style="cursor: pointer; padding: 0.75rem 1.5rem; font-size: 0.9rem;" onclick="window.restoreAdminDashboardView()">
+                  CANCEL &amp; RETURN
+                </button>
+                <button type="submit" class="attention-cta-btn" style="padding: 0.75rem 2rem; font-size: 0.95rem; font-weight: 700;">
+                  ➕ SAVE LEAD &amp; ADD TO CRM &rarr;
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- MODAL: CREATE NEW CLIENT & PROJECT WORKSPACE -->
     <div class="portal-modal-overlay" id="modal-create-project">
       <div class="portal-modal-box" style="max-width: 580px;">
@@ -528,7 +641,7 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="portal-form-group">
               <label class="portal-label">CLIENT LOGIN EMAIL</label>
-              <input type="email" id="p-client-email" class="portal-input" placeholder="client@company.com" required />
+              <input type="email" id="p-client-email" class="portal-input" placeholder="client@dbstudios.com" required />
             </div>
 
             <div class="portal-form-group">
@@ -536,7 +649,7 @@
                 <label class="portal-label" style="margin-bottom: 0;">PASSWORD</label>
                 <button type="button" class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15); font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="generateNewClientPassword()">🎲 AUTO</button>
               </div>
-              <input type="text" id="p-client-password" class="portal-input" value="demo1234" required />
+              <input type="text" id="p-client-password" class="portal-input" placeholder="e.g. demo1234" required />
             </div>
           </div>
 
@@ -546,7 +659,7 @@
 
           <div class="portal-form-group">
             <label class="portal-label">PROJECT NAME</label>
-            <input type="text" id="p-name" class="portal-input" placeholder="e.g. Psycortex Corporate Website" required />
+            <input type="text" id="p-name" class="portal-input" placeholder="e.g. Corporate Website" required />
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -563,7 +676,7 @@
 
             <div class="portal-form-group">
               <label class="portal-label">TARGET LAUNCH DATE</label>
-              <input type="text" id="p-launch" class="portal-input" placeholder="Sept 15, 2026" value="Sept 15, 2026" required />
+              <input type="text" id="p-launch" class="portal-input" placeholder="e.g. Sept 15, 2026" required />
             </div>
           </div>
 
@@ -726,6 +839,59 @@
       </div>
     </div>
 
+    <!-- MODAL: EDIT CHECKLIST TASK -->
+    <div class="portal-modal-overlay" id="modal-edit-checklist-task">
+      <div class="portal-modal-box">
+        <div class="portal-modal-header">
+          <h3 class="portal-modal-title">✏️ EDIT CHECKLIST TASK</h3>
+          <button class="portal-modal-close" onclick="closeModal('modal-edit-checklist-task')">&times;</button>
+        </div>
+
+        <form id="form-edit-checklist-task">
+          <input type="hidden" id="edit-t-id" />
+
+          <div class="portal-form-group">
+            <label class="portal-label">LIFECYCLE PHASE</label>
+            <select id="edit-t-phase" class="portal-select" required>
+              <option value="1. INTAKE &amp; DISCOVERY">1. INTAKE &amp; DISCOVERY</option>
+              <option value="2. DESIGN PHASE">2. DESIGN PHASE</option>
+              <option value="3. BUILD PHASE">3. BUILD PHASE</option>
+              <option value="4. REVIEW PHASE">4. REVIEW PHASE</option>
+              <option value="5. LAUNCH PHASE">5. LAUNCH PHASE</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">TASK TITLE</label>
+            <input type="text" id="edit-t-title" class="portal-input" placeholder="e.g. Integrate Payment Gateway" required />
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">ASSIGNED OWNER</label>
+            <select id="edit-t-owner" class="portal-select" required>
+              <option value="Dream Built">Dream Built</option>
+              <option value="Client Action">Client Action</option>
+            </select>
+          </div>
+
+          <div class="portal-form-group">
+            <label class="portal-label">TASK STATUS</label>
+            <select id="edit-t-status" class="portal-select" required>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Action Required">Action Required</option>
+              <option value="Upcoming">Upcoming</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="portal-badge" onclick="closeModal('modal-edit-checklist-task')">CANCEL</button>
+            <button type="submit" class="attention-cta-btn">SAVE CHANGES &rarr;</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL: ADD ACTION ITEM -->
     <div class="portal-modal-overlay" id="modal-add-action-item">
       <div class="portal-modal-box">
@@ -882,56 +1048,7 @@
       </div>
     </div>
 
-    <!-- MODAL: MANUAL LEAD / SUBMISSION ENTRY -->
-    <div class="portal-modal-overlay" id="modal-add-manual-lead">
-      <div class="portal-modal" style="max-width: 540px;">
-        <div class="portal-modal-header">
-          <h3>➕ Add Manual Client Lead / Intake Submission</h3>
-          <button class="portal-modal-close" onclick="closeModal('modal-add-manual-lead')">&times;</button>
-        </div>
-        <form id="form-add-manual-lead">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">First Name</label>
-              <input type="text" id="manual-lead-fname" class="portal-input" placeholder="e.g. Breyon" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Last Name</label>
-              <input type="text" id="manual-lead-lname" class="portal-input" placeholder="e.g. Smith" />
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">Email Address</label>
-              <input type="email" id="manual-lead-email" class="portal-input" placeholder="breyon@example.com" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Phone Number</label>
-              <input type="tel" id="manual-lead-phone" class="portal-input" placeholder="(555) 000-0000" />
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">Company / Brand Name</label>
-              <input type="text" id="manual-lead-company" class="portal-input" placeholder="Brand Name" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Budget / Timeline</label>
-              <input type="text" id="manual-lead-budget" class="portal-input" placeholder="e.g. $5,000 - $10,000" />
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label class="form-label">Project Vision / Notes</label>
-            <textarea id="manual-lead-desc" class="portal-input" rows="3" placeholder="Describe the lead project details or submission notes..."></textarea>
-          </div>
 
-          <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-            <button type="button" class="portal-badge" onclick="closeModal('modal-add-manual-lead')">CANCEL</button>
-            <button type="submit" class="attention-cta-btn" style="padding: 0.6rem 1.2rem;">ADD LEAD TO CRM &rarr;</button>
-          </div>
-        </form>
-      </div>
-    </div>
 
     <!-- FLOATING LIVE CHAT FAB BUTTON (Bottom Right) -->
     <div id="floating-chat-button" onclick="toggleFloatingChatWidget()" style="display: none; position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; cursor: pointer;" title="Open Live Client Chat">
