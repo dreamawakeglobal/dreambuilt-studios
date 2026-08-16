@@ -1,5 +1,11 @@
 import { supabase } from './lib/supabase.js';
 
+window.isVideoUrl = function(url) {
+  if (!url || typeof url !== 'string') return false;
+  if (url.startsWith('data:video/')) return true;
+  return /\.(mp4|webm|ogg|mov|m4v)($|\?)/i.test(url);
+};
+
 // LOCAL DEMO STATE (Fallback & Seed Data for Client View)
 let currentTab = 'overview';
 let userSession = null;
@@ -1117,9 +1123,12 @@ function renderPages() {
 
         <!-- Page Design Screenshot Thumbnail -->
         <div style="aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-royal-blue); margin-bottom: 0.85rem; cursor: pointer; position: relative;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot', '${escapeHtml(page.name)}')">
-          <img src="${page.screenshotUrl}" alt="${escapeHtml(page.name)} Screenshot" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+          ${(page.isVideo || window.isVideoUrl(page.screenshotUrl)) 
+            ? `<video autoplay loop muted playsinline src="${page.screenshotUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>`
+            : `<img src="${page.screenshotUrl}" alt="${escapeHtml(page.name)} Screenshot" style="width: 100%; height: 100%; object-fit: cover; display: block;" />`
+          }
           <div style="position: absolute; bottom: 0.4rem; right: 0.4rem; background: rgba(0,0,0,0.85); color: #fff; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">
-            🔍 View & Add Notes
+            ${(page.isVideo || window.isVideoUrl(page.screenshotUrl)) ? '🎬 Play & Add Notes' : '🔍 View & Add Notes'}
           </div>
         </div>
 

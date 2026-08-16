@@ -392,19 +392,9 @@ window.saveAdminState = function() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
   } catch (e) {
-    console.warn('LocalStorage quota limit reached, saving lightweight state:', e);
+    console.warn('LocalStorage quota limit reached, saving state:', e);
     try {
-      const lightweight = JSON.parse(JSON.stringify({ projects: adminState.projects }));
-      lightweight.projects.forEach(p => {
-        if (p.pages) {
-          p.pages.forEach(pg => {
-            if (pg.image && pg.image.length > 200000) {
-              pg.image = pg.image.slice(0, 100);
-            }
-          });
-        }
-      });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lightweight));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
     } catch (err) {}
   }
 };
@@ -1753,7 +1743,9 @@ function renderAdminPages(project) {
     return;
   }
 
-  container.innerHTML = project.pages.map(page => `
+  container.innerHTML = project.pages.map(page => {
+    const isVid = page.isVideo || (typeof window.isVideoUrl === 'function' && window.isVideoUrl(page.image));
+    return `
     <div class="portal-glass page-card" style="display: flex; flex-direction: column; justify-content: space-between;">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
@@ -1763,7 +1755,10 @@ function renderAdminPages(project) {
         <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Version ${page.version}</div>
         
         <div class="page-preview-wrapper" style="margin-bottom: 1rem;">
-          <img src="${page.image}" alt="${page.title}" class="page-preview-img" style="width: 100%; border-radius: var(--radius-sm);" />
+          ${isVid 
+            ? `<video autoplay loop muted playsinline src="${page.image}" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--color-royal-blue); display: block;"></video>`
+            : `<img src="${page.image}" alt="${page.title}" class="page-preview-img" style="width: 100%; border-radius: var(--radius-sm); display: block;" />`
+          }
         </div>
       </div>
 
@@ -1776,7 +1771,8 @@ function renderAdminPages(project) {
         </button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 window.deleteWebsitePage = function(pageId) {
@@ -2367,14 +2363,37 @@ function initAdminForms() {
 
   const formUploadScreenshot = document.getElementById('form-upload-screenshot');
   if (formUploadScreenshot) {
-    formUploadScreenshot.addEventListener('submit', (e) => {
+    formUploadScreenshot.addEventListener('submit', async (e) => {
       e.preventDefault();
       const pageSelectVal = document.getElementById('s-page').value;
       const newTitleInput = document.getElementById('s-new-title');
       const urlInput = document.getElementById('s-url').value.trim();
       const notes = document.getElementById('s-notes').value.trim();
 
-      const finalUrl = window.lastUploadedScreenshotDataUrl || urlInput || '/images/card-01-custom-design.jpg';
+      let finalUrl = window.lastUploadedScreenshotDataUrl || urlInput || '/images/card-01-custom-design.jpg';
+
+      if (window.lastUploadedScreenshotFile && supabase && supabase.storage) {
+        const file = window.lastUploadedScreenshotFile;
+        const sanitizeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const filePath = `website_pages/${Date.now()}_${sanitizeName}`;
+        try {
+          const { data: uploadData, error: uploadErr } = await supabase.storage
+            .from('project-files')
+            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+          if (!uploadErr && uploadData) {
+            const { data: publicUrlData } = supabase.storage
+              .from('project-files')
+              .getPublicUrl(filePath);
+
+            if (publicUrlData && publicUrlData.publicUrl) {
+              finalUrl = publicUrlData.publicUrl;
+            }
+          }
+        } catch (err) {
+          console.warn('Supabase storage upload fallback:', err);
+        }
+      }
 
       const project = adminState.projects.find(p => p.id === activeManagedProjectId);
       if (project) {
@@ -2400,7 +2419,7 @@ function initAdminForms() {
             }]).then(() => {});
           }
 
-          window.showAdminToast(`✓ Uploaded new page screenshot for '${newTitle}'!`);
+          window.showAdminToast(`✓ Uploaded new page asset for '${newTitle}'!`);
         } else {
           const page = project.pages.find(p => p.id === pageSelectVal);
           if (page) {
@@ -2425,6 +2444,7 @@ function initAdminForms() {
       }
 
       window.lastUploadedScreenshotDataUrl = null;
+      window.lastUploadedScreenshotFile = null;
       const fileNameEl = document.getElementById('s-file-name');
       if (fileNameEl) fileNameEl.textContent = 'No file selected';
 
@@ -2922,20 +2942,61 @@ window.handleScreenshotFileSelect = function(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
+  window.lastUploadedScreenshotFile = file;
+
   const fileNameEl = document.getElementById('s-file-name');
   if (fileNameEl) {
     fileNameEl.textContent = `✓ Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    window.lastUploadedScreenshotDataUrl = dataUrl;
-    const urlInput = document.getElementById('s-url');
-    if (urlInput) urlInput.value = dataUrl;
-    window.showAdminToast(`✓ Loaded PC file: ${file.name}`);
-  };
-  reader.readAsDataURL(file);
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+        window.lastUploadedScreenshotDataUrl = compressedUrl;
+        const urlInput = document.getElementById('s-url');
+        if (urlInput) urlInput.value = compressedUrl;
+        window.showAdminToast(`✓ Loaded & optimized image: ${file.name}`);
+      };
+      img.onerror = function() {
+        window.lastUploadedScreenshotDataUrl = e.target.result;
+        const urlInput = document.getElementById('s-url');
+        if (urlInput) urlInput.value = e.target.result;
+        window.showAdminToast(`✓ Loaded PC file: ${file.name}`);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      window.lastUploadedScreenshotDataUrl = dataUrl;
+      const urlInput = document.getElementById('s-url');
+      if (urlInput) urlInput.value = dataUrl;
+      window.showAdminToast(`✓ Loaded media file: ${file.name}`);
+    };
+    reader.readAsDataURL(file);
+  }
 };
 
 window.handleDeliverableFileSelect = function(event) {
