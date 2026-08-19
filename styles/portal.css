@@ -644,6 +644,116 @@ body.portal-body {
   padding: 8px 12px;
 }
 
+/* ==========================================================================
+   TARGETED LAPTOP & SMALLER DESKTOP OVERRIDES BELOW 1920PX
+   (Large Desktop 1920px+ remains untouched and locked as base truth)
+   ========================================================================== */
+
+@media (max-width: 1536px) {
+  .portal-header {
+    padding: 0.75rem 1.75rem;
+  }
+  .portal-header-center img {
+    height: 70px !important;
+  }
+  .portal-container {
+    padding: 1.75rem;
+    max-width: 1180px;
+  }
+  .welcome-card {
+    padding: 1.75rem 2rem;
+  }
+  .welcome-card h2 {
+    font-size: 1.45rem;
+  }
+}
+
+@media (max-width: 1366px) {
+  .portal-header {
+    padding: 0.65rem 1.5rem;
+  }
+  .portal-logo {
+    height: 34px;
+  }
+  .portal-header-center img {
+    height: 58px !important;
+  }
+  .portal-badge {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.8rem;
+  }
+  .portal-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+  }
+  .portal-container {
+    padding: 1.5rem;
+    max-width: 1100px;
+  }
+  .welcome-card {
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .welcome-card h2 {
+    font-size: 1.35rem;
+  }
+  .welcome-bullet-item {
+    font-size: 0.825rem;
+  }
+  .attention-title {
+    font-size: 1.1rem;
+  }
+  .attention-card {
+    padding: 1rem 1.25rem;
+  }
+  .attention-card-title {
+    font-size: 0.95rem;
+  }
+  .attention-cta-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  .stepper-container {
+    padding: 1.35rem;
+    margin-bottom: 1.75rem;
+  }
+  .step-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 0.825rem;
+  }
+  .step-label {
+    font-size: 0.75rem;
+  }
+  .health-card {
+    padding: 1.25rem;
+  }
+  .health-card-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .portal-header-center img {
+    height: 50px !important;
+  }
+  .portal-tab-btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.825rem;
+  }
+  .portal-container {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .portal-header-center {
+    position: static !important;
+    transform: none !important;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .portal-header {

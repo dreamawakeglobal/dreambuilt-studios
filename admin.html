@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Command Center | Dream Built Studios</title>
     <meta name="description" content="Dream Built Studios Internal Operational Admin Portal." />
+    <!-- Anti-Caching Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/logo.png" />
     <!-- Google Fonts -->
@@ -55,7 +59,7 @@
           </div>
         </div>
 
-        <button id="btn-create-project" class="attention-cta-btn" style="display: none; padding: 0.45rem 1.1rem; font-size: 0.85rem; background: var(--color-success);">+ CREATE CLIENT &amp; PROJECT</button>
+        <button id="btn-create-project" class="attention-cta-btn" style="display: none; padding: 0.45rem 1.1rem; font-size: 0.85rem; background: var(--color-success);" onclick="openModal('modal-create-project')">+ CREATE CLIENT &amp; PROJECT</button>
         <button id="btn-admin-logout" class="portal-badge" style="display: none; cursor: pointer; background: transparent;">SIGN OUT</button>
         <span id="admin-header-loggedout-badge" class="portal-badge" style="background: rgba(0,240,255,0.15); color: var(--color-cyan-glow); border-color: var(--color-cyan-glow); font-size: 0.8rem;">
           ADMIN ACCESS
@@ -154,7 +158,10 @@
           <div class="portal-glass" style="padding: 1.75rem; margin-bottom: 2.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
               <h2 style="margin: 0; font-size: 1.35rem;">ACTIVE CLIENT PROJECTS</h2>
-              <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button class="attention-cta-btn" style="padding: 0.45rem 0.95rem; font-size: 0.85rem;" onclick="openModal('modal-create-project')">
+                  + CREATE NEW CLIENT PROJECT
+                </button>
                 <button class="portal-badge" style="cursor: pointer; background: var(--color-royal-blue); color: #ffffff; padding: 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700; border-color: var(--color-cyan-glow);" onclick="openEditCredentialsModal()">
                   🔑 MANAGE EMAILS &amp; PASSWORDS
                 </button>
@@ -739,6 +746,51 @@
             <button type="submit" class="attention-cta-btn">SAVE &amp; PUBLISH SCREENSHOT</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- MODAL: SCREENSHOT LIGHTBOX & FULL PHOTO POPUP -->
+    <div class="portal-modal-overlay" id="modal-screenshot-lightbox" style="z-index: 9999;">
+      <div class="portal-modal" style="max-width: 1000px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; padding: 0;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: rgba(0,0,0,0.7); border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.2rem;">🖼️</span>
+            <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff;" id="lightbox-caption">Page Design Screenshot</h3>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button type="button" class="portal-badge" id="lightbox-btn-zoom" style="cursor: pointer; background: rgba(0,102,255,0.25); color: #ffffff; font-size: 0.75rem; border-color: rgba(0,102,255,0.5);" onclick="toggleLightboxZoom()" title="Toggle Original 100% Size">
+              🔍 100% FULL SIZE
+            </button>
+            <button type="button" class="portal-badge" id="lightbox-btn-standalone" style="cursor: pointer; background: rgba(0,240,255,0.2); color: var(--color-cyan-glow); font-size: 0.75rem; border-color: rgba(0,240,255,0.4);" onclick="toggleLightboxStandalone()" title="Toggle Standalone Photo View Mode">
+              🖼️ POP UP ON ITS OWN
+            </button>
+            <button type="button" class="portal-modal-close" style="position: static; font-size: 1.75rem; color: var(--text-secondary); cursor: pointer; margin-left: 0.5rem;" onclick="closeModal('modal-screenshot-lightbox')">&times;</button>
+          </div>
+        </div>
+
+        <!-- Body Content -->
+        <div style="display: grid; grid-template-columns: 1fr 340px; flex: 1; overflow: hidden;" id="lightbox-grid-container">
+          <!-- Image Container -->
+          <div style="padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: rgba(0,0,0,0.6); border-right: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease;" id="lightbox-img-wrapper">
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span>💡 Click image to toggle 100% full original size</span>
+            </div>
+            <img id="lightbox-img" src="" alt="Screenshot" style="max-width: 100%; border-radius: 8px; border: 1px solid rgba(0,102,255,0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: zoom-in; transition: all 0.3s ease; display: block;" onclick="toggleLightboxZoom()" />
+          </div>
+
+          <!-- Notes & Revision Comments Sidebar -->
+          <div style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; background: rgba(11,19,41,0.95); overflow-y: auto;" id="lightbox-sidebar">
+            <div>
+              <h4 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; color: #0088ff; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📝 PAGE NOTES &amp; COMMENTS</span>
+              </h4>
+              <div id="lightbox-notes-list" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto; margin-bottom: 1.25rem; padding-right: 0.25rem;">
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Select or click a website page to inspect comments.</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

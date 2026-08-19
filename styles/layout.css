@@ -345,6 +345,76 @@
   transform: none;
 }
 
+/* ==========================================================================
+   TARGETED LAPTOP & SMALLER DESKTOP OVERRIDES BELOW 1920PX
+   (Large Desktop 1920px+ remains untouched and locked as base truth)
+   ========================================================================== */
+
+@media (max-width: 1536px) {
+  .logo-image {
+    height: 46px;
+  }
+  .nav-circle-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .dropdown-links li a {
+    padding: 0.58rem 1.1rem;
+    font-size: 0.8rem;
+  }
+  .main-footer {
+    padding-top: 3.25rem;
+    padding-bottom: 1.75rem;
+  }
+  .footer-grid {
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+@media (max-width: 1366px) {
+  .logo-image {
+    height: 42px;
+  }
+  .nav-circle-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .dropdown-links li a {
+    padding: 0.52rem 0.95rem;
+    font-size: 0.76rem;
+  }
+  .header-actions .btn {
+    padding: 0.72rem 1.45rem;
+    font-size: 0.88rem;
+  }
+  .main-footer {
+    padding-top: 2.75rem;
+    padding-bottom: 1.5rem;
+  }
+  .footer-grid {
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  .footer-links a {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .logo-image {
+    height: 38px;
+  }
+  .header-actions .btn {
+    padding: 0.68rem 1.25rem;
+    font-size: 0.85rem;
+  }
+  .footer-grid {
+    gap: 1.5rem;
+  }
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .nav-btn-hide {

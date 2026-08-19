@@ -18,6 +18,46 @@ function saveSubmissionLocally(tableName, data) {
   }
 }
 
+async function compressImageFile(file, maxWidth = 1400, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) return resolve(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const cleanName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
+            const compressedFile = new File([blob], cleanName, {
+              type: 'image/webp',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/webp',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 // Multi-step form logic with Supabase integration & LocalStorage fallback
 document.addEventListener('DOMContentLoaded', () => {
   const projectForm = document.getElementById('project-form');
@@ -187,15 +227,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        for (const file of fileInput.files) {
+        for (let file of fileInput.files) {
           if (file.size === 0) continue;
+          if (file.type && file.type.startsWith('image/')) {
+            try {
+              file = await compressImageFile(file, 1400, 0.75);
+            } catch (cErr) {
+              console.warn('Image compression fallback:', cErr);
+            }
+          }
           const sanitizeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
           const filePath = `uploads/${Date.now()}_${sanitizeName}`;
           try {
             if (supabase && supabase.storage) {
               const { data: uploadData, error: uploadErr } = await supabase.storage
                 .from('project-files')
-                .upload(filePath, file, { cacheControl: '3600', upsert: true });
+                .upload(filePath, file, { cacheControl: '31536000', upsert: true });
 
               if (!uploadErr && uploadData) {
                 const { data: publicUrlData } = supabase.storage

@@ -10,6 +10,46 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+async function compressImageFile(file, maxWidth = 1400, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) return resolve(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const cleanName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
+            const compressedFile = new File([blob], cleanName, {
+              type: 'image/webp',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/webp',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 let adminSession = null;
 let activeManagedProjectId = null;
 
@@ -100,51 +140,41 @@ function ensureProjectChecklist(project) {
 
 const defaultProjectsSeed = [];
 
-function purgeLegacyPsycortex() {
-  const hasPurged = localStorage.getItem('dreambuilt_psycortex_v2_purged');
-  if (!hasPurged) {
-    let saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.projects)) {
-          parsed.projects = parsed.projects.filter(p => {
-            const email = (p.clientEmail || p.email || '').toLowerCase();
-            const name = (p.client || p.business_name || '').toLowerCase();
-            return !email.includes('alba@psycortex') && !name.includes('alba cortez');
-          });
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }
-      } catch (e) {}
+function generateUuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function isUuid(val) {
+  return typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+}
+
+function ensureValidProjectUuid(project) {
+  if (!project) return;
+  if (!isUuid(project.id)) {
+    if (project.id === 'psycortex-proj-001') {
+      project.id = '9af4a1fe-529a-4467-ab80-087f0e034157';
+    } else if (project.id === 'decipher-proj-001') {
+      project.id = 'f4403861-c591-40a9-b1ac-f442550c79c9';
+    } else {
+      project.id = generateUuid();
     }
-    localStorage.setItem('dreambuilt_psycortex_v2_purged', 'true');
+  }
+  if (!isUuid(project.clientId)) {
+    if (project.clientId === 'psycortex-cli-001') {
+      project.clientId = '2fa789ce-05be-48f8-bbc4-5d33e4912186';
+    } else if (project.clientId === 'decipher-cli-001') {
+      project.clientId = 'fcfc65cf-eee2-4be7-bd06-f13b2cafe30b';
+    } else {
+      project.clientId = generateUuid();
+    }
   }
 }
 
 function loadAdminState() {
-  purgeLegacyPsycortex();
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && Array.isArray(parsed.projects)) {
-        adminState.projects = parsed.projects.filter(p => 
-          p.id !== '22222222-2222-2222-2222-222222222222' && 
-          p.id !== '11111111-1111-1111-1111-111111111111'
-        );
-      }
-    } catch (e) {
-      console.error('Failed loading admin state:', e);
-    }
-  }
-
-  if (!adminState.projects) {
-    adminState.projects = [];
-  }
-
-  adminState.projects.forEach(p => ensureProjectChecklist(p));
-  window.saveAdminState();
-
+  adminState.projects = [];
   fetchSupabaseAdminData();
 }
 
@@ -180,188 +210,88 @@ async function fetchSupabaseAdminData() {
     if (prjErr) console.warn('Supabase fetch projects error:', prjErr);
 
     if (!prjErr && dbProjects) {
-      // Clear out legacy dummy seed projects from db list
-      const cleanDbProjects = dbProjects.filter(dp => {
+      adminState.projects = dbProjects.map(dp => {
         const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
-        const clientEmail = matchingClient ? matchingClient.email : '';
-        return clientEmail !== 'alba@psycortex.com' && dp.id !== '11111111-1111-1111-1111-111111111111' && dp.id !== '22222222-2222-2222-2222-222222222222';
-      });
+        const prjObj = {
+          id: dp.id,
+          clientId: dp.client_id,
+          client: matchingClient ? matchingClient.business_name : 'Client',
+          contact: matchingClient ? matchingClient.contact_name : 'Contact',
+          clientEmail: matchingClient ? matchingClient.email : '',
+          clientPassword: matchingClient ? matchingClient.password_hash : '',
+          name: dp.project_name,
+          currentPhase: dp.current_phase || 'Build',
+          progress: dp.progress_pct || 0,
+          targetLaunch: dp.target_launch_date || 'Upcoming',
+          status: dp.status || 'Active',
+          actionItems: [],
+          pages: [],
+          feedback: [],
+          assets: [],
+          messages: [],
+          checklistPhases: []
+        };
 
-      cleanDbProjects.forEach(dp => {
-        const matchingClient = dbClients ? dbClients.find(c => c.id === dp.client_id) : null;
-        let existingPrj = adminState.projects.find(p => p.id === dp.id);
-        
-        if (!existingPrj) {
-          existingPrj = {
-            id: dp.id,
-            clientId: dp.client_id,
-            client: matchingClient ? matchingClient.business_name : 'Client',
-            contact: matchingClient ? matchingClient.contact_name : 'Contact',
-            clientEmail: matchingClient ? matchingClient.email : 'client@dreambuiltstudios.com',
-            clientPassword: matchingClient ? matchingClient.password_hash : 'demo1234',
-            name: dp.project_name,
-            currentPhase: dp.current_phase,
-            progress: dp.progress_pct,
-            targetLaunch: dp.target_launch_date,
-            status: dp.status,
-            actionItems: [],
-            pages: [],
-            feedback: [],
-            assets: [],
-            messages: [],
-            checklistPhases: []
-          };
-          ensureProjectChecklist(existingPrj);
-          adminState.projects.push(existingPrj);
-        } else {
-          existingPrj.id = dp.id;
-          existingPrj.currentPhase = dp.current_phase;
-          existingPrj.progress = dp.progress_pct;
-          existingPrj.targetLaunch = dp.target_launch_date;
-          existingPrj.status = dp.status;
-          if (matchingClient) {
-            existingPrj.clientId = matchingClient.id;
-            existingPrj.clientEmail = matchingClient.email;
-            existingPrj.clientPassword = matchingClient.password_hash;
-            existingPrj.client = matchingClient.business_name;
-            existingPrj.contact = matchingClient.contact_name;
-          }
+        if (dbWebsitePages) {
+          const prjPages = dbWebsitePages.filter(pg => pg.project_id === dp.id && pg.title && pg.title !== 'undefined' && pg.title !== 'null');
+          prjObj.pages = prjPages.map(pg => ({
+            id: pg.id,
+            title: pg.title,
+            image: pg.screenshot_url || pg.image || '/images/card-01-custom-design.jpg',
+            version: pg.version || 'v1.0',
+            status: pg.status || 'Ready for Review',
+            notes: pg.notes || `Version ${pg.version || 'v1.0'}`
+          }));
         }
 
         if (dbActionItems) {
           const prjActions = dbActionItems.filter(a => a.project_id === dp.id);
-          if (prjActions.length > 0) {
-            existingPrj.actionItems = prjActions.map(a => ({
-              id: a.id,
-              title: a.title,
-              description: a.description,
-              dueDate: a.due_date,
-              actionType: a.action_type || 'upload_file',
-              completed: a.completed
-            }));
-          }
-        }
-
-        if (dbWebsitePages) {
-          const prjPages = dbWebsitePages.filter(pg => pg.project_id === dp.id);
-          if (prjPages.length > 0) {
-            existingPrj.pages = prjPages.map(pg => ({
-              id: pg.id,
-              title: pg.title,
-              image: pg.image || pg.screenshot_url || '/images/card-01-custom-design.jpg',
-              version: pg.version || 'v1.0',
-              status: pg.status || 'Ready for Review',
-              notes: pg.notes || `Version ${pg.version || 'v1.0'}`
-            }));
-          }
+          prjObj.actionItems = prjActions.map(a => ({
+            id: a.id,
+            title: a.title,
+            description: a.description,
+            dueDate: a.due_date,
+            actionType: a.action_type || 'upload_file',
+            completed: a.completed
+          }));
         }
 
         if (dbFeedback) {
           const prjFb = dbFeedback.filter(f => f.project_id === dp.id);
-          if (prjFb.length > 0) {
-            existingPrj.feedback = prjFb.map(f => ({
-              id: f.id,
-              client: existingPrj.client,
-              page: f.page_title,
-              title: f.title,
-              status: f.status,
-              priority: f.priority,
-              comment: f.comment
-            }));
-          }
+          prjObj.feedback = prjFb.map(f => ({
+            id: f.id,
+            client: prjObj.client,
+            page: f.page_title,
+            title: f.title,
+            status: f.status,
+            priority: f.priority,
+            desc: f.comment
+          }));
         }
 
         if (dbMessages) {
           const prjMsgs = dbMessages.filter(m => m.project_id === dp.id);
-          if (prjMsgs.length > 0) {
-            existingPrj.messages = prjMsgs.map(m => ({
-              id: m.id,
-              sender: m.sender_name,
-              text: m.message_text,
-              time: m.time_formatted
-            }));
-          }
+          prjObj.messages = prjMsgs.map(m => ({
+            id: m.id,
+            sender: m.sender_name,
+            text: m.message_text,
+            time: new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }));
         }
 
         if (dbAssets) {
           const prjAssets = dbAssets.filter(ast => ast.project_id === dp.id);
-          if (prjAssets.length > 0) {
-            existingPrj.assets = prjAssets.map(ast => ({
-              id: ast.id,
-              name: ast.file_name,
-              size: ast.file_size,
-              date: new Date(ast.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-              type: ast.file_type
-            }));
-          }
+          prjObj.assets = prjAssets.map(ast => ({
+            id: ast.id,
+            name: ast.file_name,
+            size: ast.file_size,
+            date: new Date(ast.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+            type: ast.file_type
+          }));
         }
 
-        if (dbChecklist && dbChecklist.length > 0) {
-          const projChecklist = dbChecklist.filter(c => c.project_id === dp.id);
-          if (projChecklist.length > 0) {
-            const standardPhases = [
-              '1. INTAKE & DISCOVERY',
-              '2. DESIGN PHASE',
-              '3. BUILD PHASE',
-              '4. REVIEW PHASE',
-              '5. LAUNCH PHASE'
-            ];
-            const phasesMap = {};
-            standardPhases.forEach(phName => phasesMap[phName] = []);
-
-            const seenKeys = new Set();
-            projChecklist.forEach(item => {
-              const k = `${item.phase_name}::${item.title}`;
-              if (!seenKeys.has(k)) {
-                seenKeys.add(k);
-                if (!phasesMap[item.phase_name]) phasesMap[item.phase_name] = [];
-                phasesMap[item.phase_name].push({
-                  id: item.id,
-                  title: item.title,
-                  owner: item.owner,
-                  status: item.status
-                });
-              }
-            });
-            existingPrj.checklistPhases = standardPhases.map(pName => {
-              const items = (phasesMap[pName] || []).sort((a, b) => {
-                const defaultTaskOrder = [
-                  'Initial client consultation and requirements gathering',
-                  'Target audience and market research (El Salvador corporate focus)',
-                  'Defining brand identity (Premium, Deep Blue, Gold)',
-                  'Outlining site architecture (Home, About, Services, Packages, Contact)',
-                  'UI/UX layout planning',
-                  'Selecting modern typography and visual elements',
-                  'Designing custom UI components (metallic gold gradients, glow effects)',
-                  'Drafting localized copy and service structures',
-                  'Developing HTML structure and semantic markup',
-                  'Implementing CSS styling and responsive mobile layouts',
-                  'Refining package features, monthly structures, and pricing models',
-                  'Adding social media links (LinkedIn, Instagram, TikTok)',
-                  'Finalizing interactive elements and form functionality',
-                  'Cross-browser and mobile device testing',
-                  'Proofreading Spanish copy and checking grammar/accents',
-                  'Testing all links, forms, and widgets for proper functionality',
-                  'Client review and final feedback rounds',
-                  'Final performance optimization and cache busting',
-                  'Configuring domain and hosting deployment',
-                  'SEO metadata implementation (titles, descriptions)',
-                  'Post-launch monitoring and client hand-off'
-                ];
-                const idxA = defaultTaskOrder.indexOf(a.title);
-                const idxB = defaultTaskOrder.indexOf(b.title);
-                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-                return 0;
-              });
-
-              return {
-                phaseName: pName,
-                status: (items.length > 0 && items.every(i => i.status === 'Completed')) ? 'Completed' : 'In Progress',
-                items: items
-              };
-            }).filter(ph => ph.items.length > 0);
-          }
-        }
+        ensureProjectChecklist(prjObj);
+        return prjObj;
       });
 
       if (adminState.projects.length > 0 && (!activeManagedProjectId || !adminState.projects.some(p => p.id === activeManagedProjectId))) {
@@ -369,7 +299,8 @@ async function fetchSupabaseAdminData() {
       }
 
       window.saveAdminState();
-      window.restoreAdminView();
+      renderProjectsTable();
+      renderManagedWorkspace();
     }
 
     supabase.channel('public:admin_changes')
@@ -392,10 +323,22 @@ window.saveAdminState = function() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
   } catch (e) {
-    console.warn('LocalStorage quota limit reached, saving state:', e);
+    console.warn('LocalStorage quota limit reached, attempting fallback state compression:', e);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: adminState.projects }));
-    } catch (err) {}
+      const cleanProjects = JSON.parse(JSON.stringify(adminState.projects));
+      cleanProjects.forEach(p => {
+        if (p.pages) {
+          p.pages.forEach(pg => {
+            if (pg.image && pg.image.length > 3000000) {
+              pg.image = '/images/card-01-custom-design.jpg';
+            }
+          });
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: cleanProjects }));
+    } catch (err) {
+      console.error('Failed to save state to localStorage:', err);
+    }
   }
 };
 
@@ -1392,6 +1335,22 @@ function renderProjectsTable() {
   const tbody = document.getElementById('admin-projects-table-body');
   if (!tbody) return;
 
+  if (!adminState.projects || adminState.projects.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--text-secondary);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+          <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.25rem; font-size: 1.1rem;">No Active Client Projects</div>
+          <div style="font-size: 0.85rem; margin-bottom: 1.25rem;">Click the button below to create your first client account and project workspace.</div>
+          <button class="attention-cta-btn" style="display: inline-flex;" onclick="openModal('modal-create-project')">
+            + CREATE NEW CLIENT PROJECT
+          </button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   tbody.innerHTML = adminState.projects.map(p => `
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: #ffffff;">
       <td style="padding: 1rem;">
@@ -1643,7 +1602,12 @@ function initAdminTabs() {
 
 // RENDER ALL MANAGED WORKSPACE PANES
 function renderManagedWorkspace() {
-  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  let project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  if (!project && adminState.projects && adminState.projects.length > 0) {
+    project = adminState.projects[0];
+    activeManagedProjectId = project.id;
+    localStorage.setItem('dreambuilt_admin_managed_project_id', project.id);
+  }
   if (!project) return;
 
   // Calculate dynamic progress %
@@ -1731,52 +1695,70 @@ function renderAdminPages(project) {
   const container = document.getElementById('adm-manage-pages-grid');
   if (!container) return;
 
-  if (!project.pages || project.pages.length === 0) {
+  if (!project.pages) project.pages = [];
+
+  // Filter out any invalid null/undefined titles
+  project.pages = project.pages.filter(p => p && p.title && p.title !== 'undefined' && p.title !== 'null');
+
+  if (project.pages.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1 / -1; padding: 2.5rem; text-align: center; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md);">
-        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🖼️</div>
-        <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.25rem; font-size: 1.1rem;">No Website Page Screenshots</div>
-        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Click the button below to upload your first website page mockup.</div>
-        <button class="attention-cta-btn" style="display: inline-flex;" onclick="openUploadScreenshotModal('NEW_PAGE')">+ ADD NEW WEBSITE PAGE SCREENSHOT</button>
+      <div style="grid-column: 1 / -1; padding: 2.5rem; text-align: center; background: rgba(0,0,0,0.25); border: 1px dashed rgba(0, 240, 255, 0.25); border-radius: var(--radius-md);">
+        <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">🖼️</div>
+        <div style="color: #ffffff; font-weight: 700; margin-bottom: 0.25rem; font-size: 1.15rem;">No Website Page Screenshots Uploaded</div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Upload high-resolution website page design mockups for your client to preview and review.</div>
+        <button class="attention-cta-btn" style="display: inline-flex;" onclick="openUploadScreenshotModal('NEW_PAGE')">
+          + ADD NEW WEBSITE PAGE SCREENSHOT
+        </button>
       </div>
     `;
     return;
   }
 
   container.innerHTML = project.pages.map(page => {
-    const isVid = page.isVideo || (typeof window.isVideoUrl === 'function' && window.isVideoUrl(page.image));
-    return `
-    <div class="portal-glass page-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-          <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff;">${page.title}</h3>
-          <span class="status-badge ${page.status.toLowerCase().replace(/ /g, '-')}">${page.status}</span>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Version ${page.version}</div>
-        
-        <div class="page-preview-wrapper" style="margin-bottom: 1rem;">
-          ${isVid 
-            ? `<video autoplay loop muted playsinline src="${page.image}" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--color-royal-blue); display: block;"></video>`
-            : `<img src="${page.image}" alt="${page.title}" class="page-preview-img" style="width: 100%; border-radius: var(--radius-sm); display: block;" />`
-          }
-        </div>
-      </div>
+    const displayTitle = page.title || 'Website Page Mockup';
+    const displayImg = page.image || '/images/card-01-custom-design.jpg';
+    const isVid = page.isVideo || (typeof window.isVideoUrl === 'function' && window.isVideoUrl(displayImg));
+    const safeTitle = displayTitle.replace(/'/g, "\\'");
+    const safeImg = displayImg.replace(/'/g, "\\'");
 
-      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-        <button class="attention-cta-btn" style="flex: 1; justify-content: center; font-size: 0.85rem;" onclick="openUploadScreenshotModal('${page.id}')">
-          + UPLOAD / REPLACE SCREENSHOT &rarr;
-        </button>
-        <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.45rem 0.75rem; font-size: 0.85rem; font-weight: 700;" onclick="deleteWebsitePage('${page.id}')" title="Delete Website Page Mockup">
-          🗑️ DELETE
-        </button>
+    return `
+      <div class="portal-glass page-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff;">${displayTitle}</h3>
+            <span class="status-badge ${(page.status || 'Ready for Review').toLowerCase().replace(/ /g, '-')}">${page.status || 'Ready for Review'}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">${page.notes || `Version ${page.version || 'v1.0'}`}</div>
+
+          <div class="page-preview-wrapper" style="margin-bottom: 1rem; position: relative; cursor: pointer;" onclick="openScreenshotLightbox('${safeImg}', '${safeTitle} Screenshot', '${safeTitle}')" title="Click to view full photo on its own">
+            ${isVid 
+              ? `<video autoplay loop muted playsinline src="${displayImg}" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--color-royal-blue); display: block;"></video>`
+              : `<img src="${displayImg}" alt="${displayTitle}" class="page-preview-img" style="width: 100%; border-radius: var(--radius-sm); display: block; max-height: 220px; object-fit: cover; object-position: top;" onerror="this.onerror=null; this.src='/images/card-01-custom-design.jpg';" />`
+            }
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; transition: opacity 0.2s ease; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm);" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
+              <span class="portal-badge" style="background: rgba(0,102,255,0.9); color: #ffffff; font-weight: 700; border-color: var(--color-cyan-glow);">🔍 POP UP FULL PHOTO</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+          <button class="portal-badge" style="cursor: pointer; background: rgba(0,240,255,0.15); border-color: rgba(0,240,255,0.4); color: var(--color-cyan-glow); padding: 0.45rem 0.75rem; font-size: 0.85rem; font-weight: 700;" onclick="openScreenshotLightbox('${safeImg}', '${safeTitle} Screenshot', '${safeTitle}')">
+            🔍 FULL SIZE
+          </button>
+          <button class="attention-cta-btn" style="flex: 1; justify-content: center; font-size: 0.85rem;" onclick="openUploadScreenshotModal('${page.id}')">
+            + REPLACE &rarr;
+          </button>
+          <button class="portal-badge" style="cursor: pointer; background: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.4); color: #ff6666; padding: 0.45rem 0.75rem; font-size: 0.85rem; font-weight: 700;" onclick="deleteWebsitePage('${page.id}')" title="Delete Website Page Mockup">
+            🗑️ DELETE
+          </button>
+        </div>
       </div>
-    </div>
-  `;
+    `;
   }).join('');
 }
 
 window.deleteWebsitePage = function(pageId) {
-  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  let project = adminState.projects.find(p => p.id === activeManagedProjectId) || adminState.projects[0];
   if (!project || !project.pages) return;
 
   const pageIdx = project.pages.findIndex(p => p.id === pageId);
@@ -1788,7 +1770,6 @@ window.deleteWebsitePage = function(pageId) {
     if (supabase) {
       supabase.from('website_pages').delete().eq('id', pageId).then(({ error }) => {
         if (error) {
-          console.warn('Delete page by ID error, attempting deletion by title:', error);
           supabase.from('website_pages').delete().eq('project_id', project.id).eq('title', removedPage.title).then(() => {});
         }
       });
@@ -2370,16 +2351,24 @@ function initAdminForms() {
       const urlInput = document.getElementById('s-url').value.trim();
       const notes = document.getElementById('s-notes').value.trim();
 
-      let finalUrl = window.lastUploadedScreenshotDataUrl || urlInput || '/images/card-01-custom-design.jpg';
+      let rawUrl = window.lastUploadedScreenshotDataUrl || urlInput;
+      let finalUrl = (rawUrl && rawUrl !== 'undefined' && rawUrl !== 'null') ? rawUrl : '/images/card-01-custom-design.jpg';
 
       if (window.lastUploadedScreenshotFile && supabase && supabase.storage) {
-        const file = window.lastUploadedScreenshotFile;
-        const sanitizeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        let fileToUpload = window.lastUploadedScreenshotFile;
+        if (fileToUpload.type && fileToUpload.type.startsWith('image/')) {
+          try {
+            fileToUpload = await compressImageFile(fileToUpload, 1400, 0.75);
+          } catch (cErr) {
+            console.warn('Image compression fallback:', cErr);
+          }
+        }
+        const sanitizeName = fileToUpload.name.replace(/[^a-zA-Z0-9._-]/g, '_');
         const filePath = `website_pages/${Date.now()}_${sanitizeName}`;
         try {
           const { data: uploadData, error: uploadErr } = await supabase.storage
             .from('project-files')
-            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+            .upload(filePath, fileToUpload, { cacheControl: '31536000', upsert: true });
 
           if (!uploadErr && uploadData) {
             const { data: publicUrlData } = supabase.storage
@@ -2389,16 +2378,43 @@ function initAdminForms() {
             if (publicUrlData && publicUrlData.publicUrl) {
               finalUrl = publicUrlData.publicUrl;
             }
+          } else if (uploadErr) {
+            console.warn('Supabase storage upload error:', uploadErr);
           }
         } catch (err) {
-          console.warn('Supabase storage upload fallback:', err);
+          console.warn('Supabase storage upload exception:', err);
         }
       }
 
-      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      let project = adminState.projects.find(p => p.id === activeManagedProjectId) || adminState.projects[0];
+      if (!project) {
+        project = {
+          id: generateUuid(),
+          clientId: generateUuid(),
+          client: 'Active Client',
+          name: 'Main Website Project',
+          currentPhase: 'Build',
+          progress: 50,
+          status: 'Active',
+          pages: [],
+          feedback: [],
+          assets: [],
+          messages: [],
+          actionItems: []
+        };
+        adminState.projects.push(project);
+        activeManagedProjectId = project.id;
+      }
+
+      ensureValidProjectUuid(project);
+
       if (project) {
-        if (pageSelectVal === 'NEW_PAGE' || (newTitleInput && newTitleInput.value.trim())) {
-          const newTitle = (newTitleInput && newTitleInput.value.trim()) || 'New Website Page';
+        const pageSelectEl = document.getElementById('s-page');
+        const existingPageMatch = project.pages ? project.pages.find(p => p.id === pageSelectVal) : null;
+
+        if (pageSelectVal === 'NEW_PAGE' || !existingPageMatch) {
+          const rawTitle = newTitleInput ? newTitleInput.value.trim() : '';
+          const newTitle = (rawTitle && rawTitle !== 'undefined' && rawTitle !== 'null') ? rawTitle : 'Home Page';
           const newPage = {
             id: `pg-${Date.now()}`,
             title: newTitle,
@@ -2410,13 +2426,38 @@ function initAdminForms() {
           project.pages.push(newPage);
 
           if (supabase) {
-            supabase.from('website_pages').insert([{
-              project_id: project.id,
-              title: newTitle,
-              screenshot_url: finalUrl,
-              version: newPage.version,
-              status: 'Ready for Review'
-            }]).then(() => {});
+            try {
+              // Ensure project row exists in Supabase projects table
+              const { data: exPrj } = await supabase.from('projects').select('id').eq('id', project.id);
+              if (!exPrj || exPrj.length === 0) {
+                await supabase.from('projects').insert([{
+                  id: project.id,
+                  client_id: isUuid(project.clientId) ? project.clientId : null,
+                  project_name: project.name,
+                  current_phase: project.currentPhase || 'Build',
+                  progress_pct: project.progress || 50,
+                  target_launch_date: project.targetLaunch || 'Upcoming',
+                  status: 'Active'
+                }]);
+              }
+
+              const { data: dbData, error: dbErr } = await supabase.from('website_pages').insert([{
+                project_id: project.id,
+                title: newTitle,
+                screenshot_url: finalUrl,
+                version: newPage.version,
+                status: 'Ready for Review'
+              }]).select();
+
+              if (!dbErr && dbData && dbData.length > 0) {
+                newPage.id = dbData[0].id;
+                console.log('✓ Successfully saved website_pages row to Supabase:', dbData[0].id);
+              } else if (dbErr) {
+                console.warn('Supabase website_pages insert error:', dbErr);
+              }
+            } catch (err) {
+              console.warn('Supabase website_pages insert exception:', err);
+            }
           }
 
           window.showAdminToast(`✓ Uploaded new page asset for '${newTitle}'!`);
@@ -2427,12 +2468,37 @@ function initAdminForms() {
             page.version = notes ? `v2.${Date.now().toString().slice(-2)}` : page.version;
 
             if (supabase) {
-              supabase.from('website_pages').upsert({
-                project_id: project.id,
-                title: page.title,
-                screenshot_url: page.image,
-                version: page.version
-              }).then(() => {});
+              try {
+                if (isUuid(page.id)) {
+                  const { error: updErr } = await supabase.from('website_pages').update({
+                    screenshot_url: page.image,
+                    version: page.version
+                  }).eq('id', page.id);
+                  if (updErr) console.warn('Supabase website_pages update by id error:', updErr);
+                } else {
+                  const { data: dbData, error: updErr } = await supabase.from('website_pages').update({
+                    screenshot_url: page.image,
+                    version: page.version
+                  }).eq('project_id', project.id).eq('title', page.title).select();
+
+                  if (!updErr && dbData && dbData.length > 0) {
+                    page.id = dbData[0].id;
+                  } else {
+                    const { data: insData } = await supabase.from('website_pages').insert([{
+                      project_id: project.id,
+                      title: page.title,
+                      screenshot_url: page.image,
+                      version: page.version,
+                      status: page.status || 'Ready for Review'
+                    }]).select();
+                    if (insData && insData.length > 0) {
+                      page.id = insData[0].id;
+                    }
+                  }
+                }
+              } catch (err) {
+                console.warn('Supabase website_pages update exception:', err);
+              }
             }
 
             window.showAdminToast(`✓ Replaced screenshot for ${page.title}!`);
@@ -2759,12 +2825,13 @@ function initAdminForms() {
 
   const formEditCreds = document.getElementById('form-edit-credentials');
   if (formEditCreds) {
-    formEditCreds.addEventListener('submit', (e) => {
+    formEditCreds.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('edit-cred-email').value;
-      const pass = document.getElementById('edit-cred-password').value;
+      const email = document.getElementById('edit-cred-email').value.trim();
+      const pass = document.getElementById('edit-cred-password').value.trim();
 
-      const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+      const targetId = editingProjectId || activeManagedProjectId || (adminState.projects[0] && adminState.projects[0].id);
+      const project = adminState.projects.find(p => p.id === targetId);
       if (project) {
         project.clientEmail = email;
         project.clientPassword = pass;
@@ -2773,13 +2840,34 @@ function initAdminForms() {
         renderManagedWorkspace();
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
 
-        if (supabase && project.clientId) {
-          supabase.from('clients').update({ email: email, password_hash: pass }).eq('id', project.clientId).then(({ error }) => {
-            if (error) console.error('Client creds update error:', error);
-          });
+        if (supabase) {
+          try {
+            const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+            const clientPayload = { email: email, password_hash: pass, business_name: project.client, contact_name: project.contact };
+
+            if (isUuid(project.clientId)) {
+              await supabase.from('clients').update({ email: email, password_hash: pass }).eq('id', project.clientId);
+            } else {
+              const { data: dbData } = await supabase.from('clients').update({ email: email, password_hash: pass }).eq('business_name', project.client).select();
+              if (!dbData || dbData.length === 0) {
+                const { data: insData } = await supabase.from('clients').upsert([clientPayload], { onConflict: 'email' }).select();
+                if (insData && insData.length > 0) {
+                  project.clientId = insData[0].id;
+                }
+              }
+            }
+
+            if (isUuid(project.id)) {
+              await supabase.from('projects').update({ current_phase: project.currentPhase, target_launch_date: project.targetLaunch, progress_pct: project.progress }).eq('id', project.id);
+            } else {
+              await supabase.from('projects').update({ current_phase: project.currentPhase, target_launch_date: project.targetLaunch, progress_pct: project.progress }).eq('project_name', project.name);
+            }
+          } catch (err) {
+            console.warn('Supabase client credentials update error:', err);
+          }
         }
 
-        window.showAdminToast(`✓ Updated login credentials for ${project.client}!`);
+        window.showAdminToast(`✓ Updated login credentials for ${project.client}! Email: ${email}`);
       }
 
       window.closeModal('modal-edit-credentials');
@@ -2903,18 +2991,33 @@ window.toggleNewPageInput = function(val) {
 
 window.openUploadScreenshotModal = function(pageId) {
   window.lastUploadedScreenshotDataUrl = null;
-  const project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  window.lastUploadedScreenshotFile = null;
+  let project = adminState.projects.find(p => p.id === activeManagedProjectId);
+  if (!project && adminState.projects && adminState.projects.length > 0) {
+    project = adminState.projects[0];
+    activeManagedProjectId = project.id;
+    localStorage.setItem('dreambuilt_admin_managed_project_id', project.id);
+  }
   const select = document.getElementById('s-page');
+  const newTitleInput = document.getElementById('s-new-title');
+  if (newTitleInput) newTitleInput.value = '';
 
-  if (select && project && project.pages) {
-    let options = project.pages.map(p => `
-      <option value="${p.id}" ${p.id === pageId ? 'selected' : ''}>${p.title} (${p.version})</option>
-    `).join('');
-    options += `<option value="NEW_PAGE" ${pageId === 'NEW_PAGE' ? 'selected' : ''}>+ ADD NEW WEBSITE PAGE SCREENSHOT</option>`;
-    select.innerHTML = options;
+  if (select) {
+    if (project && project.pages && project.pages.length > 0) {
+      let options = project.pages.map(p => `
+        <option value="${p.id}" ${p.id === pageId ? 'selected' : ''}>${p.title} (${p.version})</option>
+      `).join('');
+      options += `<option value="NEW_PAGE" ${pageId === 'NEW_PAGE' ? 'selected' : ''}>+ ADD NEW WEBSITE PAGE SCREENSHOT</option>`;
+      select.innerHTML = options;
+    } else {
+      select.innerHTML = `
+        <option value="NEW_PAGE" selected>+ ADD NEW WEBSITE PAGE SCREENSHOT</option>
+      `;
+      pageId = 'NEW_PAGE';
+    }
   }
 
-  window.toggleNewPageInput(pageId || (select ? select.value : ''));
+  window.toggleNewPageInput(pageId || (select ? select.value : 'NEW_PAGE'));
 
   const fileNameEl = document.getElementById('s-file-name');
   if (fileNameEl) fileNameEl.textContent = 'No file selected';
@@ -2946,7 +3049,7 @@ window.handleScreenshotFileSelect = function(event) {
 
   const fileNameEl = document.getElementById('s-file-name');
   if (fileNameEl) {
-    fileNameEl.textContent = `✓ Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    fileNameEl.textContent = `⏳ Optimizing: ${file.name}...`;
   }
 
   if (file.type.startsWith('image/')) {
@@ -2957,7 +3060,7 @@ window.handleScreenshotFileSelect = function(event) {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        const maxDim = 1200;
+        const maxDim = 800;
         if (width > maxDim || height > maxDim) {
           if (width > height) {
             height = Math.round((height * maxDim) / width);
@@ -2971,17 +3074,21 @@ window.handleScreenshotFileSelect = function(event) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+        const compressedUrl = canvas.toDataURL('image/jpeg', 0.68);
         window.lastUploadedScreenshotDataUrl = compressedUrl;
         const urlInput = document.getElementById('s-url');
         if (urlInput) urlInput.value = compressedUrl;
+        if (fileNameEl) {
+          fileNameEl.textContent = `✓ Ready to publish: ${file.name}`;
+        }
         window.showAdminToast(`✓ Loaded & optimized image: ${file.name}`);
       };
       img.onerror = function() {
         window.lastUploadedScreenshotDataUrl = e.target.result;
         const urlInput = document.getElementById('s-url');
         if (urlInput) urlInput.value = e.target.result;
-        window.showAdminToast(`✓ Loaded PC file: ${file.name}`);
+        if (fileNameEl) fileNameEl.textContent = `✓ Selected: ${file.name}`;
+        window.showAdminToast(`✓ Loaded file: ${file.name}`);
       };
       img.src = e.target.result;
     };
@@ -2993,6 +3100,7 @@ window.handleScreenshotFileSelect = function(event) {
       window.lastUploadedScreenshotDataUrl = dataUrl;
       const urlInput = document.getElementById('s-url');
       if (urlInput) urlInput.value = dataUrl;
+      if (fileNameEl) fileNameEl.textContent = `✓ Selected media: ${file.name}`;
       window.showAdminToast(`✓ Loaded media file: ${file.name}`);
     };
     reader.readAsDataURL(file);
@@ -3020,4 +3128,107 @@ window.handleDeliverableFileSelect = function(event) {
   }
 
   window.showAdminToast(`✓ Selected deliverable file: ${file.name}`);
+};
+
+window.openScreenshotLightbox = function(imgUrl, caption, pageName) {
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const gridContainer = document.getElementById('lightbox-grid-container');
+  const btnZoom = document.getElementById('lightbox-btn-zoom');
+
+  if (lightboxImg) {
+    lightboxImg.src = imgUrl;
+    lightboxImg.style.maxWidth = '100%';
+    lightboxImg.style.width = 'auto';
+    lightboxImg.style.cursor = 'zoom-in';
+    lightboxImg.dataset.fullsize = 'false';
+  }
+  if (btnZoom) btnZoom.textContent = '🔍 100% FULL SIZE';
+
+  if (lightboxCaption) {
+    lightboxCaption.textContent = caption || 'Page Design Screenshot';
+  }
+
+  if (gridContainer && gridContainer.dataset.standalone === 'true') {
+    window.toggleLightboxStandalone();
+  }
+
+  const container = document.getElementById('lightbox-notes-list');
+  if (container) {
+    const project = typeof adminState !== 'undefined' && adminState.projects ? adminState.projects.find(p => p.id === activeManagedProjectId) : null;
+    const targetTitle = pageName || caption || '';
+    const matchingFeedback = project && project.feedback ? project.feedback.filter(f => f.page === targetTitle || targetTitle.includes(f.page)) : [];
+
+    if (matchingFeedback.length > 0) {
+      const escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      container.innerHTML = matchingFeedback.map(f => `
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <strong style="color: #ffffff; font-size: 0.85rem;">${escapeHtml(f.title || 'Feedback')}</strong>
+            <span class="status-badge ${(f.status || 'Submitted').toLowerCase().replace(/ /g, '-')}">${f.status}</span>
+          </div>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(f.comment)}</p>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem;">No revision notes submitted for this page yet.</div>`;
+    }
+  }
+
+  if (typeof window.openModal === 'function') {
+    window.openModal('modal-screenshot-lightbox');
+  }
+};
+
+window.toggleLightboxZoom = function() {
+  const lightboxImg = document.getElementById('lightbox-img');
+  const btnZoom = document.getElementById('lightbox-btn-zoom');
+  if (!lightboxImg) return;
+
+  const isFullSize = lightboxImg.dataset.fullsize === 'true';
+  if (isFullSize) {
+    lightboxImg.style.maxWidth = '100%';
+    lightboxImg.style.width = 'auto';
+    lightboxImg.style.cursor = 'zoom-in';
+    lightboxImg.dataset.fullsize = 'false';
+    if (btnZoom) btnZoom.textContent = '🔍 100% FULL SIZE';
+  } else {
+    lightboxImg.style.maxWidth = 'none';
+    lightboxImg.style.width = '100%';
+    lightboxImg.style.cursor = 'zoom-out';
+    lightboxImg.dataset.fullsize = 'true';
+    if (btnZoom) btnZoom.textContent = '🔍 FIT TO SCREEN';
+  }
+};
+
+window.toggleLightboxStandalone = function() {
+  const gridContainer = document.getElementById('lightbox-grid-container');
+  const sidebar = document.getElementById('lightbox-sidebar');
+  const btnStandalone = document.getElementById('lightbox-btn-standalone');
+  const modalBox = document.querySelector('#modal-screenshot-lightbox .portal-modal');
+
+  if (!gridContainer) return;
+
+  const isStandalone = gridContainer.dataset.standalone === 'true';
+  if (isStandalone) {
+    gridContainer.style.gridTemplateColumns = '1fr 340px';
+    if (sidebar) sidebar.style.display = 'flex';
+    if (modalBox) {
+      modalBox.style.maxWidth = '1000px';
+      modalBox.style.width = '95vw';
+      modalBox.style.maxHeight = '92vh';
+    }
+    gridContainer.dataset.standalone = 'false';
+    if (btnStandalone) btnStandalone.textContent = '🖼️ POP UP ON ITS OWN';
+  } else {
+    gridContainer.style.gridTemplateColumns = '1fr';
+    if (sidebar) sidebar.style.display = 'none';
+    if (modalBox) {
+      modalBox.style.maxWidth = '98vw';
+      modalBox.style.width = '98vw';
+      modalBox.style.maxHeight = '96vh';
+    }
+    gridContainer.dataset.standalone = 'true';
+    if (btnStandalone) btnStandalone.textContent = '📝 SHOW SIDEBAR';
+  }
 };

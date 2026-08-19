@@ -165,17 +165,17 @@ function ensureProjectChecklist(state) {
 }
 
 function loadPortalState() {
-  const savedSession = localStorage.getItem('dreambuilt_portal_session');
-  if (savedSession) {
+  if (!userSession) {
     try {
-      const sess = JSON.parse(savedSession);
-      if (sess && sess.email) {
-        userSession = sess;
-        mockClientState.client.businessName = sess.company || 'Client Workspace';
-        mockClientState.client.contactName = sess.name || 'Client Contact';
-        mockClientState.client.email = sess.email;
-      }
-    } catch(e) {}
+      const savedSession = localStorage.getItem('dreambuilt_portal_session');
+      if (savedSession) userSession = JSON.parse(savedSession);
+    } catch (e) {}
+  }
+
+  if (userSession && userSession.email) {
+    mockClientState.client.email = userSession.email;
+    if (userSession.name) mockClientState.client.contactName = userSession.name;
+    if (userSession.company) mockClientState.client.businessName = userSession.company;
   }
 
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -188,22 +188,11 @@ function loadPortalState() {
           p = parsed.projects.find(x => 
             (x.clientEmail && x.clientEmail.toLowerCase() === userSession.email.toLowerCase()) || 
             (x.email && x.email.toLowerCase() === userSession.email.toLowerCase()) ||
-            (x.client && x.client.toLowerCase() === userSession.company.toLowerCase())
+            (x.client && userSession.company && x.client.toLowerCase() === userSession.company.toLowerCase())
           );
         }
         
-        if (!p && !userSession) {
-          p = null;
-        }
-
         if (p) {
-          if (!userSession) {
-            mockClientState.client.businessName = p.client || p.business_name || 'Client Business';
-            mockClientState.client.contactName = p.contact || p.contact_name || 'Client Contact';
-            mockClientState.client.email = p.clientEmail || p.email || '';
-            mockClientState.client.password = p.clientPassword || p.password || '';
-          }
-
           mockClientState.project.id = p.id || `prj-${Date.now()}`;
           mockClientState.project.name = p.name || p.project_name || 'Client Website';
           mockClientState.project.currentPhase = p.currentPhase || p.current_phase || 'Build';
@@ -316,15 +305,8 @@ async function fetchSupabaseData() {
       }
 
       let p = null;
-      if (!error && projects && projects.length > 0) {
-        if (matchingClient) {
-          p = projects.find(x => x.client_id === matchingClient.id);
-        }
-        if (!p) {
-          p = projects.find(x => 
-            x.client_email && x.client_email.toLowerCase() === userSession.email.toLowerCase()
-          );
-        }
+      if (!error && projects && projects.length > 0 && matchingClient) {
+        p = projects.find(x => x.client_id === matchingClient.id);
       }
 
       if (p) {
@@ -348,10 +330,10 @@ async function fetchSupabaseData() {
           }));
         }
 
-        const prjPages = dbPages ? dbPages.filter(pg => pg.project_id === p.id) : [];
+        const prjPages = dbPages ? dbPages.filter(pg => pg.project_id === p.id && pg.title && pg.title !== 'undefined' && pg.title !== 'null') : [];
         if (prjPages.length > 0) {
-          mockClientState.pages = prjPages.map(pg => {
-            const imgUrl = pg.image || pg.screenshot_url || '/images/card-01-custom-design.jpg';
+          const dbMappedPages = prjPages.map(pg => {
+            const imgUrl = pg.screenshot_url || pg.image || '/images/card-01-custom-design.jpg';
             return {
               id: pg.id,
               name: pg.title,
@@ -362,6 +344,18 @@ async function fetchSupabaseData() {
               notes: pg.notes || `Version ${pg.version || 'v1.0'}`
             };
           });
+
+          if (mockClientState.pages && mockClientState.pages.length > 0) {
+            mockClientState.pages.forEach(localPg => {
+              const dbMatch = dbMappedPages.find(dbPg => dbPg.id === localPg.id || dbPg.name === localPg.name);
+              if (!dbMatch) {
+                dbMappedPages.push(localPg);
+              } else if (localPg.screenshotUrl && localPg.screenshotUrl !== '/images/card-01-custom-design.jpg' && (!dbMatch.screenshotUrl || dbMatch.screenshotUrl === '/images/card-01-custom-design.jpg')) {
+                dbMatch.screenshotUrl = localPg.screenshotUrl;
+              }
+            });
+          }
+          mockClientState.pages = dbMappedPages;
         }
 
         const prjFb = dbFeedback ? dbFeedback.filter(f => f.project_id === p.id) : [];
@@ -584,31 +578,29 @@ function initAuthAndPortal() {
       let matchedClient = null;
       let matchedLocalProject = null;
 
+      try {
+        const savedApp = localStorage.getItem('dreambuilt_app_state_v1');
+        if (savedApp) {
+          const parsedApp = JSON.parse(savedApp);
+          if (parsedApp && Array.isArray(parsedApp.projects)) {
+            matchedLocalProject = parsedApp.projects.find(p => 
+              (p.clientEmail && p.clientEmail.toLowerCase() === email.toLowerCase()) || 
+              (p.email && p.email.toLowerCase() === email.toLowerCase()) ||
+              (p.client && p.client.toLowerCase() === email.toLowerCase().split('@')[0])
+            );
+          }
+        }
+      } catch (err) {}
+
       if (supabase) {
         try {
           const { data: clients } = await supabase.from('clients').select('*');
           if (clients && clients.length > 0) {
-            matchedClient = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
+            matchedClient = clients.find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
           }
         } catch (err) {
           console.error('Portal client authentication error:', err);
         }
-      }
-
-      if (!matchedClient) {
-        try {
-          const savedApp = localStorage.getItem('dreambuilt_app_state_v1');
-          if (savedApp) {
-            const parsedApp = JSON.parse(savedApp);
-            if (parsedApp && Array.isArray(parsedApp.projects)) {
-              matchedLocalProject = parsedApp.projects.find(p => 
-                (p.clientEmail && p.clientEmail.toLowerCase() === email.toLowerCase()) || 
-                (p.email && p.email.toLowerCase() === email.toLowerCase()) ||
-                (p.client && p.client.toLowerCase() === email.toLowerCase().split('@')[0])
-              );
-            }
-          }
-        } catch (err) {}
       }
 
       // Reject if account was deleted or does not exist
@@ -617,10 +609,10 @@ function initAuthAndPortal() {
         return;
       }
 
-      // Verify password
-      const expectedPassword = matchedClient 
-        ? matchedClient.password_hash 
-        : (matchedLocalProject ? (matchedLocalProject.clientPassword || matchedLocalProject.password || 'demo1234') : 'demo1234');
+      // Verify password against admin configured credentials
+      const expectedPassword = (matchedLocalProject && matchedLocalProject.clientPassword) 
+        ? matchedLocalProject.clientPassword 
+        : (matchedClient ? matchedClient.password_hash : (matchedLocalProject ? matchedLocalProject.password : 'demo1234'));
 
       if (expectedPassword && expectedPassword !== password) {
         alert(`❌ Incorrect password for ${email}. Please use the login password configured in the Admin Command Center.`);
@@ -1125,7 +1117,7 @@ function renderPages() {
         <div style="aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-royal-blue); margin-bottom: 0.85rem; cursor: pointer; position: relative;" onclick="openScreenshotLightbox('${page.screenshotUrl}', '${escapeHtml(page.name)} Design Screenshot', '${escapeHtml(page.name)}')">
           ${(page.isVideo || window.isVideoUrl(page.screenshotUrl)) 
             ? `<video autoplay loop muted playsinline src="${page.screenshotUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>`
-            : `<img src="${page.screenshotUrl}" alt="${escapeHtml(page.name)} Screenshot" style="width: 100%; height: 100%; object-fit: cover; display: block;" />`
+            : `<img src="${page.screenshotUrl}" alt="${escapeHtml(page.name)} Screenshot" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" />`
           }
           <div style="position: absolute; bottom: 0.4rem; right: 0.4rem; background: rgba(0,0,0,0.85); color: #fff; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">
             ${(page.isVideo || window.isVideoUrl(page.screenshotUrl)) ? '🎬 Play & Add Notes' : '🔍 View & Add Notes'}
@@ -1152,13 +1144,22 @@ let currentActiveLightboxPage = null;
 window.openScreenshotLightbox = function(imgUrl, caption, pageName) {
   const lightboxImg = document.getElementById('lightbox-img');
   const lightboxCaption = document.getElementById('lightbox-caption');
+  const gridContainer = document.getElementById('lightbox-grid-container');
+  const btnZoom = document.getElementById('lightbox-btn-zoom');
 
   if (lightboxImg) {
     lightboxImg.src = imgUrl;
-    lightboxImg.style.transform = 'scale(1)';
-    lightboxImg.dataset.zoomed = 'false';
+    lightboxImg.style.maxWidth = '100%';
+    lightboxImg.style.width = 'auto';
+    lightboxImg.style.cursor = 'zoom-in';
+    lightboxImg.dataset.fullsize = 'false';
   }
+  if (btnZoom) btnZoom.textContent = '🔍 100% FULL SIZE';
   if (lightboxCaption) lightboxCaption.textContent = caption || 'Page Design Screenshot';
+
+  if (gridContainer && gridContainer.dataset.standalone === 'true') {
+    window.toggleLightboxStandalone();
+  }
 
   const searchName = pageName || (caption || '').replace(' Design Screenshot', '').replace(' Full Design Screenshot', '').replace(' Design Overview', '').trim();
   const foundPage = mockClientState.pages.find(p => p.name.toLowerCase() === searchName.toLowerCase() || p.id === searchName) || mockClientState.pages[0];
@@ -1170,17 +1171,53 @@ window.openScreenshotLightbox = function(imgUrl, caption, pageName) {
 
 window.toggleLightboxZoom = function() {
   const lightboxImg = document.getElementById('lightbox-img');
+  const btnZoom = document.getElementById('lightbox-btn-zoom');
   if (!lightboxImg) return;
 
-  const isZoomed = lightboxImg.dataset.zoomed === 'true';
-  if (isZoomed) {
-    lightboxImg.style.transform = 'scale(1)';
+  const isFullSize = lightboxImg.dataset.fullsize === 'true';
+  if (isFullSize) {
+    lightboxImg.style.maxWidth = '100%';
+    lightboxImg.style.width = 'auto';
     lightboxImg.style.cursor = 'zoom-in';
-    lightboxImg.dataset.zoomed = 'false';
+    lightboxImg.dataset.fullsize = 'false';
+    if (btnZoom) btnZoom.textContent = '🔍 100% FULL SIZE';
   } else {
-    lightboxImg.style.transform = 'scale(1.5)';
+    lightboxImg.style.maxWidth = 'none';
+    lightboxImg.style.width = '100%';
     lightboxImg.style.cursor = 'zoom-out';
-    lightboxImg.dataset.zoomed = 'true';
+    lightboxImg.dataset.fullsize = 'true';
+    if (btnZoom) btnZoom.textContent = '🔍 FIT TO SCREEN';
+  }
+};
+
+window.toggleLightboxStandalone = function() {
+  const gridContainer = document.getElementById('lightbox-grid-container');
+  const btnStandalone = document.getElementById('lightbox-btn-standalone');
+  const modalBox = document.querySelector('#modal-screenshot-lightbox .portal-modal');
+  if (!gridContainer) return;
+
+  const sidebar = gridContainer.children[1];
+  const isStandalone = gridContainer.dataset.standalone === 'true';
+  if (isStandalone) {
+    gridContainer.style.gridTemplateColumns = '1fr 340px';
+    if (sidebar) sidebar.style.display = 'flex';
+    if (modalBox) {
+      modalBox.style.maxWidth = '1000px';
+      modalBox.style.width = '95vw';
+      modalBox.style.maxHeight = '92vh';
+    }
+    gridContainer.dataset.standalone = 'false';
+    if (btnStandalone) btnStandalone.textContent = '🖼️ POP UP ON ITS OWN';
+  } else {
+    gridContainer.style.gridTemplateColumns = '1fr';
+    if (sidebar) sidebar.style.display = 'none';
+    if (modalBox) {
+      modalBox.style.maxWidth = '98vw';
+      modalBox.style.width = '98vw';
+      modalBox.style.maxHeight = '96vh';
+    }
+    gridContainer.dataset.standalone = 'true';
+    if (btnStandalone) btnStandalone.textContent = '📝 SHOW SIDEBAR';
   }
 };
 
@@ -1696,8 +1733,11 @@ function initMessageFormListeners() {
           business_name: bizName
         };
         if (newPass) updatePayload.password_hash = newPass;
-        supabase.from('clients').update(updatePayload).eq('email', mockClientState.client.email).then(({ error }) => {
-          if (error) console.error('Client profile update error:', error);
+
+        supabase.from('clients').update(updatePayload).eq('email', mockClientState.client.email).then(({ error, data }) => {
+          if (error || !data || data.length === 0) {
+            supabase.from('clients').update(updatePayload).eq('business_name', bizName).then(() => {});
+          }
         });
       }
     });
