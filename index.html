@@ -11,6 +11,8 @@
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
     <!-- Google Fonts -->
+    <!-- Preload Critical Hero Image -->
+    <link rel="preload" as="image" href="/images/hero-bg-4k.webp" type="image/webp" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -205,7 +207,7 @@
             <!-- Portfolio Item 1: Dream Built Studios -->
             <div class="glass-card animate-on-scroll p-0 overflow-hidden cosmic-glass-card" style="padding: 0; display: flex; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(2, 8, 19, 0.85);">
               <div class="card-video-wrapper" style="aspect-ratio: 16 / 9; width: 100%; position: relative; background: #020813; border-bottom: 1.5px solid rgba(0, 102, 255, 0.4);">
-                <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                <video autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                   <source src="/videos/dreambuilt-studios.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -225,7 +227,7 @@
             <!-- Portfolio Item 2: Dream Wealthy -->
             <div class="glass-card animate-on-scroll p-0 overflow-hidden cosmic-glass-card" style="padding: 0; display: flex; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(2, 8, 19, 0.85); transition-delay: 0.1s;">
               <div class="card-video-wrapper" style="aspect-ratio: 16 / 9; width: 100%; position: relative; background: #020813; border-bottom: 1.5px solid rgba(0, 102, 255, 0.4);">
-                <video autoplay loop muted playsinline poster="/images/dream-wealthy.jpg" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                <video autoplay loop muted playsinline preload="metadata" poster="/images/dream-wealthy.jpg" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                   <source src="/videos/dream-wealthy.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -245,7 +247,7 @@
             <!-- Portfolio Item 3: Decipher Clothing -->
             <div class="glass-card animate-on-scroll p-0 overflow-hidden cosmic-glass-card" style="padding: 0; display: flex; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(2, 8, 19, 0.85); transition-delay: 0.15s;">
               <div class="card-video-wrapper" style="aspect-ratio: 16 / 9; width: 100%; position: relative; background: #020813; border-bottom: 1.5px solid rgba(0, 102, 255, 0.4);">
-                <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                <video autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                   <source src="/videos/decipher-clothing.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -265,7 +267,7 @@
             <!-- Portfolio Item 4: Psycortex Corporate -->
             <div class="glass-card animate-on-scroll p-0 overflow-hidden cosmic-glass-card" style="padding: 0; display: flex; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(2, 8, 19, 0.85); transition-delay: 0.2s;">
               <div class="card-video-wrapper" style="aspect-ratio: 16 / 9; width: 100%; position: relative; background: #020813; border-bottom: 1.5px solid rgba(0, 102, 255, 0.4);">
-                <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                <video autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                   <source src="/videos/psycortex-corporate.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -403,7 +405,11 @@
         padding-bottom: 6rem;
         position: relative;
         z-index: 1;
-        background: url('/images/hero-bg.svg') no-repeat center center / cover;
+        background: #020813 url('/images/hero-bg-4k.jpg') no-repeat center center / cover;
+        background-image: image-set(
+          url('/images/hero-bg-4k.webp') type('image/webp'),
+          url('/images/hero-bg-4k.jpg') type('image/jpeg')
+        );
         overflow: hidden;
       }
 
