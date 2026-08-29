@@ -3,33 +3,947 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pricing | Dream Built Studios</title>
+    <title>Pricing & Packages | Dream Built Studios</title>
+    <meta name="description" content="Transparent website design and development packages. From clean professional builds to bespoke premium digital experiences. No hidden fees." />
+    
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/styles/layout.css" />
+    <link rel="stylesheet" href="/styles/pricing.css" />
   </head>
-  <body>
+  <body class="pricing-page-wrapper">
     <app-header></app-header>
     
+    <!-- Seamless Continuously Rotating Video Background -->
+    <div class="pricing-video-bg-container" aria-hidden="true">
+      <video class="pricing-bg-video active" autoplay muted loop playsinline preload="auto">
+        <source src="/videos/pricing-bg.mp4" type="video/mp4" />
+      </video>
+      <div class="pricing-video-overlay"></div>
+    </div>
+
+    <!-- Cosmic Constellation Canvas Background -->
+    <canvas id="pricing-cosmic-canvas" class="pricing-cosmic-canvas"></canvas>
+
     <main style="padding-top: var(--nav-height);">
-      <section class="section" style="min-height: 70vh; display: flex; align-items: center;">
-        <div class="container text-center animate-on-scroll">
-          <h1 class="text-gradient mb-4" style="font-size: clamp(3rem, 5vw, 5rem);">PROJECTS BUILT AROUND YOUR VISION.</h1>
-          <p class="mt-4 mb-8" style="max-width: 800px; margin: 0 auto 3rem auto; font-size: 1.25rem;">We don't do fixed prices because we don't do cookie-cutter websites. Your pricing depends entirely on project complexity, number of pages, functionality, custom integrations, content requirements, and timeline.</p>
-          
-          <div class="hero-actions" style="justify-content: center;">
-            <a href="/project.html" class="btn btn-primary">GET A PROJECT QUOTE</a>
+      
+      <!-- HERO SECTION -->
+      <section class="pricing-hero">
+        <div class="container">
+          <h1 class="animate-on-scroll">
+            <span class="hero-line-white">WEBSITES THAT</span><br/>
+            <span class="hero-line-metallic-blue">BUILD YOUR BUSINESS</span>
+          </h1>
+
+          <div class="pricing-hero-tagline animate-on-scroll">
+            <span class="tagline-rule"></span>
+            <span class="tagline-text">PROFESSIONAL. <span class="text-blue-glow">MODERN.</span> BUILT TO PERFORM.</span>
+            <span class="tagline-rule"></span>
           </div>
+
+          <div class="pricing-trust-chips animate-on-scroll">
+            <div class="pricing-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>100% Custom Coded</span>
+            </div>
+            <div class="pricing-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Mobile & Tablet Optimized</span>
+            </div>
+            <div class="pricing-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>SEO Optimized</span>
+            </div>
+            <div class="pricing-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Fast Turnaround</span>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE VIEW TOGGLE CONTROLLER -->
+          <div class="pricing-toggle-container animate-on-scroll">
+            <div class="pricing-toggle-track" role="tablist" aria-label="Pricing Views">
+              <button class="pricing-toggle-btn active" data-target-view="packages" role="tab" aria-selected="true" id="tab-btn-packages">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Core Packages</span>
+              </button>
+
+              <button class="pricing-toggle-btn" data-target-view="custom" role="tab" aria-selected="false" id="tab-btn-custom">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Custom Projects</span>
+              </button>
+
+              <button class="pricing-toggle-btn" data-target-view="addons" role="tab" aria-selected="false" id="tab-btn-addons">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"></path></svg>
+                <span>Project Add-Ons</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
+
+      <!-- VIEW PANE 1: CORE 3-TIER METALLIC CARDS -->
+      <div class="pricing-view-pane active" id="view-pane-packages" data-view="packages">
+        <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
+          <div class="container">
+            <div class="pricing-cards-grid">
+            
+            <!-- 01: BASIC ($299) - START-UPS -->
+            <div class="pricing-card" id="card-basic">
+              <div class="startup-ribbon">
+                <span class="ribbon-sparkle-star">★</span>
+                <span>START-UPS</span>
+                <span class="ribbon-sparkle-star">★</span>
+              </div>
+
+              <div class="pricing-card-top">
+                <h3 class="tier-title-chrome">BASIC</h3>
+                
+                <div class="tier-stars-line">
+                  <span class="stars-rule"></span>
+                  <div class="stars-group">★ ★ ★</div>
+                  <span class="stars-rule"></span>
+                </div>
+
+                <div class="tier-price-container">
+                  <span class="tier-currency">$</span>
+                  <span class="tier-amount">299</span>
+                </div>
+
+                <div class="tier-scope-pill">UP TO 3 PAGES</div>
+
+                <ul class="tier-features-list">
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="3"></rect><line x1="2" y1="9" x2="22" y2="9"></line><circle cx="6" cy="6" r="1"></circle><circle cx="9" cy="6" r="1"></circle><circle cx="12" cy="6" r="1"></circle><line x1="6" y1="14" x2="18" y2="14"></line><line x1="6" y1="17" x2="14" y2="17"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Up to 3 Pages</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="2"></circle><circle cx="5" cy="19" r="1.5"></circle></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Basic Professional Website Design</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Mobile & Tablet Optimization</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="8" x2="13" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line><circle cx="7" cy="16" r="1.5"></circle><line x1="11" y1="16" x2="17" y2="16"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Lead Contact Form</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Core Speed & Load Optimization</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="10" width="3" height="8" rx="1"></rect><rect x="12" y="6" width="3" height="12" rx="1"></rect><rect x="17" y="12" width="3" height="6" rx="1"></rect><polyline points="7 9 12 5 17 8 21 3"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Basic <span class="feature-seo-underline">SEO</span> Setup & Analytics</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><polyline points="21 3 21 8 16 8"></polyline><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path><polyline points="3 21 3 16 8 16"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">1 Revision Round</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="pricing-card-bottom">
+                <a href="/project.html?package=basic" class="pricing-card-btn btn-outline-glow">
+                  <span>START YOUR DREAM</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- 02: DREAM BUILD ($499) - FEATURED / MOST POPULAR -->
+            <div class="pricing-card featured" id="card-dream-build">
+              <div class="popular-ribbon">
+                <span class="ribbon-sparkle-star star-left">★</span>
+                <span class="ribbon-text">MOST POPULAR</span>
+                <span class="ribbon-sparkle-star star-right">★</span>
+              </div>
+
+              <div class="pricing-card-top">
+                <h3 class="tier-title-chrome">DREAM BUILD</h3>
+                
+                <div class="tier-stars-line">
+                  <span class="stars-rule"></span>
+                  <div class="stars-group">★ ★ ★ ★</div>
+                  <span class="stars-rule"></span>
+                </div>
+
+                <div class="tier-price-container">
+                  <span class="tier-currency">$</span>
+                  <span class="tier-amount">499</span>
+                </div>
+
+                <div class="tier-scope-pill">UP TO 7 PAGES</div>
+
+                <ul class="tier-features-list">
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="3"></rect><line x1="2" y1="9" x2="22" y2="9"></line><circle cx="6" cy="6" r="1"></circle><circle cx="9" cy="6" r="1"></circle><circle cx="12" cy="6" r="1"></circle><line x1="6" y1="14" x2="18" y2="14"></line><line x1="6" y1="17" x2="14" y2="17"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Up to 7 Pages</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="2"></circle><circle cx="5" cy="19" r="1.5"></circle></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Custom Professional Website Design</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Mobile & Tablet Optimization</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Advanced Layouts & Sections</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="8" x2="13" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line><circle cx="7" cy="16" r="1.5"></circle><line x1="11" y1="16" x2="17" y2="16"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Lead Generation Forms</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Core Speed & Load Optimization</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="10" width="3" height="8" rx="1"></rect><rect x="12" y="6" width="3" height="12" rx="1"></rect><rect x="17" y="12" width="3" height="6" rx="1"></rect><polyline points="7 9 12 5 17 8 21 3"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Enhanced <span class="feature-seo-underline">SEO</span> + Analytics</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><polyline points="21 3 21 8 16 8"></polyline><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path><polyline points="3 21 3 16 8 16"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">2 Revision Rounds</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="pricing-card-bottom">
+                <a href="/project.html?package=dream-build" class="pricing-card-btn btn-glow">
+                  <span>START YOUR DREAM</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- 03: DREAM ELITE ($749) - PREMIUM EXPERIENCE -->
+            <div class="pricing-card elite" id="card-dream-elite">
+              <div class="elite-ribbon">
+                <span class="ribbon-sparkle-star">★</span>
+                <span>PREMIUM EXPERIENCE</span>
+                <span class="ribbon-sparkle-star">★</span>
+              </div>
+
+              <div class="pricing-card-top">
+                <h3 class="tier-title-chrome">DREAM ELITE</h3>
+                
+                <div class="tier-stars-line">
+                  <span class="stars-rule"></span>
+                  <div class="stars-group">★ ★ ★ ★ ★</div>
+                  <span class="stars-rule"></span>
+                </div>
+
+                <div class="tier-price-container">
+                  <span class="tier-currency">$</span>
+                  <span class="tier-amount">749</span>
+                </div>
+
+                <div class="tier-scope-pill">UP TO 10 PAGES</div>
+
+                <ul class="tier-features-list">
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="3"></rect><line x1="2" y1="9" x2="22" y2="9"></line><circle cx="6" cy="6" r="1"></circle><circle cx="9" cy="6" r="1"></circle><circle cx="12" cy="6" r="1"></circle><line x1="6" y1="14" x2="18" y2="14"></line><line x1="6" y1="17" x2="14" y2="17"></line></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Up to 10 Pages</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="2"></circle><circle cx="5" cy="19" r="1.5"></circle></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Premium Custom Website Design</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Bespoke Layouts & Visual Experiences</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Conversion-Focused Architecture</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="10" width="3" height="8" rx="1"></rect><rect x="12" y="6" width="3" height="12" rx="1"></rect><rect x="17" y="12" width="3" height="6" rx="1"></rect><polyline points="7 9 12 5 17 8 21 3"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Advanced <span class="feature-seo-underline">SEO</span> + Analytics Dashboard</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Advanced GSAP & Dynamic Interactions</span>
+                  </li>
+                  <li class="tier-feature-item">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><polyline points="21 3 21 8 16 8"></polyline><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path><polyline points="3 21 3 16 8 16"></polyline></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">3 Revision Rounds</span>
+                  </li>
+                  <li class="tier-feature-item highlight-feature">
+                    <div class="feature-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                    <div class="feature-divider"></div>
+                    <span class="feature-text">Priority Dedicated VIP Support</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="pricing-card-bottom">
+                <a href="/project.html?package=dream-elite" class="pricing-card-btn btn-elite-glow">
+                  <span>GO ELITE</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- VIEW PANE 2: CUSTOM PROJECTS FULL SHOWCASE -->
+      <div class="pricing-view-pane" id="view-pane-custom" data-view="custom">
+        <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
+          <div class="container" style="max-width: 820px; margin: 0 auto;">
+            
+            <!-- CUSTOM PROJECTS SLIM STACKED CARD -->
+            <div class="pricing-card custom-stacked-card" id="card-custom">
+              <div class="startup-ribbon">
+                <span class="ribbon-sparkle-star">★</span>
+                <span>BESPOKE BUILDS</span>
+                <span class="ribbon-sparkle-star">★</span>
+              </div>
+
+              <!-- TOP HEADER BLOCK -->
+              <div class="custom-card-header-top">
+                <h3 class="tier-title-chrome">CUSTOM PROJECTS</h3>
+                
+                <div class="tier-stars-line">
+                  <span class="stars-rule"></span>
+                  <div class="stars-group">★ ★ ★ ★ ★</div>
+                  <span class="stars-rule"></span>
+                </div>
+
+                <div class="tier-scope-pill">SOFTWARE &amp; BESPOKE ARCHITECTURE</div>
+
+                <p class="custom-hero-desc">
+                  For brands that require advanced functionality beyond a traditional website. Whether you're building a SaaS product, client portal, web application, or custom e-commerce system, we architect and engineer tailored solutions from the ground up.
+                </p>
+              </div>
+
+              <!-- MIDDLE PROJECTS / CAPABILITIES GRID -->
+              <div class="custom-capabilities-grid">
+                
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">E-Commerce Experiences</div>
+                    <div class="capability-desc">High-conversion Stripe &amp; checkout flows</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">Web Applications &amp; SaaS</div>
+                    <div class="capability-desc">Full-stack web software &amp; databases</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">Portals &amp; Dashboards</div>
+                    <div class="capability-desc">Secure client auth, analytics &amp; files</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">Bespoke Logic &amp; Tools</div>
+                    <div class="capability-desc">Complex calculators, forms &amp; engines</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">Database Architectures</div>
+                    <div class="capability-desc">Supabase, PostgreSQL &amp; accounts</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">API &amp; Webhook Systems</div>
+                    <div class="capability-desc">Third-party automations &amp; sync</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+                <div class="custom-capability-card capability-card-wide">
+                  <div class="capability-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                  </div>
+                  <div class="capability-text-wrap">
+                    <div class="capability-title">Immersive GSAP Motion &amp; Visual FX</div>
+                    <div class="capability-desc">Custom physics, WebGL canvas shaders &amp; interactive micro-animations</div>
+                  </div>
+                  <div class="capability-laser-sheen"></div>
+                </div>
+
+              </div>
+
+              <!-- BOTTOM BUTTON BLOCK -->
+              <div class="custom-card-bottom-action">
+                <a href="/project.html?package=custom" class="pricing-card-btn btn-glow">
+                  <span>GET A CUSTOM QUOTE</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- VIEW PANE 3: PROJECT ADD-ONS CATALOG & INTERACTIVE ESTIMATOR -->
+      <div class="pricing-view-pane" id="view-pane-addons" data-view="addons">
+        <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
+          <div class="container" style="max-width: 820px; margin: 0 auto;">
+            
+            <!-- ADD-ONS SLIM STACKED CARD (MATCHING CUSTOM PROJECTS & PACKAGES) -->
+            <div class="pricing-card custom-stacked-card" id="card-addons">
+              <div class="startup-ribbon">
+                <span class="ribbon-sparkle-star">★</span>
+                <span>MODULAR UPGRADES</span>
+                <span class="ribbon-sparkle-star">★</span>
+              </div>
+
+              <!-- TOP HEADER BLOCK -->
+              <div class="custom-card-header-top">
+                <h3 class="tier-title-chrome">PROJECT ADD-ONS</h3>
+                
+                <div class="tier-stars-line">
+                  <span class="stars-rule"></span>
+                  <div class="stars-group">★ ★ ★ ★ ★</div>
+                  <span class="stars-rule"></span>
+                </div>
+
+                <div class="tier-scope-pill">MODULAR CUSTOMIZATION &amp; ENHANCEMENTS</div>
+
+                <p class="custom-hero-desc">
+                  Select add-ons to customize your package or calculate your project investment in real-time.
+                </p>
+              </div>
+
+              <!-- MIDDLE ADD-ONS CATALOG GRID -->
+              <div class="addons-grid" id="addons-grid">
+                
+                <div class="addon-card" data-addon="extra-page" data-price="75" data-title="Additional Page">
+                  <div class="addon-info">
+                    <div class="addon-title">Additional Page</div>
+                    <div class="addon-desc">Extra responsive custom page</div>
+                  </div>
+                  <div class="addon-price-tag">$75 / pg</div>
+                </div>
+
+                <div class="addon-card" data-addon="booking" data-price="100" data-title="Booking Integration">
+                  <div class="addon-info">
+                    <div class="addon-title">Booking Integration</div>
+                    <div class="addon-desc">Calendly / Acuity sync</div>
+                  </div>
+                  <div class="addon-price-tag">$100</div>
+                </div>
+
+                <div class="addon-card" data-addon="animations" data-price="150" data-title="Advanced Animations">
+                  <div class="addon-info">
+                    <div class="addon-title">Advanced Animations</div>
+                    <div class="addon-desc">GSAP motion &amp; triggers</div>
+                  </div>
+                  <div class="addon-price-tag">$150</div>
+                </div>
+
+                <div class="addon-card" data-addon="cms-blog" data-price="175" data-title="Blog / Dynamic CMS">
+                  <div class="addon-info">
+                    <div class="addon-title">Blog / Dynamic CMS</div>
+                    <div class="addon-desc">Headless publishing system</div>
+                  </div>
+                  <div class="addon-price-tag">$175</div>
+                </div>
+
+                <div class="addon-card" data-addon="ecommerce" data-price="250" data-title="E-Commerce Starter">
+                  <div class="addon-info">
+                    <div class="addon-title">E-Commerce Starter</div>
+                    <div class="addon-desc">Stripe checkout &amp; products</div>
+                  </div>
+                  <div class="addon-price-tag">$250</div>
+                </div>
+
+                <div class="addon-card" data-addon="multi-language" data-price="120" data-title="Multi-Language Support">
+                  <div class="addon-info">
+                    <div class="addon-title">Multi-Language</div>
+                    <div class="addon-desc">i18n multilingual toggle</div>
+                  </div>
+                  <div class="addon-price-tag">$120</div>
+                </div>
+
+                <div class="addon-card" data-addon="rush" data-price="150" data-title="Priority Rush Delivery">
+                  <div class="addon-info">
+                    <div class="addon-title">Priority Rush</div>
+                    <div class="addon-desc">Expedited turnaround sprint</div>
+                  </div>
+                  <div class="addon-price-tag">$150</div>
+                </div>
+
+                <div class="addon-card" data-addon="seo-pro" data-price="100" data-title="Advanced SEO Schema">
+                  <div class="addon-info">
+                    <div class="addon-title">Advanced SEO Schema</div>
+                    <div class="addon-desc">Rich snippets &amp; JSON-LD</div>
+                  </div>
+                  <div class="addon-price-tag">$100</div>
+                </div>
+
+                <div class="addon-card" data-addon="revision" data-price="75" data-title="Additional Revision Round">
+                  <div class="addon-info">
+                    <div class="addon-title">Extra Revision</div>
+                    <div class="addon-desc">Dedicated polish cycle</div>
+                  </div>
+                  <div class="addon-price-tag">$75</div>
+                </div>
+
+              </div>
+
+              <!-- BOTTOM INTERACTIVE ESTIMATOR DOCK -->
+              <div class="estimator-dock" id="estimator-dock">
+                <div class="estimator-summary-left">
+                  <div class="estimator-label">Live Estimate Calculator</div>
+                  <div class="estimator-package-name" id="estimator-base-name">Selected Base: Dream Build ($499)</div>
+                  <div class="estimator-items-count" id="estimator-items-count">0 Add-ons Selected</div>
+                </div>
+
+                <div class="estimator-total-box">
+                  <div class="estimator-total-wrapper">
+                    <div class="estimator-total-label">Estimated Total</div>
+                    <div class="estimator-total-price" id="estimator-total-price">$499</div>
+                  </div>
+                  <button type="button" class="pricing-card-btn btn-glow" id="btn-lock-in-estimate">
+                    <span>BUILD WITH ESTIMATE &rarr;</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+      </div>
+
     </main>
 
     <app-footer></app-footer>
     <script type="module" src="/main.js"></script>
+    
+    <!-- Cosmic Constellation Engine & Pricing Logic (High-Performance Optimized) -->
+    <script>
+      // -------------------------------------------------------------------
+      // Ensure Background Video Plays Reliably on All Browsers (10% Faster)
+      // -------------------------------------------------------------------
+      (function ensureVideoAutoplay() {
+        const vid = document.querySelector('.pricing-bg-video');
+        if (!vid) return;
+
+        const applySpeed = () => {
+          try {
+            vid.playbackRate = 1.1;
+            vid.defaultPlaybackRate = 1.1;
+          } catch (e) {}
+        };
+
+        const playVid = () => {
+          applySpeed();
+          vid.play().catch(() => {});
+          applySpeed();
+        };
+
+        applySpeed();
+        playVid();
+        vid.addEventListener('loadedmetadata', applySpeed, { passive: true });
+        vid.addEventListener('play', applySpeed, { passive: true });
+        vid.addEventListener('playing', applySpeed, { passive: true });
+        document.addEventListener('DOMContentLoaded', playVid, { once: true, passive: true });
+        window.addEventListener('click', playVid, { once: true, passive: true });
+        window.addEventListener('touchstart', playVid, { once: true, passive: true });
+      })();
+
+      // -------------------------------------------------------------------
+      // High-Performance, Battery-Efficient Cosmic Constellation Engine
+      // -------------------------------------------------------------------
+      (function initCosmicConstellation() {
+        const canvas = document.getElementById('pricing-cosmic-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d', { alpha: true });
+        let width = 0;
+        let height = 0;
+        let animationFrameId = null;
+        let isRunning = false;
+        let isVisible = true;
+
+        const maxDist = 160;
+        const maxDistSq = maxDist * maxDist;
+
+        let nodes = [];
+
+        const resize = () => {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(width * dpr);
+          canvas.height = Math.floor(height * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+          // Scaled particle density (keeps load light and fast on all devices)
+          const nodeCount = Math.min(Math.floor((width * height) / 22000), 65);
+          nodes = [];
+          for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              vx: (Math.random() - 0.5) * 0.38,
+              vy: (Math.random() - 0.5) * 0.38,
+              radius: Math.random() * 2.0 + 1.1,
+              sparklePhase: Math.random() * Math.PI * 2,
+              sparkleSpeed: 0.018 + Math.random() * 0.02,
+              color: Math.random() > 0.35 ? '#60a5fa' : '#3b82f6'
+            });
+          }
+        };
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(resize, 100);
+        }, { passive: true });
+
+        resize();
+
+        function drawConstellation() {
+          if (!isRunning) return;
+          ctx.clearRect(0, 0, width, height);
+
+          const len = nodes.length;
+
+          // Connect nearby nodes using squared distance (eliminates Math.sqrt overhead)
+          ctx.lineWidth = 1;
+          for (let i = 0; i < len; i++) {
+            const a = nodes[i];
+            for (let j = i + 1; j < len; j++) {
+              const b = nodes[j];
+              const dx = a.x - b.x;
+              const dy = a.y - b.y;
+              const distSq = dx * dx + dy * dy;
+
+              if (distSq < maxDistSq) {
+                const dist = Math.sqrt(distSq);
+                const lineAlpha = (1 - dist / maxDist) * 0.28;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = `rgba(59, 130, 246, ${lineAlpha})`;
+                ctx.stroke();
+              }
+            }
+          }
+
+          // Update & Draw Nodes
+          for (let i = 0; i < len; i++) {
+            const n = nodes[i];
+            n.x += n.vx;
+            n.y += n.vy;
+
+            if (n.x < -10) n.x = width + 10;
+            if (n.x > width + 10) n.x = -10;
+            if (n.y < -10) n.y = height + 10;
+            if (n.y > height + 10) n.y = -10;
+
+            n.sparklePhase += n.sparkleSpeed;
+            const brightness = 0.45 + Math.sin(n.sparklePhase) * 0.55;
+
+            // Main node circle
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+            ctx.fillStyle = n.color;
+            ctx.globalAlpha = brightness;
+            ctx.fill();
+
+            // Star center sparkle for bright nodes
+            if (brightness > 0.82) {
+              ctx.beginPath();
+              ctx.arc(n.x, n.y, n.radius * 0.5, 0, Math.PI * 2);
+              ctx.fillStyle = '#ffffff';
+              ctx.globalAlpha = 1;
+              ctx.fill();
+            }
+          }
+          ctx.globalAlpha = 1;
+
+          animationFrameId = requestAnimationFrame(drawConstellation);
+        }
+
+        const startAnimation = () => {
+          if (!isRunning && isVisible && !document.hidden) {
+            isRunning = true;
+            animationFrameId = requestAnimationFrame(drawConstellation);
+          }
+        };
+
+        const stopAnimation = () => {
+          isRunning = false;
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+          }
+        };
+
+        // Battery optimization: Stop rendering when tab is hidden or minimized
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            stopAnimation();
+          } else {
+            startAnimation();
+          }
+        }, { passive: true });
+
+        // Pause canvas when out of viewport
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              isVisible = entry.isIntersecting;
+              if (isVisible) {
+                startAnimation();
+              } else {
+                stopAnimation();
+              }
+            });
+          }, { threshold: 0 });
+          observer.observe(canvas);
+        } else {
+          startAnimation();
+        }
+      })();
+
+      // -------------------------------------------------------------------
+      // Fast Interactive Controller & Real-Time Estimator
+      // -------------------------------------------------------------------
+      document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtns = document.querySelectorAll('.pricing-toggle-btn');
+        const viewPanes = document.querySelectorAll('.pricing-view-pane');
+
+        const switchPricingView = (viewKey) => {
+          toggleBtns.forEach(btn => {
+            const isMatch = btn.getAttribute('data-target-view') === viewKey;
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+          });
+
+          viewPanes.forEach(pane => {
+            const isMatch = pane.getAttribute('data-view') === viewKey;
+            pane.classList.toggle('active', isMatch);
+          });
+        };
+
+        toggleBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const viewKey = btn.getAttribute('data-target-view');
+            switchPricingView(viewKey);
+          }, { passive: true });
+        });
+
+        // URL param or hash persistence
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialView = urlParams.get('view') || window.location.hash.replace('#', '');
+        if (initialView && ['packages', 'custom', 'addons'].includes(initialView)) {
+          switchPricingView(initialView);
+        }
+
+        // Base package prices
+        const packagePrices = {
+          'basic': { name: 'Basic ($299)', price: 299 },
+          'dream-build': { name: 'Dream Build ($499)', price: 499 },
+          'dream-elite': { name: 'Dream Elite ($749)', price: 749 },
+          'custom': { name: 'Custom Project', price: 0 }
+        };
+
+        let selectedBase = 'dream-build';
+        const selectedAddons = new Map();
+
+        const baseNameEl = document.getElementById('estimator-base-name');
+        const countEl = document.getElementById('estimator-items-count');
+        const totalPriceEl = document.getElementById('estimator-total-price');
+        const lockInBtn = document.getElementById('btn-lock-in-estimate');
+
+        const updateEstimator = () => {
+          let total = packagePrices[selectedBase].price;
+          let addonCount = 0;
+          let addonNames = [];
+
+          selectedAddons.forEach((addon) => {
+            total += addon.price;
+            addonCount++;
+            addonNames.push(addon.title);
+          });
+
+          if (baseNameEl) {
+            baseNameEl.textContent = `Selected Base: ${packagePrices[selectedBase].name}`;
+          }
+
+          if (countEl) {
+            countEl.textContent = addonCount === 0 
+              ? '0 Add-ons Selected (Click add-on cards above to customize)'
+              : `${addonCount} Add-on${addonCount > 1 ? 's' : ''} Selected (${addonNames.join(', ')})`;
+          }
+
+          if (totalPriceEl) {
+            totalPriceEl.textContent = total === 0 ? 'Custom Quote' : `$${total}`;
+          }
+        };
+
+        // Addon Card click handlers
+        const addonCards = document.querySelectorAll('.addon-card');
+        addonCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const key = card.getAttribute('data-addon');
+            const price = parseInt(card.getAttribute('data-price'), 10) || 0;
+            const title = card.getAttribute('data-title');
+
+            if (selectedAddons.has(key)) {
+              selectedAddons.delete(key);
+              card.classList.remove('selected');
+            } else {
+              selectedAddons.set(key, { price, title });
+              card.classList.add('selected');
+            }
+
+            updateEstimator();
+          }, { passive: true });
+        });
+
+        // Set base package when clicking card
+        const pricingCards = document.querySelectorAll('.pricing-card');
+        pricingCards.forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('a')) return;
+            const id = card.id;
+            if (id === 'card-basic') selectedBase = 'basic';
+            if (id === 'card-dream-build') selectedBase = 'dream-build';
+            if (id === 'card-dream-elite') selectedBase = 'dream-elite';
+            updateEstimator();
+          }, { passive: true });
+        });
+
+        // Lock in & Go to project form
+        if (lockInBtn) {
+          lockInBtn.addEventListener('click', () => {
+            const addonList = Array.from(selectedAddons.keys()).join(',');
+            const url = `/project.html?package=${selectedBase}${addonList ? '&addons=' + encodeURIComponent(addonList) : ''}`;
+            window.location.href = url;
+          });
+        }
+
+        updateEstimator();
+      });
+    </script>
   </body>
 </html>

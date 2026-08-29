@@ -5,30 +5,6 @@ import './components/footer.js';
 
 // Setup any global interactions here
 document.addEventListener('DOMContentLoaded', () => {
-
-
-  // FAQ Accordion Logic
-  const faqQuestions = document.querySelectorAll('.faq-question');
-  faqQuestions.forEach(question => {
-    question.addEventListener('click', () => {
-      const item = question.parentElement;
-      const answer = item.querySelector('.faq-answer');
-      const isActive = item.classList.contains('active');
-
-      // Close all other items
-      document.querySelectorAll('.faq-item').forEach(otherItem => {
-        otherItem.classList.remove('active');
-        otherItem.querySelector('.faq-answer').style.maxHeight = null;
-      });
-
-      // Toggle current item
-      if (!isActive) {
-        item.classList.add('active');
-        answer.style.maxHeight = answer.scrollHeight + "px";
-      }
-    });
-  });
-
   // Lightbox Modal Logic
   const lightboxModal = document.getElementById('lightbox-modal');
   const lightboxImg = document.getElementById('lightbox-img');
@@ -85,16 +61,21 @@ function initNeuralCanvas() {
     let mouse = { x: null, y: null, radius: 180 };
 
     const resize = () => {
-      width = section.clientWidth;
-      height = section.clientHeight;
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.scale(dpr, dpr);
+      const rect = section.getBoundingClientRect();
+      width = rect.width || section.clientWidth || window.innerWidth;
+      height = rect.height || section.clientHeight || 800;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => resize());
+      ro.observe(section);
+    }
+    window.addEventListener('resize', resize, { passive: true });
 
     section.addEventListener('mousemove', (e) => {
       const rect = section.getBoundingClientRect();
@@ -118,8 +99,8 @@ function initNeuralCanvas() {
       }
 
       reset() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
+        this.x = Math.random() * (width || window.innerWidth);
+        this.y = Math.random() * (height || 800);
         this.vx = (Math.random() - 0.5) * 0.8;
         this.vy = (Math.random() - 0.5) * 0.8;
         this.radius = Math.random() * 2 + 1.5;
@@ -280,24 +261,13 @@ function initStarlightCanvas() {
   let width = 0;
   let height = 0;
 
-  const resize = () => {
-    width = section.clientWidth;
-    height = section.clientHeight;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
-  };
-
-  resize();
-  window.addEventListener('resize', resize);
-
   const starColors = [
     '#ffffff',
     '#ffffff',
     '#00f0ff',
     '#e0f7ff',
-    '#ffffff'
+    '#ffffff',
+    '#a5f3fc'
   ];
 
   class FlashingStar {
@@ -306,46 +276,50 @@ function initStarlightCanvas() {
     }
 
     reset() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * height;
-      this.size = Math.random() * 2.5 + 1;
+      // Relative normalized coordinates ensure full width/height coverage across all resolutions
+      this.relX = Math.random();
+      this.relY = Math.random();
+      this.size = Math.random() * 2.6 + 1.1;
       this.color = starColors[Math.floor(Math.random() * starColors.length)];
       this.alpha = Math.random();
-      this.flashSpeed = (0.005 + Math.random() * 0.01) * (Math.random() < 0.5 ? 1 : -1);
-      this.isBigFlare = Math.random() < 0.3; // 30% are 4-point sparkling lens flare stars
+      this.flashSpeed = (0.006 + Math.random() * 0.012) * (Math.random() < 0.5 ? 1 : -1);
+      this.isBigFlare = Math.random() < 0.35; // 35% are 4-point sparkling lens flare stars
       this.rotation = Math.random() * Math.PI;
     }
 
     update() {
       this.alpha += this.flashSpeed;
-      if (this.alpha >= 1 || this.alpha <= 0.15) {
+      if (this.alpha >= 1 || this.alpha <= 0.12) {
         this.flashSpeed *= -1;
       }
       this.rotation += 0.0015;
     }
 
     draw() {
+      const posX = this.relX * width;
+      const posY = this.relY * height;
+
       ctx.save();
-      ctx.globalAlpha = Math.max(0.15, Math.min(1, this.alpha));
+      ctx.globalAlpha = Math.max(0.12, Math.min(1, this.alpha));
 
       // Draw Star Core Glow
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.arc(posX, posY, this.size, 0, Math.PI * 2);
       ctx.fillStyle = this.color;
       ctx.shadowColor = this.color;
-      ctx.shadowBlur = 12 * this.alpha;
+      ctx.shadowBlur = 14 * this.alpha;
       ctx.fill();
 
       // Draw 4-point sparkling lens flare for big stars
-      if (this.isBigFlare && this.alpha > 0.35) {
-        const rayLen = this.size * 6 * this.alpha;
-        ctx.translate(this.x, this.y);
+      if (this.isBigFlare && this.alpha > 0.32) {
+        const rayLen = this.size * 6.5 * this.alpha;
+        ctx.translate(posX, posY);
         ctx.rotate(this.rotation);
 
         ctx.strokeStyle = this.color;
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1.3;
         ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 16;
 
         ctx.beginPath();
         ctx.moveTo(-rayLen, 0); ctx.lineTo(rayLen, 0);
@@ -367,13 +341,13 @@ function initStarlightCanvas() {
     }
 
     reset() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * (height * 0.6);
-      this.len = Math.random() * 90 + 50;
-      this.speed = Math.random() * 2 + 1.8;
-      this.size = Math.random() * 1.8 + 1;
+      this.x = Math.random() * (width || window.innerWidth);
+      this.y = Math.random() * ((height || 1000) * 0.65);
+      this.len = Math.random() * 100 + 60;
+      this.speed = Math.random() * 2.2 + 2.0;
+      this.size = Math.random() * 2 + 1.2;
       this.active = false;
-      this.waitTime = Math.random() * 300 + 150;
+      this.waitTime = Math.random() * 280 + 120;
     }
 
     update() {
@@ -387,7 +361,7 @@ function initStarlightCanvas() {
 
       this.x += this.speed;
       this.y += this.speed * 0.45;
-      if (this.x > width || this.y > height) {
+      if (this.x > width + 100 || this.y > height + 100) {
         this.reset();
       }
     }
@@ -410,8 +384,36 @@ function initStarlightCanvas() {
     }
   }
 
-  const stars = Array.from({ length: 130 }, () => new FlashingStar());
-  const shootingStars = Array.from({ length: 3 }, () => new ShootingStar());
+  let stars = [];
+  const shootingStars = Array.from({ length: 4 }, () => new ShootingStar());
+
+  const populateStars = () => {
+    const targetCount = Math.min(Math.max(Math.floor((width * height) / 10000), 160), 320);
+    while (stars.length < targetCount) {
+      stars.push(new FlashingStar());
+    }
+    if (stars.length > targetCount) {
+      stars.length = targetCount;
+    }
+  };
+
+  const resize = () => {
+    const rect = section.getBoundingClientRect();
+    width = rect.width || section.clientWidth || window.innerWidth;
+    height = rect.height || section.clientHeight || 1000;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    populateStars();
+  };
+
+  resize();
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(section);
+  }
+  window.addEventListener('resize', resize, { passive: true });
 
   const animate = () => {
     ctx.clearRect(0, 0, width, height);

@@ -296,8 +296,73 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.borderColor = 'var(--glass-border)';
       });
     });
+    // Pre-fill fields from URL query params (e.g. from Pricing page)
+    const prefillFromUrlParams = () => {
+      if (!projectForm) return;
+      const params = new URLSearchParams(window.location.search);
+      const pkg = params.get('package');
+      const addons = params.get('addons');
+
+      if (pkg) {
+        // Step 1: Services Needed
+        const customWebsiteCheck = projectForm.querySelector('input[name="building[]"][value="Custom Website"]');
+        if (customWebsiteCheck) customWebsiteCheck.checked = true;
+
+        const pagesSelect = projectForm.querySelector('select[name="pages"]');
+        const budgetSelect = projectForm.querySelector('select[name="budget"]');
+
+        if (pkg === 'basic') {
+          if (pagesSelect) pagesSelect.value = 'Standard Starter Site (2–5 Pages)';
+          if (budgetSelect) budgetSelect.value = 'Under $500';
+        } else if (pkg === 'dream-build') {
+          if (pagesSelect) pagesSelect.value = 'Full Business Site (6–10 Pages)';
+          if (budgetSelect) budgetSelect.value = '$500 – $1,500';
+          const heroAnim = projectForm.querySelector('input[name="features[]"][value="Hero Header Video/Animation"]');
+          if (heroAnim) heroAnim.checked = true;
+          const interactiveForms = projectForm.querySelector('input[name="features[]"][value="Interactive Forms"]');
+          if (interactiveForms) interactiveForms.checked = true;
+        } else if (pkg === 'dream-elite') {
+          if (pagesSelect) pagesSelect.value = 'Full Business Site (6–10 Pages)';
+          if (budgetSelect) budgetSelect.value = '$500 – $1,500';
+          const heroAnim = projectForm.querySelector('input[name="features[]"][value="Hero Header Video/Animation"]');
+          if (heroAnim) heroAnim.checked = true;
+          const formsCheck = projectForm.querySelector('input[name="features[]"][value="Interactive Forms"]');
+          if (formsCheck) formsCheck.checked = true;
+          const seoCheck = projectForm.querySelector('input[name="features[]"][value="Analytics & SEO"]');
+          if (seoCheck) seoCheck.checked = true;
+        } else if (pkg === 'custom') {
+          const devCheck = projectForm.querySelector('input[name="building[]"][value="Website Development"]');
+          if (devCheck) devCheck.checked = true;
+          if (budgetSelect) budgetSelect.value = '$1,500 – $3,000';
+        }
+      }
+
+      if (addons) {
+        const addonList = decodeURIComponent(addons).split(',');
+        addonList.forEach(item => {
+          if (item === 'booking') {
+            const el = projectForm.querySelector('input[name="features[]"][value="Appointment Booking"]');
+            if (el) el.checked = true;
+          } else if (item === 'ecommerce') {
+            const el = projectForm.querySelector('input[name="features[]"][value="Online Payments / Store"]');
+            if (el) el.checked = true;
+            const bldEl = projectForm.querySelector('input[name="building[]"][value="E-Commerce Store"]');
+            if (bldEl) bldEl.checked = true;
+          } else if (item === 'animations') {
+            const el = projectForm.querySelector('input[name="features[]"][value="Hero Header Video/Animation"]');
+            if (el) el.checked = true;
+          } else if (item === 'cms') {
+            const el = projectForm.querySelector('input[name="features[]"][value="Blog / News"]');
+            if (el) el.checked = true;
+          }
+        });
+      }
+    };
+
+    prefillFromUrlParams();
   };
 
   setupMultiStepForm(projectForm, 'project_submissions');
   setupMultiStepForm(consultationForm, 'consultations');
 });
+

@@ -20,10 +20,10 @@ class AppHeader extends HTMLElement {
             <div class="nav-dropdown-menu" id="nav-dropdown-menu">
               <ul class="dropdown-links">
                 <li><a href="/index.html">HOME</a></li>
+                <li><a href="/pricing.html">PRICING</a></li>
                 <li><a href="/index.html#services">SERVICES</a></li>
                 <li><a href="/index.html#portfolio">OUR WORK</a></li>
                 <li><a href="/index.html#process">PROCESS</a></li>
-                <li><a href="/index.html#faq">FAQ</a></li>
               </ul>
             </div>
           </div>

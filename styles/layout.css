@@ -1,4 +1,10 @@
 /* Header Styles */
+app-header {
+  display: block;
+  width: 100%;
+  min-height: var(--nav-height);
+}
+
 .main-header {
   position: fixed;
   top: 0;

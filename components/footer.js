@@ -19,7 +19,6 @@ class AppFooter extends HTMLElement {
                 <li><a href="/index.html#services">Services</a></li>
                 <li><a href="/index.html#portfolio">Our Work</a></li>
                 <li><a href="/index.html#process">Process</a></li>
-                <li><a href="/index.html#faq">FAQ</a></li>
               </ul>
             </div>
             
