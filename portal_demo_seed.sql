@@ -1,4 +1,0 @@
--- =======================================================
--- DREAM BUILT STUDIOS: CLIENT PORTAL DEMO SEED DATA
--- =======================================================
--- Clean setup file - no pre-seeded dummy client accounts.

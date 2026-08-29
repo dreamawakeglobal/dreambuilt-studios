@@ -23,9 +23,7 @@ export default defineConfig({
         main: './index.html',
         consultation: './consultation.html',
         project: './project.html',
-        pricing: './pricing.html',
-        portal: './portal.html',
-        admin: './admin.html'
+        pricing: './pricing.html'
       }
     }
   }

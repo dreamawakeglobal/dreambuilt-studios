@@ -1,3 +1,16 @@
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return str;
+  return str
+    .trim()
+    .replace(/[<>]/g, '') // Strip angle brackets to prevent script injection
+    .slice(0, 5000);     // Prevent unbounded payload sizes
+}
+
+function isValidEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 function saveSubmissionLocally(tableName, data) {
   try {
     const existingRaw = localStorage.getItem('dreambuilt_form_submissions');
@@ -150,6 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
               }
             }
+          } else if (input.type === 'email' && input.value.trim()) {
+            if (!isValidEmail(input.value)) {
+              valid = false;
+              input.style.borderColor = '#ff4d4d';
+            } else {
+              input.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            }
           } else if (!input.value.trim()) {
             valid = false;
             input.style.borderColor = '#ff4d4d';
@@ -194,19 +214,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const formData = new FormData(form);
+
+      // Anti-Spam Security Check: If hidden honeypot field is filled, silently discard bot spam
+      const honeypotVal = formData.get('website_url_hp');
+      if (honeypotVal && honeypotVal.trim() !== '') {
+        console.warn('Security notice: Bot spam attempt rejected via honeypot.');
+        // Show artificial success so automated scrapers don't retry
+        steps.forEach(step => step.classList.remove('active'));
+        if (successState) successState.classList.add('active');
+        return;
+      }
+
       const data = {};
 
       formData.forEach((value, key) => {
+        if (key === 'website_url_hp') return; // Do not store honeypot
         if (!(value instanceof File)) {
           if (typeof value === 'string') {
             const cleanKey = key.replace('[]', '');
+            const sanitizedVal = sanitizeInput(value);
             if (key.endsWith('[]')) {
               if (!data[cleanKey]) {
                 data[cleanKey] = [];
               }
-              if (value.trim()) data[cleanKey].push(value);
+              if (sanitizedVal) data[cleanKey].push(sanitizedVal);
             } else {
-              if (value.trim()) data[key] = value;
+              if (sanitizedVal) data[key] = sanitizedVal;
             }
           }
         }
@@ -226,9 +259,23 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = 'Uploading files...';
       }
 
+      const allowedExtensions = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'pdf', 'doc', 'docx', 'txt', 'zip'];
+      const maxFileSizeBytes = 25 * 1024 * 1024; // 25 MB max
+
       if (fileInput && fileInput.files && fileInput.files.length > 0) {
         for (let file of fileInput.files) {
           if (file.size === 0) continue;
+          if (file.size > maxFileSizeBytes) {
+            console.warn(`File '${file.name}' exceeds 25MB limit. Skipping upload.`);
+            continue;
+          }
+
+          const fileExt = file.name.split('.').pop().toLowerCase();
+          if (!allowedExtensions.includes(fileExt)) {
+            console.warn(`File extension '.${fileExt}' not permitted. Skipping.`);
+            continue;
+          }
+
           if (file.type && file.type.startsWith('image/')) {
             try {
               file = await compressImageFile(file, 1400, 0.75);
@@ -242,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (supabase && supabase.storage) {
               const { data: uploadData, error: uploadErr } = await supabase.storage
                 .from('project-files')
-                .upload(filePath, file, { cacheControl: '31536000', upsert: true });
+                .upload(filePath, file, { cacheControl: '31536000', upsert: false });
 
               if (!uploadErr && uploadData) {
                 const { data: publicUrlData } = supabase.storage
