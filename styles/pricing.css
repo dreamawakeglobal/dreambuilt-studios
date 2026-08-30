@@ -1192,8 +1192,10 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  height: 3.5rem;
+  min-height: 3.8rem;
+  height: auto;
   margin: 0.15rem 0 0.75rem 0;
+  overflow: visible;
 }
 
 .tier-currency {
@@ -1213,15 +1215,19 @@
 }
 
 .tier-amount {
+  display: inline-block;
   font-size: 3.35rem;
   font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  padding: 0.05em 0.12em 0.08em 0.02em;
+  font-variant-numeric: tabular-nums;
   background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 42%, #1d4ed8 85%, #60a5fa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.85));
+  overflow: visible;
 }
 
 /* Scope Pill Badge (e.g. UP TO 7 PAGES) */
