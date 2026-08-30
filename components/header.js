@@ -21,6 +21,7 @@ class AppHeader extends HTMLElement {
               <ul class="dropdown-links">
                 <li><a href="/index.html">HOME</a></li>
                 <li><a href="/pricing.html">PRICING</a></li>
+                <li><a href="/consultation.html">BOOK CONSULTATION</a></li>
                 <li><a href="/index.html#services">SERVICES</a></li>
                 <li><a href="/index.html#portfolio">OUR WORK</a></li>
                 <li><a href="/index.html#process">PROCESS</a></li>
@@ -29,7 +30,7 @@ class AppHeader extends HTMLElement {
           </div>
           
           <div class="header-actions">
-            <a href="/project.html" class="btn btn-primary">Start Your Project</a>
+            <a href="/project.html" class="btn btn-primary">Build Your Dream</a>
           </div>
         </div>
       </header>

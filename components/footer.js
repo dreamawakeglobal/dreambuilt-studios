@@ -25,7 +25,8 @@ class AppFooter extends HTMLElement {
             <div class="footer-links-group">
               <h4>Action</h4>
               <ul class="footer-links">
-                <li><a href="/project.html">Start Project</a></li>
+                <li><a href="/project.html">Build Your Dream</a></li>
+                <li><a href="/consultation.html">Book Consultation</a></li>
                 <li><a href="/pricing.html">Pricing</a></li>
               </ul>
             </div>

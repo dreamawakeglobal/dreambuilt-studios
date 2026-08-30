@@ -73,16 +73,37 @@
   margin-bottom: 1.75rem;
 }
 
-.hero-actions .btn-primary {
+.hero-actions .btn-primary,
+.hero-actions .btn-secondary {
   animation: floatSlow 4s ease-in-out infinite;
-  box-shadow: 0 4px 25px rgba(0, 240, 255, 0.45);
   padding: 1.1rem 2.5rem;
   font-size: 1.25rem;
-  transition: box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.hero-actions .btn-primary {
+  box-shadow: 0 4px 25px rgba(0, 240, 255, 0.45);
 }
 
 .hero-actions .btn-primary:hover {
   box-shadow: 0 10px 35px rgba(0, 240, 255, 0.85);
+}
+
+.hero-actions .btn-secondary {
+  animation-delay: 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.15);
+}
+
+.hero-actions .btn-secondary:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 240, 255, 0.5);
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
@@ -219,7 +240,8 @@
   .hero-lead-text {
     font-size: 1.6rem;
   }
-  .hero-actions .btn-primary {
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     padding: 1.15rem 2.6rem;
     font-size: 1.25rem;
   }
@@ -269,7 +291,8 @@
     margin-top: 1.75rem;
     margin-bottom: 1.25rem;
   }
-  .hero-actions .btn-primary {
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     padding: 1.1rem 2.5rem;
     font-size: 1.25rem;
   }
@@ -318,7 +341,8 @@
     margin-top: 1.35rem;
     margin-bottom: 1rem;
   }
-  .hero-actions .btn-primary {
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     padding: 1rem 2.25rem;
     font-size: 1.15rem;
   }
@@ -369,7 +393,8 @@
   .hero-lead-text {
     font-size: 1.3rem;
   }
-  .hero-actions .btn-primary {
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     padding: 0.95rem 2.1rem;
     font-size: 1.08rem;
   }
@@ -401,7 +426,8 @@
     margin-top: 1.25rem;
     margin-bottom: 0.95rem;
   }
-  .hero-actions .btn-primary {
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     padding: 0.9rem 2.1rem;
     font-size: 1.1rem;
   }

@@ -36,7 +36,7 @@
     <!-- Cosmic Constellation Canvas Background -->
     <canvas id="pricing-cosmic-canvas" class="pricing-cosmic-canvas"></canvas>
 
-    <main style="padding-top: var(--nav-height);">
+    <main class="pricing-main">
       
       <!-- HERO SECTION -->
       <section class="pricing-hero">
@@ -607,21 +607,83 @@
 
               <!-- BOTTOM INTERACTIVE ESTIMATOR DOCK -->
               <div class="estimator-dock" id="estimator-dock">
-                <div class="estimator-summary-left">
-                  <div class="estimator-label">Live Estimate Calculator</div>
-                  <div class="estimator-package-name" id="estimator-base-name">Selected Base: Dream Build ($499)</div>
-                  <div class="estimator-items-count" id="estimator-items-count">0 Add-ons Selected</div>
+                
+                <!-- HEADER BAR -->
+                <div class="estimator-dock-header">
+                  <div class="estimator-badge">
+                    <span class="estimator-pulse-dot"></span>
+                    <span>Live Estimate Calculator</span>
+                  </div>
+                  <div class="estimator-header-actions">
+                    <span class="estimator-status-tag" id="estimator-status-tag">Real-Time Sync</span>
+                    <button type="button" class="estimator-reset-btn" id="estimator-reset-btn" title="Reset all add-ons" style="display: none;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      <span>Reset Add-Ons</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div class="estimator-total-box">
-                  <div class="estimator-total-wrapper">
-                    <div class="estimator-total-label">Estimated Total</div>
-                    <div class="estimator-total-price" id="estimator-total-price">$499</div>
+                <!-- 1. BASE PACKAGE TIER SELECTOR -->
+                <div class="estimator-block">
+                  <div class="estimator-block-header">
+                    <span class="estimator-block-title">1. Base Package</span>
+                    <span class="estimator-block-subtitle" id="estimator-base-selected-text">Selected: Dream Build ($499)</span>
                   </div>
-                  <button type="button" class="pricing-card-btn btn-glow" id="btn-lock-in-estimate">
-                    <span>BUILD WITH ESTIMATE &rarr;</span>
-                  </button>
+                  <div class="estimator-tier-switcher" role="radiogroup" aria-label="Select Base Package">
+                    <button type="button" class="estimator-tier-pill" data-tier="basic">
+                      <span class="tier-pill-name">Basic</span>
+                      <span class="tier-pill-price">$299</span>
+                    </button>
+                    <button type="button" class="estimator-tier-pill active" data-tier="dream-build">
+                      <span class="tier-pill-star">★</span>
+                      <span class="tier-pill-name">Dream Build</span>
+                      <span class="tier-pill-price">$499</span>
+                    </button>
+                    <button type="button" class="estimator-tier-pill" data-tier="dream-elite">
+                      <span class="tier-pill-name">Dream Elite</span>
+                      <span class="tier-pill-price">$749</span>
+                    </button>
+                    <button type="button" class="estimator-tier-pill" data-tier="custom">
+                      <span class="tier-pill-name">Add-Ons Only</span>
+                      <span class="tier-pill-price">$0</span>
+                    </button>
+                  </div>
                 </div>
+
+                <!-- 2. ACTIVE ADD-ONS BREAKDOWN TRAY -->
+                <div class="estimator-block">
+                  <div class="estimator-block-header">
+                    <span class="estimator-block-title">2. Selected Upgrades</span>
+                    <span class="estimator-block-count" id="estimator-items-count">0 Selected</span>
+                  </div>
+                  <div class="estimator-chips-tray" id="estimator-chips-tray">
+                    <div class="estimator-empty-hint" id="estimator-empty-hint">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                      <span>Click add-on cards above to attach upgrades to this estimate</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="estimator-laser-divider"></div>
+
+                <!-- 3. BOTTOM TOTAL & CTA ACTION BAR -->
+                <div class="estimator-bottom-bar">
+                  <div class="estimator-total-cluster">
+                    <div class="estimator-total-label-row">
+                      <span class="estimator-total-label">Estimated Total</span>
+                      <span class="estimator-transparency-badge">Upfront Pricing</span>
+                    </div>
+                    <div class="estimator-price-action-row">
+                      <span class="estimator-total-price" id="estimator-total-price">$499</span>
+                      <button type="button" class="pricing-card-btn btn-glow estimator-submit-btn" id="btn-lock-in-estimate">
+                        <span>BUILD WITH ESTIMATE</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      </button>
+                    </div>
+                    <span class="estimator-price-terms">No hidden fees • Full ownership</span>
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -863,42 +925,115 @@
           'basic': { name: 'Basic ($299)', price: 299 },
           'dream-build': { name: 'Dream Build ($499)', price: 499 },
           'dream-elite': { name: 'Dream Elite ($749)', price: 749 },
-          'custom': { name: 'Custom Project', price: 0 }
+          'custom': { name: 'Add-Ons Only ($0)', price: 0 }
         };
 
         let selectedBase = 'dream-build';
         const selectedAddons = new Map();
 
-        const baseNameEl = document.getElementById('estimator-base-name');
+        const baseSelectedTextEl = document.getElementById('estimator-base-selected-text');
         const countEl = document.getElementById('estimator-items-count');
+        const chipsTrayEl = document.getElementById('estimator-chips-tray');
+        const resetBtnEl = document.getElementById('estimator-reset-btn');
         const totalPriceEl = document.getElementById('estimator-total-price');
         const lockInBtn = document.getElementById('btn-lock-in-estimate');
+        const tierPills = document.querySelectorAll('.estimator-tier-pill');
+
+        const renderChips = () => {
+          if (!chipsTrayEl) return;
+          
+          if (selectedAddons.size === 0) {
+            chipsTrayEl.innerHTML = `
+              <div class="estimator-empty-hint" id="estimator-empty-hint">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Click add-on cards above to attach upgrades to this estimate</span>
+              </div>`;
+            if (resetBtnEl) resetBtnEl.style.display = 'none';
+          } else {
+            let html = '';
+            selectedAddons.forEach((addon, key) => {
+              html += `
+                <div class="estimator-chip" data-addon-key="${key}">
+                  <span class="chip-name">${addon.title}</span>
+                  <span class="chip-price">+$${addon.price}</span>
+                  <button type="button" class="chip-remove" data-remove-key="${key}" title="Remove ${addon.title}" aria-label="Remove ${addon.title}">&times;</button>
+                </div>
+              `;
+            });
+            chipsTrayEl.innerHTML = html;
+            if (resetBtnEl) resetBtnEl.style.display = 'inline-flex';
+
+            // Attach remove listeners to dynamic chip cross buttons
+            chipsTrayEl.querySelectorAll('.chip-remove').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const removeKey = btn.getAttribute('data-remove-key');
+                if (selectedAddons.has(removeKey)) {
+                  selectedAddons.delete(removeKey);
+                  const matchingCard = document.querySelector(`.addon-card[data-addon="${removeKey}"]`);
+                  if (matchingCard) matchingCard.classList.remove('selected');
+                  updateEstimator();
+                }
+              });
+            });
+          }
+        };
+
+        const updateTierPills = () => {
+          tierPills.forEach(pill => {
+            const tier = pill.getAttribute('data-tier');
+            pill.classList.toggle('active', tier === selectedBase);
+          });
+        };
 
         const updateEstimator = () => {
-          let total = packagePrices[selectedBase].price;
-          let addonCount = 0;
-          let addonNames = [];
+          const basePkg = packagePrices[selectedBase] || packagePrices['dream-build'];
+          let total = basePkg.price;
+          let addonCount = selectedAddons.size;
 
           selectedAddons.forEach((addon) => {
             total += addon.price;
-            addonCount++;
-            addonNames.push(addon.title);
           });
 
-          if (baseNameEl) {
-            baseNameEl.textContent = `Selected Base: ${packagePrices[selectedBase].name}`;
+          if (baseSelectedTextEl) {
+            baseSelectedTextEl.textContent = `Selected: ${basePkg.name}`;
           }
 
           if (countEl) {
             countEl.textContent = addonCount === 0 
-              ? '0 Add-ons Selected (Click add-on cards above to customize)'
-              : `${addonCount} Add-on${addonCount > 1 ? 's' : ''} Selected (${addonNames.join(', ')})`;
+              ? '0 Upgrades Selected'
+              : `${addonCount} Upgrade${addonCount > 1 ? 's' : ''} Selected`;
           }
 
           if (totalPriceEl) {
-            totalPriceEl.textContent = total === 0 ? 'Custom Quote' : `$${total}`;
+            totalPriceEl.textContent = `$${total}`;
           }
+
+          updateTierPills();
+          renderChips();
         };
+
+        // Tier pill click handlers (Quick switcher inside calculator)
+        tierPills.forEach(pill => {
+          pill.addEventListener('click', () => {
+            const tier = pill.getAttribute('data-tier');
+            if (tier && packagePrices[tier]) {
+              selectedBase = tier;
+              updateEstimator();
+            }
+          });
+        });
+
+        // Reset button handler
+        if (resetBtnEl) {
+          resetBtnEl.addEventListener('click', () => {
+            selectedAddons.clear();
+            document.querySelectorAll('.addon-card.selected').forEach(card => {
+              card.classList.remove('selected');
+            });
+            updateEstimator();
+          });
+        }
 
         // Addon Card click handlers
         const addonCards = document.querySelectorAll('.addon-card');
@@ -920,11 +1055,11 @@
           }, { passive: true });
         });
 
-        // Set base package when clicking card
+        // Set base package when clicking card on packages view
         const pricingCards = document.querySelectorAll('.pricing-card');
         pricingCards.forEach(card => {
           card.addEventListener('click', (e) => {
-            if (e.target.closest('a')) return;
+            if (e.target.closest('a') || e.target.closest('.estimator-dock')) return;
             const id = card.id;
             if (id === 'card-basic') selectedBase = 'basic';
             if (id === 'card-dream-build') selectedBase = 'dream-build';

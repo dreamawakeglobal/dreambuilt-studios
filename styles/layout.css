@@ -218,8 +218,26 @@ app-header {
 
 .header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
+}
+
+.header-btn-pricing,
+.header-btn-consultation {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e6eef8;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-btn-pricing:hover,
+.header-btn-consultation:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(0, 240, 255, 0.45);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+  transform: translateY(-2px);
 }
 
 .mobile-menu-toggle {
@@ -360,6 +378,9 @@ app-header {
   .logo-image {
     height: 46px;
   }
+  .nav-dropdown-wrapper {
+    transform: translateX(3vw);
+  }
   .nav-circle-btn {
     width: 44px;
     height: 44px;
@@ -367,6 +388,10 @@ app-header {
   .dropdown-links li a {
     padding: 0.58rem 1.1rem;
     font-size: 0.8rem;
+  }
+  .header-actions .btn {
+    padding: 0.76rem 1.65rem;
+    font-size: 0.9rem;
   }
   .main-footer {
     padding-top: 3.25rem;
@@ -382,6 +407,9 @@ app-header {
   .logo-image {
     height: 42px;
   }
+  .nav-dropdown-wrapper {
+    transform: translateX(3vw);
+  }
   .nav-circle-btn {
     width: 40px;
     height: 40px;
@@ -391,8 +419,8 @@ app-header {
     font-size: 0.76rem;
   }
   .header-actions .btn {
-    padding: 0.72rem 1.45rem;
-    font-size: 0.88rem;
+    padding: 0.65rem 1.3rem;
+    font-size: 0.79rem;
   }
   .main-footer {
     padding-top: 2.75rem;
@@ -412,9 +440,12 @@ app-header {
   .logo-image {
     height: 38px;
   }
+  .nav-dropdown-wrapper {
+    transform: translateX(3vw);
+  }
   .header-actions .btn {
-    padding: 0.68rem 1.25rem;
-    font-size: 0.85rem;
+    padding: 0.6rem 1.12rem;
+    font-size: 0.76rem;
   }
   .footer-grid {
     gap: 1.5rem;
@@ -436,10 +467,15 @@ app-header {
     padding: 0 1rem;
   }
 
+  .header-actions {
+    gap: 0.5rem;
+  }
+
   .header-actions .btn {
-    padding: 0.65rem 1.25rem;
-    font-size: 0.85rem;
+    padding: 0.55rem 0.95rem;
+    font-size: 0.78rem;
     font-weight: 700;
+    white-space: nowrap;
   }
 
   .dropdown-links li a {
