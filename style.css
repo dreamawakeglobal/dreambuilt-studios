@@ -343,12 +343,12 @@ p {
   max-width: 860px;
   margin: 0 auto;
   background: rgba(2, 8, 19, 0.88);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1.5px solid rgba(59, 130, 246, 0.6);
   border-radius: 24px;
   padding: 3.5rem 3rem;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(0, 102, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -360,7 +360,7 @@ p {
   right: -120px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 102, 255, 0.2) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -386,9 +386,9 @@ p {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-bright), var(--accent-electric));
+  background: linear-gradient(90deg, #1e3a8a, #2563eb, #60a5fa);
   border-radius: 10px;
-  box-shadow: 0 0 12px var(--accent-electric);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.8);
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -424,18 +424,18 @@ p {
 }
 
 .step-indicator.active .step-num {
-  border-color: var(--accent-electric);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 102, 255, 0.2));
-  color: var(--accent-electric);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  border-color: #60a5fa;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.35), rgba(59, 130, 246, 0.25));
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
   transform: scale(1.1);
 }
 
 .step-indicator.completed .step-num {
-  border-color: var(--accent-electric);
-  background: var(--accent-electric);
-  color: #020813;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #0066ff, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
 }
 
 .step-title {
@@ -447,7 +447,7 @@ p {
 }
 
 .step-indicator.active .step-title {
-  color: var(--accent-electric);
+  color: #60a5fa;
 }
 
 /* Form Controls & Inputs */
@@ -481,9 +481,9 @@ p {
 
 .form-control:focus {
   outline: none;
-  background: rgba(0, 240, 255, 0.04);
-  border-color: var(--accent-electric);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 102, 255, 0.06);
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
 }
 
@@ -496,7 +496,7 @@ textarea.form-control {
 select.form-control {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1.25rem center;
   background-size: 16px;
@@ -530,8 +530,8 @@ select.form-control option {
 }
 
 .radio-label:hover, .checkbox-label:hover {
-  background: rgba(0, 240, 255, 0.06);
-  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 102, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.45);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
@@ -557,14 +557,14 @@ select.form-control option {
 }
 
 .radio-label input[type="radio"]:checked, .checkbox-label input[type="checkbox"]:checked {
-  background: var(--accent-electric);
-  border-color: var(--accent-electric);
-  box-shadow: 0 0 12px var(--accent-electric);
+  background: linear-gradient(135deg, #0066ff, #3b82f6);
+  border-color: #60a5fa;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
 }
 
 .checkbox-label input[type="checkbox"]:checked::after {
   content: '✓';
-  color: #020813;
+  color: #ffffff;
   font-weight: 900;
   font-size: 0.8rem;
 }
@@ -574,13 +574,13 @@ select.form-control option {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #020813;
+  background: #ffffff;
 }
 
 .radio-label:has(input:checked), .checkbox-label:has(input:checked) {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(0, 102, 255, 0.12));
-  border-color: var(--accent-electric);
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.18), rgba(59, 130, 246, 0.18));
+  border-color: #3b82f6;
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 10px 25px rgba(0, 0, 0, 0.6);
   transform: translateY(-3px);
 }
 
