@@ -43,11 +43,24 @@ CREATE TABLE public.project_submissions (
 
 ALTER TABLE public.project_submissions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public form submissions" 
-ON public.project_submissions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert only for project_submissions" 
+ON public.project_submissions FOR INSERT 
+TO public, anon, authenticated 
+WITH CHECK (true);
 
-CREATE POLICY "Allow admins to view submissions" 
-ON public.project_submissions FOR SELECT USING (true);
+CREATE POLICY "Admin full access on project_submissions" 
+ON public.project_submissions FOR ALL 
+TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+)
+WITH CHECK (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 1.3 Create Consultations Table
 CREATE TABLE public.consultations (
@@ -62,17 +75,38 @@ CREATE TABLE public.consultations (
   phone TEXT,
   company TEXT,
   website TEXT,
+  business_type TEXT,
+  what_to_build TEXT,
+  has_website TEXT,
+  primary_goal TEXT,
+  features TEXT,
+  budget TEXT,
+  timeline TEXT,
+  vision TEXT,
   notes TEXT,
   status TEXT DEFAULT 'new' NOT NULL
 );
 
 ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public consultation submissions" 
-ON public.consultations FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert only for consultations" 
+ON public.consultations FOR INSERT 
+TO public, anon, authenticated 
+WITH CHECK (true);
 
-CREATE POLICY "Allow admins to view consultations" 
-ON public.consultations FOR SELECT USING (true);
+CREATE POLICY "Admin full access on consultations" 
+ON public.consultations FOR ALL 
+TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+)
+WITH CHECK (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 
 -- -------------------------------------------------------
@@ -91,17 +125,32 @@ DROP TABLE IF EXISTS public.clients CASCADE;
 -- 2.1 Create Clients Table
 CREATE TABLE public.clients (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   business_name TEXT NOT NULL,
   contact_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   phone TEXT,
-  password_hash TEXT DEFAULT 'demo1234' NOT NULL,
-  avatar_initials TEXT DEFAULT 'AC'
+  avatar_initials TEXT DEFAULT 'DB'
 );
 
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on clients" ON public.clients FOR ALL USING (true);
+
+CREATE POLICY "Clients can view their own profile" 
+ON public.clients FOR SELECT TO authenticated 
+USING (
+  user_id = auth.uid() 
+  OR email = (auth.jwt() ->> 'email')
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
+
+CREATE POLICY "Admins have full access on clients" 
+ON public.clients FOR ALL TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 2.2 Create Projects Table
 CREATE TABLE public.projects (
@@ -117,7 +166,21 @@ CREATE TABLE public.projects (
 );
 
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on projects" ON public.projects FOR ALL USING (true);
+
+CREATE POLICY "Clients can view their own projects" 
+ON public.projects FOR SELECT TO authenticated 
+USING (
+  client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
+
+CREATE POLICY "Admins have full access on projects" 
+ON public.projects FOR ALL TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 2.3 Create Action Items Table ("Needs Your Attention")
 CREATE TABLE public.action_items (
@@ -127,26 +190,52 @@ CREATE TABLE public.action_items (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   due_date TEXT NOT NULL,
-  action_type TEXT DEFAULT 'upload_file' NOT NULL, -- upload_file, review_page, approve_milestone
+  action_type TEXT DEFAULT 'upload_file' NOT NULL,
   completed BOOLEAN DEFAULT false NOT NULL
 );
 
 ALTER TABLE public.action_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on action_items" ON public.action_items FOR ALL USING (true);
+
+CREATE POLICY "Clients can manage action items on their projects" 
+ON public.action_items FOR ALL TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
 
 -- 2.4 Create Website Pages Table (Screenshot Mockups)
 CREATE TABLE public.website_pages (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
-  title TEXT NOT NULL, -- Home Page, About Page, Services Page, Contact Page
+  title TEXT NOT NULL,
   screenshot_url TEXT NOT NULL,
   version TEXT DEFAULT 'v1.0' NOT NULL,
-  status TEXT DEFAULT 'Ready for Review' NOT NULL -- Ready for Review, Approved, Changes Requested
+  status TEXT DEFAULT 'Ready for Review' NOT NULL
 );
 
 ALTER TABLE public.website_pages ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on website_pages" ON public.website_pages FOR ALL USING (true);
+
+CREATE POLICY "Clients can view pages for their projects" 
+ON public.website_pages FOR SELECT TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
+
+CREATE POLICY "Admins have full access on website_pages" 
+ON public.website_pages FOR ALL TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 2.5 Create Feedback Items Table (Revision Board)
 CREATE TABLE public.feedback_items (
@@ -157,38 +246,73 @@ CREATE TABLE public.feedback_items (
   title TEXT NOT NULL,
   comment TEXT NOT NULL,
   priority TEXT DEFAULT 'Normal' NOT NULL,
-  status TEXT DEFAULT 'Submitted' NOT NULL -- Submitted, In Progress, Ready for Review, Completed
+  status TEXT DEFAULT 'Submitted' NOT NULL
 );
 
 ALTER TABLE public.feedback_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on feedback_items" ON public.feedback_items FOR ALL USING (true);
+
+CREATE POLICY "Clients can manage feedback on their projects" 
+ON public.feedback_items FOR ALL TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
 
 -- 2.6 Create Project Checklist Items Table
 CREATE TABLE public.project_checklist_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
-  phase_name TEXT NOT NULL, -- 1. INTAKE & DISCOVERY, 2. DESIGN PHASE, 3. BUILD PHASE, 4. REVIEW PHASE, 5. LAUNCH PHASE
+  phase_name TEXT NOT NULL,
   title TEXT NOT NULL,
-  owner TEXT DEFAULT 'Dream Built' NOT NULL, -- Dream Built, Client Action
-  status TEXT DEFAULT 'Upcoming' NOT NULL -- Completed, In Progress, Action Required, Upcoming
+  owner TEXT DEFAULT 'Dream Built' NOT NULL,
+  status TEXT DEFAULT 'Upcoming' NOT NULL
 );
 
 ALTER TABLE public.project_checklist_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on project_checklist_items" ON public.project_checklist_items FOR ALL USING (true);
+
+CREATE POLICY "Clients can view checklist for their projects" 
+ON public.project_checklist_items FOR SELECT TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
+
+CREATE POLICY "Admins have full access on project_checklist_items" 
+ON public.project_checklist_items FOR ALL TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 2.7 Create Real-Time Messages Table
 CREATE TABLE public.messages (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
-  sender_name TEXT NOT NULL, -- Dream Built, Client Contact Name
+  sender_name TEXT NOT NULL,
   message_text TEXT NOT NULL,
   time_formatted TEXT NOT NULL
 );
 
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on messages" ON public.messages FOR ALL USING (true);
+
+CREATE POLICY "Clients can view and send messages on their projects" 
+ON public.messages FOR ALL TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
 
 -- 2.8 Create Asset Library Table
 CREATE TABLE public.project_assets (
@@ -202,7 +326,16 @@ CREATE TABLE public.project_assets (
 );
 
 ALTER TABLE public.project_assets ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow read/write on project_assets" ON public.project_assets FOR ALL USING (true);
+
+CREATE POLICY "Clients can view assets on their projects" 
+ON public.project_assets FOR SELECT TO authenticated 
+USING (
+  project_id IN (
+    SELECT id FROM public.projects 
+    WHERE client_id IN (SELECT id FROM public.clients WHERE user_id = auth.uid() OR email = (auth.jwt() ->> 'email'))
+  )
+  OR (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+);
 
 
 -- -------------------------------------------------------
@@ -214,43 +347,68 @@ VALUES ('project-files', 'project-files', true)
 ON CONFLICT (id) DO NOTHING;
 
 DROP POLICY IF EXISTS "Allow public file uploads" ON storage.objects;
-CREATE POLICY "Allow public file uploads" 
-ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'project-files');
-
 DROP POLICY IF EXISTS "Allow public file access" ON storage.objects;
-CREATE POLICY "Allow public file access" 
-ON storage.objects FOR SELECT USING (bucket_id = 'project-files');
+DROP POLICY IF EXISTS "Restricted file uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Public read on project files" ON storage.objects;
+DROP POLICY IF EXISTS "Admin delete on storage files" ON storage.objects;
+
+CREATE POLICY "Restricted file uploads" 
+ON storage.objects FOR INSERT 
+TO public, anon, authenticated 
+WITH CHECK (
+  bucket_id = 'project-files' 
+  AND (
+    LOWER(storage.extension(name)) IN ('png', 'jpg', 'jpeg', 'webp', 'svg', 'pdf', 'doc', 'docx', 'txt', 'zip')
+  )
+  AND (
+    (metadata->>'size')::bigint <= 26214400 -- 25 MB max in bytes
+    OR metadata->>'size' IS NULL
+  )
+);
+
+CREATE POLICY "Public read on project files" 
+ON storage.objects FOR SELECT 
+TO public, anon, authenticated 
+USING (bucket_id = 'project-files');
+
+CREATE POLICY "Admin delete on storage files" 
+ON storage.objects FOR DELETE 
+TO authenticated 
+USING (
+  bucket_id = 'project-files' 
+  AND (
+    (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+    OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+    OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+  )
+);
 
 
 -- -------------------------------------------------------
 -- SECTION 4: AUTOMATIC SERVER-SIDE CHECKLIST TRIGGER
 -- -------------------------------------------------------
--- Automatically populates the 21-item 5-phase roadmap whenever a new project is created in Supabase
-
 CREATE OR REPLACE FUNCTION public.seed_project_checklist()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.project_checklist_items (project_id, phase_name, title, owner, status) VALUES
   (NEW.id, '1. INTAKE & DISCOVERY', 'Initial client consultation and requirements gathering', 'Dream Built', 'Upcoming'),
-  (NEW.id, '1. INTAKE & DISCOVERY', 'Target audience and market research (El Salvador corporate focus)', 'Dream Built', 'Upcoming'),
-  (NEW.id, '1. INTAKE & DISCOVERY', 'Defining brand identity (Premium, Deep Blue, Gold)', 'Dream Built', 'Upcoming'),
-  (NEW.id, '1. INTAKE & DISCOVERY', 'Outlining site architecture (Home, About, Services, Packages, Contact)', 'Dream Built', 'Upcoming'),
-  (NEW.id, '2. DESIGN PHASE', 'UI/UX layout planning', 'Dream Built', 'Upcoming'),
+  (NEW.id, '1. INTAKE & DISCOVERY', 'Target audience and market research (Corporate & Startups)', 'Dream Built', 'Upcoming'),
+  (NEW.id, '1. INTAKE & DISCOVERY', 'Defining brand identity (Modern, Deep Blue, Glow)', 'Dream Built', 'Upcoming'),
+  (NEW.id, '1. INTAKE & DISCOVERY', 'Outlining site architecture (Home, Pricing, Services, Contact)', 'Dream Built', 'Upcoming'),
+  (NEW.id, '2. DESIGN PHASE', 'UI/UX layout planning & responsive wireframes', 'Dream Built', 'Upcoming'),
   (NEW.id, '2. DESIGN PHASE', 'Selecting modern typography and visual elements', 'Dream Built', 'Upcoming'),
-  (NEW.id, '2. DESIGN PHASE', 'Designing custom UI components (metallic gold gradients, glow effects)', 'Dream Built', 'Upcoming'),
+  (NEW.id, '2. DESIGN PHASE', 'Designing custom UI components (metallic gradients, glow effects)', 'Dream Built', 'Upcoming'),
   (NEW.id, '2. DESIGN PHASE', 'Drafting localized copy and service structures', 'Dream Built', 'Upcoming'),
   (NEW.id, '3. BUILD PHASE', 'Developing HTML structure and semantic markup', 'Dream Built', 'Upcoming'),
   (NEW.id, '3. BUILD PHASE', 'Implementing CSS styling and responsive mobile layouts', 'Dream Built', 'Upcoming'),
-  (NEW.id, '3. BUILD PHASE', 'Refining package features, monthly structures, and pricing models', 'Dream Built', 'Upcoming'),
-  (NEW.id, '3. BUILD PHASE', 'Adding social media links (LinkedIn, Instagram, TikTok)', 'Dream Built', 'Upcoming'),
-  (NEW.id, '3. BUILD PHASE', 'Finalizing interactive elements and form functionality', 'Dream Built', 'Upcoming'),
-  (NEW.id, '4. REVIEW PHASE', 'Cross-browser and mobile device testing', 'Dream Built', 'Upcoming'),
-  (NEW.id, '4. REVIEW PHASE', 'Proofreading Spanish copy and checking grammar/accents', 'Client Action', 'Upcoming'),
+  (NEW.id, '3. BUILD PHASE', 'Refining package features, add-ons, and pricing calculator', 'Dream Built', 'Upcoming'),
+  (NEW.id, '3. BUILD PHASE', 'Adding interactive elements and form validation', 'Dream Built', 'Upcoming'),
+  (NEW.id, '4. REVIEW PHASE', 'Cross-browser and mobile device QA testing', 'Dream Built', 'Upcoming'),
   (NEW.id, '4. REVIEW PHASE', 'Testing all links, forms, and widgets for proper functionality', 'Dream Built', 'Upcoming'),
   (NEW.id, '4. REVIEW PHASE', 'Client review and final feedback rounds', 'Client Action', 'Upcoming'),
-  (NEW.id, '5. LAUNCH PHASE', 'Final performance optimization and cache busting', 'Dream Built', 'Upcoming'),
+  (NEW.id, '5. LAUNCH PHASE', 'Final performance optimization and asset caching', 'Dream Built', 'Upcoming'),
   (NEW.id, '5. LAUNCH PHASE', 'Configuring domain and hosting deployment', 'Dream Built', 'Upcoming'),
-  (NEW.id, '5. LAUNCH PHASE', 'SEO metadata implementation (titles, descriptions)', 'Dream Built', 'Upcoming'),
+  (NEW.id, '5. LAUNCH PHASE', 'SEO metadata implementation (titles, descriptions, schema)', 'Dream Built', 'Upcoming'),
   (NEW.id, '5. LAUNCH PHASE', 'Post-launch monitoring and client hand-off', 'Dream Built', 'Upcoming');
   
   RETURN NEW;
@@ -262,4 +420,3 @@ CREATE TRIGGER trigger_seed_project_checklist
   AFTER INSERT ON public.projects
   FOR EACH ROW
   EXECUTE FUNCTION public.seed_project_checklist();
-

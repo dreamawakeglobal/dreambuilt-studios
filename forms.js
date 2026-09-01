@@ -1,4 +1,6 @@
-function sanitizeInput(str) {
+import { supabase } from './lib/supabase.js';
+
+export function sanitizeInput(str) {
   if (typeof str !== 'string') return str;
   return str
     .trim()
@@ -6,16 +8,17 @@ function sanitizeInput(str) {
     .slice(0, 5000);     // Prevent unbounded payload sizes
 }
 
-function isValidEmail(email) {
+export function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-function saveSubmissionLocally(tableName, data) {
+export function saveSubmissionLocally(tableName, data) {
   try {
     const existingRaw = localStorage.getItem('dreambuilt_form_submissions');
     const existing = existingRaw ? JSON.parse(existingRaw) : [];
     
+    // Store sanitized recovery record
     const newSubmission = {
       id: `sub-loc-${Date.now()}`,
       table: tableName,
@@ -24,14 +27,26 @@ function saveSubmissionLocally(tableName, data) {
       ...data
     };
 
+    // Keep only last 5 submissions for recovery to prevent storage bloat
     existing.unshift(newSubmission);
+    if (existing.length > 5) existing.length = 5;
     localStorage.setItem('dreambuilt_form_submissions', JSON.stringify(existing));
   } catch (e) {
-    console.warn('Error saving submission to local storage:', e);
+    console.warn('Notice: Local storage backup unavailable:', e);
   }
 }
 
-async function compressImageFile(file, maxWidth = 1400, quality = 0.75) {
+export function clearSubmissionLocally(tableName) {
+  try {
+    const existingRaw = localStorage.getItem('dreambuilt_form_submissions');
+    if (!existingRaw) return;
+    const existing = JSON.parse(existingRaw);
+    const filtered = existing.filter(sub => sub.table !== tableName);
+    localStorage.setItem('dreambuilt_form_submissions', JSON.stringify(filtered));
+  } catch (e) {}
+}
+
+export async function compressImageFile(file, maxWidth = 1400, quality = 0.75) {
   return new Promise((resolve) => {
     if (!file || !file.type || !file.type.startsWith('image/')) return resolve(file);
     const reader = new FileReader();
@@ -71,15 +86,16 @@ async function compressImageFile(file, maxWidth = 1400, quality = 0.75) {
   });
 }
 
-// Multi-step form logic with Supabase integration & LocalStorage fallback
-document.addEventListener('DOMContentLoaded', () => {
+// Multi-step form logic with Supabase integration, validation & error boundaries
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
   const projectForm = document.getElementById('project-form');
   const consultationForm = document.getElementById('consultation-form');
 
   const setupMultiStepForm = (form, tableName) => {
     if (!form) return;
 
-    const steps = form.querySelectorAll('.form-step[data-step]');
+    const steps = Array.from(form.querySelectorAll('.form-step[data-step]'));
     const nextBtns = form.querySelectorAll('.next-step');
     const prevBtns = form.querySelectorAll('.prev-step');
     const successState = form.querySelector('#success-state');
@@ -91,10 +107,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressFill = container ? container.querySelector('.progress-fill') : null;
     const stepIndicators = container ? container.querySelectorAll('.step-indicator') : [];
 
+    // Create or locate inline error alert container
+    let errorBanner = form.querySelector('.form-error-banner');
+    if (!errorBanner) {
+      errorBanner = document.createElement('div');
+      errorBanner.className = 'form-error-banner';
+      errorBanner.style.cssText = `
+        display: none;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1.5px solid #ef4444;
+        color: #fca5a5;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        text-align: left;
+        backdrop-filter: blur(10px);
+      `;
+      form.prepend(errorBanner);
+    }
+
+    const showError = (message) => {
+      errorBanner.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="font-size: 1.25rem; line-height: 1;">⚠️</span>
+          <div style="flex: 1;">
+            <strong>Submission Notice:</strong> ${message}
+          </div>
+        </div>
+      `;
+      errorBanner.style.display = 'block';
+      errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    const hideError = () => {
+      errorBanner.style.display = 'none';
+      errorBanner.innerHTML = '';
+    };
+
+    // Set min date constraint on any date picker to prevent selecting past dates
+    const dateInputs = form.querySelectorAll('input[type="date"]');
+    const todayStr = new Date().toISOString().split('T')[0];
+    dateInputs.forEach(input => {
+      input.setAttribute('min', todayStr);
+    });
+
     const updateSteps = () => {
+      hideError();
       steps.forEach((step, index) => {
         if (index === currentStep) {
           step.classList.add('active');
+          const firstFocusable = step.querySelector('input:not([type="hidden"]), select, textarea, button');
+          if (firstFocusable && document.activeElement && document.activeElement.tagName === 'BUTTON') {
+            firstFocusable.focus();
+          }
         } else {
           step.classList.remove('active');
         }
@@ -119,74 +186,86 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    nextBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const currentStepEl = steps[currentStep];
-        const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
-        let valid = true;
-        const checkedGroupNames = new Set();
+    const validateStep = (stepIndex) => {
+      const stepEl = steps[stepIndex];
+      if (!stepEl) return true;
 
-        inputs.forEach(input => {
-          if (input.type === 'radio') {
-            if (!checkedGroupNames.has(input.name)) {
-              checkedGroupNames.add(input.name);
-              const isChecked = form.querySelector(`input[name="${input.name}"]:checked`);
-              const labels = currentStepEl.querySelectorAll(`input[name="${input.name}"]`);
-              if (!isChecked) {
-                valid = false;
-                labels.forEach(i => {
-                  const lbl = i.closest('label');
-                  if (lbl) lbl.style.borderColor = '#ff4d4d';
-                });
-              } else {
-                labels.forEach(i => {
-                  const lbl = i.closest('label');
-                  if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                });
-              }
-            }
-          } else if (input.type === 'checkbox') {
-            if (!checkedGroupNames.has(input.name)) {
-              checkedGroupNames.add(input.name);
-              const checkedCount = currentStepEl.querySelectorAll(`input[name="${input.name}"]:checked`).length;
-              const labels = currentStepEl.querySelectorAll(`input[name="${input.name}"]`);
-              if (checkedCount === 0) {
-                valid = false;
-                labels.forEach(i => {
-                  const lbl = i.closest('label');
-                  if (lbl) lbl.style.borderColor = '#ff4d4d';
-                });
-              } else {
-                labels.forEach(i => {
-                  const lbl = i.closest('label');
-                  if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                });
-              }
-            }
-          } else if (input.type === 'email' && input.value.trim()) {
-            if (!isValidEmail(input.value)) {
+      const inputs = stepEl.querySelectorAll('input[required], select[required], textarea[required]');
+      let valid = true;
+      const checkedGroupNames = new Set();
+
+      inputs.forEach(input => {
+        if (input.type === 'radio') {
+          if (!checkedGroupNames.has(input.name)) {
+            checkedGroupNames.add(input.name);
+            const isChecked = form.querySelector(`input[name="${input.name}"]:checked`);
+            const labels = stepEl.querySelectorAll(`input[name="${input.name}"]`);
+            if (!isChecked) {
               valid = false;
-              input.style.borderColor = '#ff4d4d';
+              labels.forEach(i => {
+                const lbl = i.closest('label');
+                if (lbl) lbl.style.borderColor = '#ef4444';
+              });
             } else {
-              input.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+              labels.forEach(i => {
+                const lbl = i.closest('label');
+                if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              });
             }
-          } else if (!input.value.trim()) {
+          }
+        } else if (input.type === 'checkbox') {
+          if (!checkedGroupNames.has(input.name)) {
+            checkedGroupNames.add(input.name);
+            const checkedCount = stepEl.querySelectorAll(`input[name="${input.name}"]:checked`).length;
+            const labels = stepEl.querySelectorAll(`input[name="${input.name}"]`);
+            if (checkedCount === 0) {
+              valid = false;
+              labels.forEach(i => {
+                const lbl = i.closest('label');
+                if (lbl) lbl.style.borderColor = '#ef4444';
+              });
+            } else {
+              labels.forEach(i => {
+                const lbl = i.closest('label');
+                if (lbl) lbl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              });
+            }
+          }
+        } else if (input.type === 'email' && input.value.trim()) {
+          if (!isValidEmail(input.value)) {
             valid = false;
-            input.style.borderColor = '#ff4d4d';
+            input.style.borderColor = '#ef4444';
           } else {
             input.style.borderColor = 'rgba(255, 255, 255, 0.12)';
           }
-        });
-
-        if (valid && currentStep < steps.length - 1) {
-          currentStep++;
-          updateSteps();
+        } else if (!input.value.trim()) {
+          valid = false;
+          input.style.borderColor = '#ef4444';
+        } else {
+          input.style.borderColor = 'rgba(255, 255, 255, 0.12)';
         }
+      });
+
+      return valid;
+    };
+
+    const goToNextStep = () => {
+      if (validateStep(currentStep) && currentStep < steps.length - 1) {
+        currentStep++;
+        updateSteps();
+      }
+    };
+
+    nextBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToNextStep();
       });
     });
 
     prevBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
         if (currentStep > 0) {
           currentStep--;
           updateSteps();
@@ -194,32 +273,36 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // Prevent premature Enter key submit on non-final steps
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        if (currentStep < steps.length - 1) {
+          e.preventDefault();
+          goToNextStep();
+        }
+      }
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      hideError();
 
-      // Validate inputs in the active step before submit
-      const currentStepEl = steps[currentStep];
-      if (currentStepEl) {
-        const activeInputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
-        let stepValid = true;
-        activeInputs.forEach(input => {
-          if (!input.value || !input.value.trim() || (input.type === 'radio' && !form.querySelector(`input[name="${input.name}"]:checked`))) {
-            stepValid = false;
-            input.style.borderColor = '#ff4d4d';
-          } else {
-            input.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-          }
-        });
-        if (!stepValid) return;
+      // Validate all steps from start to finish
+      for (let i = 0; i <= currentStep; i++) {
+        if (!validateStep(i)) {
+          currentStep = i;
+          updateSteps();
+          showError('Please complete all required fields before submitting.');
+          return;
+        }
       }
 
       const formData = new FormData(form);
 
-      // Anti-Spam Security Check: If hidden honeypot field is filled, silently discard bot spam
+      // Anti-Spam Security Check: Honeypot verification
       const honeypotVal = formData.get('website_url_hp');
       if (honeypotVal && honeypotVal.trim() !== '') {
         console.warn('Security notice: Bot spam attempt rejected via honeypot.');
-        // Show artificial success so automated scrapers don't retry
         steps.forEach(step => step.classList.remove('active'));
         if (successState) successState.classList.add('active');
         return;
@@ -228,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = {};
 
       formData.forEach((value, key) => {
-        if (key === 'website_url_hp') return; // Do not store honeypot
+        if (key === 'website_url_hp') return; // Exclude honeypot
         if (!(value instanceof File)) {
           if (typeof value === 'string') {
             const cleanKey = key.replace('[]', '');
@@ -298,14 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (publicUrlData && publicUrlData.publicUrl) {
                   uploadedFileUrls.push(publicUrlData.publicUrl);
                 }
-              } else {
-                uploadedFileUrls.push(file.name);
               }
-            } else {
-              uploadedFileUrls.push(file.name);
             }
           } catch (e) {
-            uploadedFileUrls.push(file.name);
+            console.warn('File upload notice:', e);
           }
         }
       }
@@ -318,21 +397,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (submitBtn) submitBtn.textContent = 'Submitting...';
 
-      // Always save locally as fallback so no submission is ever lost
+      // Save locally as a temporary fallback before transmission
       saveSubmissionLocally(tableName, data);
+
+      let insertSuccess = false;
+      let errorMessage = '';
 
       if (supabase) {
         try {
           const { error } = await supabase.from(tableName).insert([data]);
           if (error) {
-            console.warn(`Supabase insert notice on '${tableName}':`, error.message);
+            console.error(`Supabase insert notice on '${tableName}':`, error.message);
+            errorMessage = error.message;
+          } else {
+            insertSuccess = true;
+            clearSubmissionLocally(tableName);
           }
         } catch (err) {
-          console.warn('Supabase submission fallback:', err);
+          console.error('Supabase submission error:', err);
+          errorMessage = err.message || 'Connection timeout';
         }
       }
 
-      // Display success state
+      // If insert failed, surface error state with retry option
+      if (!insertSuccess) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+        showError('We were unable to reach the server. Your information has been preserved. Please check your connection and click submit again.');
+        return;
+      }
+
+      // Display success state on confirmed submission
       steps.forEach(step => step.classList.remove('active'));
       if (successState) successState.classList.add('active');
     });
@@ -343,6 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.borderColor = 'var(--glass-border)';
       });
     });
+
     // Pre-fill fields from URL query params (e.g. from Pricing page)
     const prefillFromUrlParams = () => {
       if (!projectForm) return;
@@ -409,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     prefillFromUrlParams();
   };
 
-  setupMultiStepForm(projectForm, 'project_submissions');
-  setupMultiStepForm(consultationForm, 'consultations');
-});
-
+    setupMultiStepForm(projectForm, 'project_submissions');
+    setupMultiStepForm(consultationForm, 'consultations');
+  });
+}

@@ -5,18 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pricing & Packages | Dream Built Studios</title>
     <meta name="description" content="Transparent website design and development packages. From clean professional builds to bespoke premium digital experiences. No hidden fees." />
+    <link rel="canonical" href="https://dreambuiltstudios.com/pricing.html" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dreambuiltstudios.com/pricing.html" />
+    <meta property="og:title" content="Pricing & Packages | Dream Built Studios" />
+    <meta property="og:description" content="Transparent website design and development packages. From clean professional builds to bespoke premium digital experiences. No hidden fees." />
+    <meta property="og:image" content="https://dreambuiltstudios.com/images/hero-bg-4k.webp" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://dreambuiltstudios.com/pricing.html" />
+    <meta name="twitter:title" content="Pricing & Packages | Dream Built Studios" />
+    <meta name="twitter:description" content="Transparent website design and development packages. From clean professional builds to bespoke premium digital experiences. No hidden fees." />
+    <meta name="twitter:image" content="https://dreambuiltstudios.com/images/hero-bg-4k.webp" />
     
-    <!-- Favicon -->
+    <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Schema.org Product & Service Offerings -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "OfferCatalog",
+      "name": "Dream Built Studios Web Design Packages",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Basic Website Package",
+            "description": "Clean, modern starter website up to 3 pages with contact forms and mobile optimization."
+          },
+          "price": "299",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Dream Build Package",
+            "description": "Full business website up to 6 pages with custom branding, animations, and speed optimization."
+          },
+          "price": "699",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Dream Elite Package",
+            "description": "Flagship digital experience up to 10 pages with advanced interactive UI, booking, and full technical SEO."
+          },
+          "price": "1299",
+          "priceCurrency": "USD"
+        }
+      ]
+    }
+    </script>
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/layout.css" />
@@ -98,6 +154,7 @@
       <div class="pricing-view-pane active" id="view-pane-packages" data-view="packages">
         <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
           <div class="container">
+            <h2 class="sr-only">Core Website Packages</h2>
             <div class="pricing-cards-grid">
             
             <!-- 01: BASIC ($299) - START-UPS -->
@@ -376,6 +433,7 @@
       <div class="pricing-view-pane" id="view-pane-custom" data-view="custom">
         <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
           <div class="container" style="max-width: 820px; margin: 0 auto;">
+            <h2 class="sr-only">Custom Website Projects</h2>
             
             <!-- CUSTOM PROJECTS SLIM STACKED CARD -->
             <div class="pricing-card custom-stacked-card" id="card-custom">
@@ -502,6 +560,7 @@
       <div class="pricing-view-pane" id="view-pane-addons" data-view="addons">
         <section class="section" style="padding-top: 0.25rem; padding-bottom: 0.5rem;">
           <div class="container" style="max-width: 820px; margin: 0 auto;">
+            <h2 class="sr-only">Website Add-Ons and Modular Upgrades</h2>
             
             <!-- ADD-ONS SLIM STACKED CARD (MATCHING CUSTOM PROJECTS & PACKAGES) -->
             <div class="pricing-card custom-stacked-card" id="card-addons">

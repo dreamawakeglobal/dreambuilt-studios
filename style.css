@@ -73,6 +73,19 @@ p {
   font-size: 1.125rem;
 }
 
+/* Accessibility: Screen Reader Only Utility */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
+
 .highlight {
   color: var(--accent-electric);
 }
@@ -608,6 +621,7 @@ select.form-control option {
   display: block;
 }
 
+.form-step h2,
 .form-step h3 {
   font-size: 1.6rem;
   font-weight: 800;
@@ -1193,4 +1207,37 @@ select.form-control option {
     padding: 1.35rem;
   }
 }
+
+/* ==========================================================================
+   ACCESSIBILITY (a11y) & WCAG 2.1 AA COMPLIANCE
+   ========================================================================== */
+
+/* Enhanced Keyboard Focus Indicators */
+:focus-visible {
+  outline: 2.5px solid var(--accent-electric) !important;
+  outline-offset: 3px !important;
+}
+
+/* Reduced Motion Mode (WCAG 2.2.2 & 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .brand-statement-img,
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary,
+  .nav-circle-btn,
+  .nav-dropdown-menu.active .dropdown-links li,
+  .trust-items {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 

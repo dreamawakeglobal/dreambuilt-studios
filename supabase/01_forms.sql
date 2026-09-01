@@ -32,8 +32,25 @@ CREATE TABLE public.project_submissions (
 );
 
 ALTER TABLE public.project_submissions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public form submissions" ON public.project_submissions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow admins to view submissions" ON public.project_submissions FOR SELECT USING (true);
+
+CREATE POLICY "Public insert only for project_submissions" 
+ON public.project_submissions FOR INSERT 
+TO public, anon, authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "Admin full access on project_submissions" 
+ON public.project_submissions FOR ALL 
+TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+)
+WITH CHECK (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);
 
 -- 2. Consultations Table (Book Consultation Submissions)
 CREATE TABLE public.consultations (
@@ -48,10 +65,35 @@ CREATE TABLE public.consultations (
   phone TEXT,
   company TEXT,
   website TEXT,
+  business_type TEXT,
+  what_to_build TEXT,
+  has_website TEXT,
+  primary_goal TEXT,
+  features TEXT,
+  budget TEXT,
+  timeline TEXT,
+  vision TEXT,
   notes TEXT,
   status TEXT DEFAULT 'new' NOT NULL
 );
 
 ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public consultation submissions" ON public.consultations FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow admins to view consultations" ON public.consultations FOR SELECT USING (true);
+
+CREATE POLICY "Public insert only for consultations" 
+ON public.consultations FOR INSERT 
+TO public, anon, authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "Admin full access on consultations" 
+ON public.consultations FOR ALL 
+TO authenticated 
+USING (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+)
+WITH CHECK (
+  (auth.jwt() ->> 'email') ILIKE '%@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'admin@dreambuiltstudios.com'
+  OR (auth.jwt() ->> 'email') = 'tariq@dreambuiltstudios.com'
+);

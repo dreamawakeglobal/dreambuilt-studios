@@ -4,11 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Book a Consultation | Dream Built Studios</title>
-    <!-- Favicon -->
+    <meta name="description" content="Schedule a 1-on-1 strategy call with Dream Built Studios to discuss your website design, e-commerce, or digital platform vision." />
+    <link rel="canonical" href="https://dreambuiltstudios.com/consultation.html" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dreambuiltstudios.com/consultation.html" />
+    <meta property="og:title" content="Book a Consultation | Dream Built Studios" />
+    <meta property="og:description" content="Schedule a 1-on-1 strategy call with Dream Built Studios to discuss your website design, e-commerce, or digital platform vision." />
+    <meta property="og:image" content="https://dreambuiltstudios.com/images/hero-bg-4k.webp" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://dreambuiltstudios.com/consultation.html" />
+    <meta name="twitter:title" content="Book a Consultation | Dream Built Studios" />
+    <meta name="twitter:description" content="Schedule a 1-on-1 strategy call with Dream Built Studios to discuss your website design, e-commerce, or digital platform vision." />
+    <meta name="twitter:image" content="https://dreambuiltstudios.com/images/hero-bg-4k.webp" />
+
+    <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -33,7 +50,7 @@
           
           <div class="form-container animate-on-scroll" style="transition-delay: 0.1s;">
             <!-- Step Progress Header -->
-            <div class="form-progress-bar">
+            <div class="form-progress-bar" aria-live="polite" aria-label="Form Progress">
               <div class="progress-track"><div class="progress-fill" id="consultation-progress-fill" style="width: 33.3%;"></div></div>
               <div class="progress-steps-indicators">
                 <div class="step-indicator active" data-step-num="1"><span class="step-num">1</span><span class="step-title">Type</span></div>
@@ -46,12 +63,12 @@
               <!-- Anti-Spam Security Honeypot (Invisible to human users) -->
               <div style="display: none !important; opacity: 0; position: absolute; left: -9999px;" aria-hidden="true">
                 <label for="consult_hp">Leave this field blank</label>
-                <input type="text" id="consult_hp" name="website_url_hp" tabindex="-1" autocomplete="off" value="">
+                <input type="text" id="consult_hp" name="website_url_hp" tabindex="-1" autocomplete="new-password" value="">
               </div>
 
               <!-- Step 1 -->
               <div class="form-step active" data-step="1">
-                <h3 class="mb-4">STEP 1: Choose consultation type</h3>
+                <h2 class="mb-4">STEP 1: Choose consultation type</h2>
                 <div class="radio-group mb-4">
                   <label class="radio-label">
                     <input type="radio" name="consultation_type" value="Website Consultation" required>
@@ -77,7 +94,7 @@
 
               <!-- Step 2 & 3 (Combined for simplicity, mock calendar) -->
               <div class="form-step" data-step="2">
-                <h3 class="mb-4">STEP 2: Choose Date & Time</h3>
+                <h2 class="mb-4">STEP 2: Choose Date & Time</h2>
                 <p class="text-sm mb-4">Select your preferred date and time for the consultation call.</p>
                 
                 <div class="grid grid-cols-2 mb-4">
@@ -86,16 +103,16 @@
                     <input type="date" class="form-control" name="consultation_date" required>
                   </div>
                   <div class="form-group">
-                    <label class="form-label">Time</label>
+                    <label class="form-label">Time (EST)</label>
                     <select class="form-control" name="consultation_time" required>
                       <option value="">Select a time...</option>
-                      <option value="09:00 AM">09:00 AM</option>
-                      <option value="10:00 AM">10:00 AM</option>
-                      <option value="11:00 AM">11:00 AM</option>
-                      <option value="01:00 PM">01:00 PM</option>
-                      <option value="02:00 PM">02:00 PM</option>
-                      <option value="03:00 PM">03:00 PM</option>
-                      <option value="04:00 PM">04:00 PM</option>
+                      <option value="09:00 AM EST">09:00 AM EST</option>
+                      <option value="10:00 AM EST">10:00 AM EST</option>
+                      <option value="11:00 AM EST">11:00 AM EST</option>
+                      <option value="01:00 PM EST">01:00 PM EST</option>
+                      <option value="02:00 PM EST">02:00 PM EST</option>
+                      <option value="03:00 PM EST">03:00 PM EST</option>
+                      <option value="04:00 PM EST">04:00 PM EST</option>
                     </select>
                   </div>
                 </div>
@@ -108,7 +125,7 @@
 
               <!-- Step 4 -->
               <div class="form-step" data-step="3">
-                <h3 class="mb-4">STEP 3: Your Information</h3>
+                <h2 class="mb-4">STEP 3: Your Information</h2>
                 <div class="grid grid-cols-2 mb-4">
                   <div class="form-group">
                     <label class="form-label">First Name</label>
@@ -148,7 +165,7 @@
 
               <!-- Step 5 -->
               <div class="form-step" data-step="4">
-                <h3 class="mb-4">STEP 4: Project Information</h3>
+                <h2 class="mb-4">STEP 4: Project Information</h2>
                 
                 <div class="form-group">
                   <label class="form-label">What are you looking to build?</label>
@@ -211,8 +228,8 @@
               <!-- Success State -->
               <div class="form-step text-center" id="success-state">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-                <h3 class="text-gradient mb-2">YOUR CONSULTATION IS BOOKED.</h3>
-                <p>We’re excited to hear about your vision. A confirmation email has been sent to your address.</p>
+                <h2 class="text-gradient mb-2">YOUR CONSULTATION IS BOOKED.</h2>
+                <p>We’re excited to hear about your vision. Our team will review your details and reach out within <strong>24–48 hours</strong>.</p>
                 <a href="/index.html" class="btn btn-secondary mt-4">Return Home</a>
               </div>
             </form>
